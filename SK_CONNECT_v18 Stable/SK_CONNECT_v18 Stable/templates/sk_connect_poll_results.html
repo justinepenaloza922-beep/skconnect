@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Poll Results</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body class="antialiased bg-gray-50">
+  <div class="max-w-4xl mx-auto p-6">
+    <div class="bg-white rounded-lg shadow p-6">
+      <div class="flex justify-between items-center mb-4">
+        <h1 class="text-2xl font-bold">{{ poll.question }}</h1>
+        <a href="{{ url_for('admin_feedback') }}" class="text-sm text-blue-600">Back to Polls</a>
+      </div>
+
+      <div class="mb-6">
+        <canvas id="pollChart" height="120"></canvas>
+      </div>
+
+      <div class="space-y-2">
+        {% for label, value in zip(labels, values) %}
+          <div class="flex items-center justify-between">
+            <div class="text-sm text-gray-700">{{ label }}</div>
+            <div class="text-sm text-gray-900">{{ value }} votes</div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <script id="poll-data" type="application/json">{{ {'labels': labels, 'values': values}|tojson }}</script>
+  <script>
+    (function(){
+      const pollDataEl = document.getElementById('poll-data');
+      let pollData = {labels: [], values: []};
+      try{
+        if(pollDataEl && pollDataEl.textContent) pollData = JSON.parse(pollDataEl.textContent || '{}');
+      }catch(e){ console.error('Invalid poll data JSON', e); }
+
+      const pollLabels = pollData.labels || [];
+      const pollValues = pollData.values || [];
+      const ctx = document.getElementById('pollChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'doughnut',
+        data: { labels: pollLabels, datasets: [{ data: pollValues, backgroundColor: ['#3B82F6','#10B981','#F59E0B','#EF4444','#8B5CF6','#06B6D4'], borderWidth: 1 }] },
+        options: { responsive: true, maintainAspectRatio: false }
+      });
+    })();
+  </script>
+</body>
+</html>

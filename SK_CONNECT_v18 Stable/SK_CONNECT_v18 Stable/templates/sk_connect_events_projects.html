@@ -1,0 +1,1966 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>SK Connect — Events</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{ --sk-blue:#0d2a52; --sk-yellow:#FCD116; }
+
+    /* --- layout fixes (remove top gap + prevent double scroll) --- */
+    html, body { height:100%; margin:0; overflow:hidden; }
+    body{
+      font-family:"Poppins",system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial,"Noto Sans","Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol";
+      background:#fff;
+      color:#111827;
+    }
+    main { overflow:auto; -webkit-overflow-scrolling:touch; }
+    body.modal-open { overflow:hidden; }  /* lock page when modal open */
+
+    /* Sidebar + nav */
+    .sidebar{ background:var(--sk-blue)!important; color:#fff; }
+    .sidebar .sidebar-item{ color:#e5e7eb; }
+    .sidebar .sidebar-item:hover{ background:rgba(255,255,255,.06); transform:translateX(4px); }
+    .active-nav{
+      background:linear-gradient(90deg, rgba(252,209,22,.22), rgba(252,209,22,0))!important;
+      border-left:4px solid var(--sk-yellow);
+      color:#fff!important;
+    }
+
+    /* Topbar stays above overlay so it doesn't get "sabaw" */
+    .app-topbar{
+      background:#fff!important; color:#111827;
+      border-bottom:1px solid #e5e7eb; position:sticky; top:0; z-index:50 !important;
+    }
+    .brand-img{ width:40px; height:40px; border-radius:10px; object-fit:cover; }
+
+    /* Cards */
+    .kpi-card{ border:1px solid #eef2f7; border-radius:1rem; }
+
+    /* Dropdown & misc */
+    .dropdown-item:hover { background:#f3f4f6; }
+    .dropdown-divider { border-top:1px solid #e5e7eb; }
+
+    /* -------- MODALS: single inner scrollbar + bold titles -------- */
+    .modal-overlay {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem 1rem;
+        background: rgba(17,24,39,0.75); /* gray-900 @ 75% */
+        backdrop-filter: blur(6px);      /* <-- add blur */
+        -webkit-backdrop-filter: blur(6px);
+        z-index: 100 !important;         /* <-- higher than topbar */
+        overflow-y: auto;
+        }
+
+        .modal-overlay.hidden { 
+        display: none !important;
+        }
+    .modal-panel{
+      width:100%;
+      max-height:90vh;
+      background:#fff;
+      border-radius:0.75rem;
+      box-shadow:0 10px 25px rgba(0,0,0,.15);
+      display:flex; flex-direction:column;
+      overflow:hidden;                    /* prevents page scrollbars */
+    }
+    .modal-header{
+      position:sticky; top:0; z-index:1;
+      background:#fff;
+      border-bottom:1px solid #e5e7eb;
+      padding:1rem 1.5rem;
+    }
+    .modal-title{ font-weight:800; }      /* bolder titles */
+    .modal-body{
+      padding:1rem 1.5rem;
+      overflow:auto;                      /* <- single inner scrollbar */
+      max-height:calc(90vh - 64px);       /* header ~64px tall */
+    }
+
+    /* Make the page title a bit bolder too */
+    #page-title{ font-weight:800; }
+    
+    /* QR Scanner Styles */
+    .qr-scanner-container {
+      width: 100%;
+      max-width: 500px;
+      margin: 0 auto;
+      position: relative;
+    }
+    .qr-scanner-video {
+      width: 100%;
+      border-radius: 8px;
+      display: block;
+    }
+    .qr-scanner-overlay {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 250px;
+      height: 250px;
+      border: 3px solid #0d2a52;
+      border-radius: 8px;
+      box-shadow: inset 0 0 0 9999px rgba(0, 0, 0, 0.3);
+    }
+
+    /* QR Scanner Modal - Layer on top of Attendance Modal */
+    #qrScannerModal {
+      z-index: 200 !important;
+    }
+  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+</head>
+
+<body class="antialiased">
+  <div class="flex h-screen overflow-hidden">
+    <!-- Sidebar (same look as Dashboard) -->
+    <aside class="hidden md:flex md:flex-shrink-0 sidebar">
+      <div class="flex flex-col w-64">
+        <div class="px-4 py-6 flex items-center">
+          <img src="/static/images/SKLOGO.png" alt="SK Logo" class="brand-img mr-3">
+          <div>
+            <div class="text-white text-xl font-extrabold">SK<span class="text-yellow-300">Connect</span></div>
+          <!-- Debug toast (shows admin notifications / debug messages) -->
+          <div id="debugToast" aria-live="polite" class="fixed bottom-6 right-6 z-50 hidden">
+            <div id="debugToastInner" class="max-w-sm w-full bg-white shadow-lg rounded-md pointer-events-auto ring-1 ring-black ring-opacity-5 overflow-hidden">
+              <div id="debugToastMessage" class="p-4 text-sm text-gray-800"></div>
+            </div>
+          </div>
+            <div class="text-blue-200 text-xs">Los Baños Federation</div>
+          </div>
+        </div>
+
+        <div class="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
+          <nav class="flex-1 px-2 space-y-1">
+            <a href="admin_dashboard" data-title="Dashboard" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-home mr-3 text-lg"></i> Dashboard
+            </a>
+            <a href="admin_announcements" data-title="Announcements" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-bullhorn mr-3 text-lg"></i> Announcements
+            </a>
+            <a href="admin_events_projects" data-title="Events & Projects"  class="sidebar-item active-nav flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-calendar mr-3 text-lg"></i> Events & Projects
+            </a>
+            <a href="admin_financial_report" data-title="Financial Reports" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-chart-pie mr-3 text-lg"></i> Financial Reports
+            </a>
+            <a href="admin_feedback" data-title="Surveys & Polls" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-poll mr-3 text-lg"></i> Surveys & Polls
+            </a>
+            <a href="admin_documents" data-title="Documents" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-file-alt mr-3 text-lg"></i> Documents
+            </a>
+            <a href="admin_volunteer" data-title="Volunteer" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-hands-helping mr-3 text-lg"></i> Volunteer
+            </a>
+            <a href="admin_training_resources" data-title="Training Resources" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-graduation-cap mr-3 text-lg"></i> Training Resources
+            </a>
+            <a href="admin_community" data-title="Community Board" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-users mr-3 text-lg"></i> Community Board
+            </a>
+            <a href="admin_incidents" data-title="Incident Reports" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-exclamation-triangle mr-3 text-lg"></i> Incident Reports
+            </a>
+            <a href="admin_user_approval" data-title="User Approval" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-user-check mr-3 text-lg"></i> User Approval
+            </a>
+          </nav>
+        </div>
+
+        <!-- user dropdown -->
+        <div class="flex-shrink-0 flex border-t border-white/10 p-4 relative">
+          <div id="userDropdownToggle" class="flex flex-col items-center cursor-pointer w-full">
+            <div class="flex items-center justify-center w-full">
+              <img class="h-9 w-9 rounded-full" src="{{ current_user.profile_pic if current_user and current_user.profile_pic else get_default_profile_image(current_user) }}" alt="Profile">
+              <div class="ml-3 flex-1 min-w-0">
+                <div class="text-base font-medium text-white truncate uppercase">{{ session['username'] if session.get('username') else 'Guest' }}</div>
+                <div class="text-xs text-blue-100 mt-0.5 truncate">{{ session['position']|title if session.get('position') else 'User' }}</div>
+              </div>
+              <i class="fas fa-chevron-down ml-2 text-blue-200 flex-shrink-0"></i>
+            </div>
+          </div>
+          <ul id="userDropdownMenu" class="absolute left-0 right-0 mx-auto bottom-14 z-20 w-60 bg-white rounded shadow-lg py-2 text-gray-700 hidden">
+            <li>
+              <a class="dropdown-item flex items-center px-4 py-2 hover:bg-gray-100" href="{{ url_for('profile') }}">
+                <i class="fas fa-user mr-2"></i>Profile
+              </a>
+            </li>
+            <li><a class="dropdown-item flex items-center px-4 py-2 hover:bg-gray-100" href="#"><i class="fas fa-cog mr-2"></i>Settings</a></li>
+            <li><hr class="dropdown-divider my-1"></li>
+            <li><a class="dropdown-item flex items-center px-4 py-2 hover:bg-gray-100" href="/logout"><i class="fas fa-sign-out-alt mr-2"></i>Logout</a></li>
+          </ul>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Mobile top bar (white like Dashboard) -->
+    <div class="md:hidden app-topbar w-full flex items-center justify-between px-4 py-3">
+      <div class="flex items-center">
+        <img src="/static/images/SKLOGO.png" class="brand-img mr-2" alt="SK"/>
+        <h1 class="text-lg font-extrabold">SK<span class="text-blue-700">Connect</span></h1>
+      </div>
+      <button id="mobile-menu-button" class="text-gray-700 focus:outline-none">
+        <i class="fas fa-bars text-xl"></i>
+      </button>
+    </div>
+
+    <!-- Mobile dropdown (blue like sidebar) -->
+    <div id="mobile-menu" class="md:hidden absolute top-14 left-0 right-0 sidebar z-10 hidden">
+      <nav class="px-2 pt-2 pb-3 space-y-1">
+        <a href="admin_dashboard" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-home mr-2"></i> Dashboard</a>
+        <a href="admin_announcements" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-bullhorn mr-2"></i> Announcements</a>
+        <a href="admin_events_projects" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-calendar mr-2"></i> Events & Projects</a>
+        <a href="admin_financial_report" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium bg-blue-800"><i class="fas fa-chart-pie mr-2"></i> Financial Reports</a>
+        <a href="admin_feedback" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-poll mr-2"></i> Surveys & Polls</a>
+        <a href="admin_documents" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-file-alt mr-2"></i> Documents</a>
+        <a href="admin_volunteer" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-hands-helping mr-2"></i> Volunteer</a>
+        <a href="admin_training_resources" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-graduation-cap mr-2"></i> Training Resources</a>
+        <a href="admin_community" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-users mr-2"></i> Community Board</a>
+        <a href="admin_incidents" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-exclamation-triangle mr-2"></i> Incident Reports</a>
+        <a href="admin_user_approval" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-user-check mr-2"></i> User Approval</a>
+      </nav>
+    </div>
+
+    <!-- Main content -->
+    <div class="flex-1 flex flex-col overflow-hidden">
+      <!-- Top navigation -->
+      <header class="app-topbar hidden md:block">
+        <div class="flex justify-between items-center px-4 py-4 sm:px-6 lg:px-8">
+          <h1 id="page-title" class="text-2xl text-gray-900">Events & Projects</h1>
+
+          <!-- bell with dropdown -->
+          <div class="relative">
+            <button id="notifToggle" class="p-1 rounded-full text-gray-400 hover:text-gray-600 focus:outline-none relative" aria-haspopup="true" aria-expanded="false" aria-controls="notifPanel">
+              <i class="fas fa-bell text-xl"></i>
+              <span id="notifDot" class="absolute top-0 right-0 inline-block w-2 h-2 transform translate-x-1/2 -translate-y-1/2 bg-red-600 rounded-full"></span>
+            </button>
+
+            <div id="notifPanel" class="notif-panel hidden absolute right-0 mt-2 w-80 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 z-10">
+              <div class="px-4 py-2 border-b border-gray-100">
+                <p class="text-sm font-medium text-gray-900">Notifications</p>
+              </div>
+              <div class="max-h-60 overflow-y-auto divide-y divide-gray-100">
+                <a href="#" class="block px-4 py-3 hover:bg-gray-50">
+                  <div class="flex items-start">
+                    <span class="unread-dot mt-1 bg-red-500 rounded-full w-2 h-2 mr-2"></span>
+                    <div class="flex-1">
+                      <p class="text-sm font-medium text-gray-900">Sports Fest starts next week</p>
+                      <p class="text-xs text-gray-500">2 hours ago</p>
+                    </div>
+                  </div>
+                </a>
+                <a href="#" class="block px-4 py-3 hover:bg-gray-50">
+                  <div class="flex items-start">
+                    <span class="unread-dot mt-1 bg-red-500 rounded-full w-2 h-2 mr-2"></span>
+                    <div class="flex-1">
+                      <p class="text-sm font-medium text-gray-900">Budget update posted</p>
+                      <p class="text-xs text-gray-500">Yesterday</p>
+                    </div>
+                  </div>
+                </a>
+              </div>
+              <div class="px-4 py-2 border-t border-gray-100 text-center">
+                <a href="#" class="text-sm text-blue-600 hover:text-blue-800">View all</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Content area -->
+      <main class="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 pb-8">
+
+        <!-- KPI cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <div class="bg-white overflow-hidden shadow rounded-lg kpi-card">
+            <div class="p-5">
+              <div class="flex items-center">
+                <div class="flex-shrink-0 bg-blue-500 rounded-md p-3"><i class="fas fa-calendar-check text-white text-xl"></i></div>
+                <div class="ml-5">
+                  <h3 class="text-lg font-medium text-gray-900">Upcoming Events</h3>
+                  <p class="text-2xl font-extrabold text-gray-800">{{ upcoming_events_count }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="bg-white overflow-hidden shadow rounded-lg kpi-card">
+            <div class="p-5">
+              <div class="flex items-center">
+                <div class="flex-shrink-0 bg-green-500 rounded-md p-3"><i class="fas fa-users text-white text-xl"></i></div>
+                <div class="ml-5">
+                  <h3 class="text-lg font-medium text-gray-900">Registrations</h3>
+                  <p class="text-2xl font-extrabold text-gray-800">{{ users_count }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="bg-white overflow-hidden shadow rounded-lg kpi-card">
+            <div class="p-5">
+              <div class="flex items-center">
+                <div class="flex-shrink-0 bg-yellow-500 rounded-md p-3"><i class="fas fa-clipboard-check text-white text-xl"></i></div>
+                <div class="ml-5">
+                  <h3 class="text-lg font-medium text-gray-900">Pending Approvals</h3>
+                  <p class="text-2xl font-extrabold text-gray-800">2</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Event & Project Management -->
+        <div id="events" class="tab-content active">
+          <div class="flex justify-between items-center mb-6">
+            <h3 class="text-xl font-medium text-gray-900">Event & Project Management</h3>
+            <button id="createEventBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center">
+              <i class="fas fa-plus mr-2"></i> Create New Event
+            </button>
+          </div>
+
+          <!-- Admin Control Panel -->
+          <div class="bg-white shadow rounded-lg p-6 mb-6">
+            <h4 class="font-medium text-gray-800 mb-4">Admin Control Panel</h4>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div class="border rounded-lg p-4 bg-blue-50">
+                <div class="flex items-center mb-3">
+                  <div class="rounded-full bg-blue-500 p-2 mr-3">
+                    <i class="fas fa-calendar text-white"></i>
+                  </div>
+                  <h5 class="font-medium">Events</h5>
+                </div>
+                <p class="text-2xl font-bold">{{ total_events }}</p>
+                <p class="text-sm text-gray-600">Total Events Created</p>
+              </div>
+
+              
+
+              <div class="border rounded-lg p-4 bg-purple-50">
+                <div class="flex items-center mb-3">
+                  <div class="rounded-full bg-purple-500 p-2 mr-3">
+                    <i class="fas fa-users text-white"></i>
+                  </div>
+                  <h5 class="font-medium">Participants</h5>
+                </div>
+                <p class="text-2xl font-bold">{{ users_count }}</p>
+                <p class="text-sm text-gray-600">Total Registrations</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Events List -->
+          <div class="bg-white shadow rounded-lg overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+              <div class="flex justify-between items-center">
+                <h4 class="font-medium text-gray-800">Upcoming & Recent Events</h4>
+                <div class="flex">
+                  <div class="mr-2">
+                    <select id="eventStatusFilter" class="text-sm border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                      <option>All Events</option>
+                      <option>Upcoming</option>
+                      <option>Ongoing</option>
+                      <option>Completed</option>
+                    </select>
+                  </div>
+                  <div>
+                    <input id="eventSearch" type="text" placeholder="Search events..." class="text-sm border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="overflow-x-auto">
+              <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                  <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Event Name</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Registrations</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                  </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                  {% for event in events %}
+                  {% set event_date = event.date %}
+                  {% if event_date < today|string %}
+                    {% set status = 'completed' %}
+                  {% elif event_date == today|string %}
+                    {% set status = 'ongoing' %}
+                  {% else %}
+                    {% set status = 'upcoming' %}
+                  {% endif %}
+                  <tr data-status="{{ status }}" data-name="{{ event.name|lower }}">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="flex items-center">
+                        <div class="flex-shrink-0 h-10 w-10 rounded-full 
+  {% if event.type == 'community_service' %}bg-green-100{% elif event.type == 'sports' %}bg-blue-100{% elif event.type == 'education' %}bg-yellow-100{% elif event.type == 'environment' %}bg-teal-100{% elif event.type == 'health' %}bg-pink-100{% elif event.type == 'leadership' %}bg-purple-100{% else %}bg-gray-100{% endif %} flex items-center justify-center">
+  <i class="fas 
+    {% if event.type == 'community_service' %}fa-leaf text-green-600
+    {% elif event.type == 'sports' %}fa-futbol text-blue-600
+    {% elif event.type == 'education' %}fa-book text-yellow-600
+    {% elif event.type == 'environment' %}fa-tree text-teal-600
+    {% elif event.type == 'health' %}fa-heartbeat text-pink-600
+    {% elif event.type == 'leadership' %}fa-chess-king text-purple-600
+    {% else %}fa-calendar text-gray-600{% endif %}"></i>
+</div>
+
+                        <div class="ml-4">
+                          <div class="text-sm font-medium text-gray-900">{{ event.name }}</div>
+                          <div class="text-sm text-gray-500">{{ event.type|replace('_', ' ')|title }}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="text-sm text-gray-900">{{ event.date }}</div>
+                      <div class="text-sm text-gray-500">{{ event.start_time }}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="text-sm text-gray-900">{{ event.location }}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      {% set event_date = event.date %}
+                      {% if event_date < today|string %}
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Completed</span>
+                      {% elif event_date == today|string %}
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">Ongoing</span>
+                      {% else %}
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">Upcoming</span>
+                      {% endif %}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {{ event.registrations if event.registrations is defined else '0' }}/{{ event.max_participants if event.max_participants else '—' }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <div class="flex space-x-2">
+                        <button class="text-blue-600 hover:text-blue-900 view-details-btn" title="View Details" data-event='{{ event | tojson | safe }}' data-toggle="modal">
+                          <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="text-blue-600 hover:text-blue-900 mr-2" title="Generate QR Code" data-action="generate-qr" data-event-id="{{ event.id }}">
+                          <i class="fas fa-qrcode"></i>
+                        </button>
+                        <button class="text-green-600 hover:text-green-900 track-attendance-btn" title="Track Attendance" data-event-id="{{ event.id }}" data-event-name="{{ event.name }}" data-event-date="{{ event.date }}">
+                          <i class="fas fa-clipboard-check"></i>
+                        </button>
+                        <button class="text-gray-600 hover:text-gray-900" title="Edit">
+                          <i class="fas fa-edit"></i>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                  {% else %}
+                  <tr>
+                    <td colspan="6" class="px-6 py-4 text-center text-gray-500">No events found.</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+
+            <div class="px-6 py-3 bg-gray-50 border-t border-gray-200 flex items-center justify-between">
+              <div class="flex-1 flex justify-between sm:hidden">
+                <a href="#" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">Previous</a>
+                <a href="#" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">Next</a>
+              </div>
+              <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                <div>
+                  <p class="text-sm text-gray-700" id="eventsShowingText">
+                    Showing 1 to {{ events|length }} of {{ total_events }} events
+                  </p>
+                </div>
+                <div>
+                  <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                    <a href="#" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                      <span class="sr-only">Previous</span>
+                      <i class="fas fa-chevron-left text-xs"></i>
+                    </a>
+                    <a href="#" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">1</a>
+                    <a href="#" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-blue-50 text-sm font-medium text-blue-600 hover:bg-gray-50">2</a>
+                    <a href="#" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                      <span class="sr-only">Next</span>
+                      <i class="fas fa-chevron-right text-xs"></i>
+                    </a>
+                  </nav>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- --------------------------- MODALS --------------------------- -->
+
+        <!-- Create Event Modal -->
+        <div id="createEventModal" class="modal-overlay hidden">
+          <div class="modal-panel w-full max-w-3xl">
+            <div class="modal-header">
+              <div class="flex items-center justify-between">
+                <h3 class="modal-title text-lg text-gray-900">Create New Event</h3>
+                <button id="closeModalBtn" class="text-gray-400 hover:text-gray-500">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+            </div>
+
+            <div class="modal-body">
+              <form method="POST" action="/create_event">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Event Name <span class="text-red-600">*</span></label>
+                    <input type="text" name="name" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500" required>
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Event Type <span class="text-red-600">*</span></label>
+                    <select name="type" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500" required>
+                      <option value="">Select Type</option>
+                      <option value="community_service">Community Service</option>
+                      <option value="sports">Sports Event</option>
+                      <option value="education">Educational Program</option>
+                      <option value="environment">Environmental Project</option>
+                      <option value="health">Health Program</option>
+                      <option value="leadership">Leadership Training</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Date <span class="text-red-600">*</span></label>
+                    <input type="date" name="date" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500" required>
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Start Time <span class="text-red-600">*</span></label>
+                    <input type="time" name="start_time" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500" required>
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">End Time <span class="text-red-600">*</span></label>
+                    <input type="time" name="end_time" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500" required>
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Location <span class="text-red-600">*</span></label>
+                    <input type="text" name="location" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500" required>
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Max Participants</label>
+                    <input type="number" name="max_participants" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                  </div>
+                </div>
+
+                <div class="mb-4">
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Description <span class="text-red-600">*</span></label>
+                  <textarea name="description" rows="4" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500" required></textarea>
+                </div>
+
+                <!-- Required Items/Materials -->
+                <div class="mb-4">
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Required Items/Materials</label>
+                  <textarea name="required_items" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="List any items participants should bring"></textarea>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Registration Deadline</label>
+                    <input type="date" name="registration_deadline" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Budget Allocation (₱)</label>
+                    <input type="number" name="budget" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                  </div>
+                </div>
+
+                <div class="mb-4">
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Event Cover Image</label>
+                  <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
+                    <div class="space-y-1 text-center">
+                      <i class="fas fa-cloud-upload-alt text-gray-400 text-3xl mb-2"></i>
+                      <div class="flex text-sm text-gray-600">
+                        <label for="file-upload" class="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none">
+                          <span>Upload a file</span>
+                          <input id="file-upload" name="cover_image_url" type="file" class="sr-only">
+                        </label>
+                        <p class="pl-1">or drag and drop</p>
+                      </div>
+                      <p class="text-xs text-gray-500">PNG, JPG, GIF up to 5MB</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="mb-4">
+                  <div class="flex items-center">
+                    <input id="enable-qr" type="checkbox" checked class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                    <label for="enable-qr" class="ml-2 block text-sm text-gray-900">Generate QR code for attendance tracking</label>
+                  </div>
+                </div>
+
+                <!-- Event Organizers Section -->
+                <div id="organizersSection" class="mb-4">
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Event Organizers</label>
+                  <div id="organizerList">
+                    <div class="flex space-x-2 mb-2">
+                      <input type="text" name="organizer_names" class="w-1/2 px-3 py-2 border rounded-md" placeholder="Name" required>
+                      <input type="text" name="organizer_positions" class="w-1/2 px-3 py-2 border rounded-md" placeholder="Position" required>
+                    </div>
+                  </div>
+                  <button type="button" id="addOrganizerBtn" class="text-blue-600 text-sm mt-2">+ Add Organizer</button>
+                </div>
+
+                <div class="border-t border-gray-200 pt-4 flex justify-end">
+                  <button type="button" id="cancelEventBtn" class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 mr-2">
+                    Cancel
+                  </button>
+                  <button type="submit" class="bg-blue-600 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    Create Event
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        <!-- QR Code Generator Modal -->
+        <div id="qrCodeModal" class="modal-overlay hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
+  <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+    <div class="mt-3 text-center">
+      <h3 class="text-lg leading-6 font-medium text-gray-900">Event QR Code</h3>
+      <div id="qrcode-url" class="text-sm text-gray-600 mt-2 break-words"></div>
+      <div class="mt-2 px-7 py-3">
+        <div id="qrcode-container" class="flex justify-center mb-4"></div>
+      </div>
+      <div class="items-center px-4 py-3">
+        <button id="downloadQR" class="px-4 py-2 bg-blue-500 text-white text-base font-medium rounded-md shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300">
+          Download QR Code
+        </button>
+        <button onclick="hideModal(document.getElementById('qrCodeModal'))" class="ml-3 px-4 py-2 bg-gray-100 text-gray-700 text-base font-medium rounded-md shadow-sm hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-300">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+        <!-- QR Scanner Modal for Attendance -->
+        <div id="qrScannerModal" class="modal-overlay hidden">
+          <div class="modal-panel w-full max-w-2xl">
+            <div class="modal-header">
+              <div class="flex items-center justify-between">
+                <h3 class="modal-title text-lg text-gray-900">Scan Participant QR Code</h3>
+                <button id="closeQrScannerBtn" class="text-gray-400 hover:text-gray-500">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+            </div>
+
+            <div class="modal-body">
+              <div id="camera-mode" class="hidden">
+                <div class="qr-scanner-container">
+                  <video id="qr-scanner-video" class="qr-scanner-video" playsinline></video>
+                  <div class="qr-scanner-overlay"></div>
+                </div>
+
+                <div class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <p class="text-sm text-gray-700"><strong>Instructions:</strong> Point your camera at the participant's QR code. The attendance will be marked automatically when the code is detected.</p>
+                </div>
+
+                <div id="scanner-result" class="mt-4 p-4 bg-gray-50 border border-gray-200 rounded-lg hidden">
+                  <p id="scanner-result-text" class="text-sm text-gray-700"></p>
+                </div>
+
+                <div class="mt-4 flex justify-center gap-2">
+                  <button id="stopScannerBtn" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">
+                    <i class="fas fa-stop-circle mr-2"></i>Stop Scanner
+                  </button>
+                  <button id="switchToManualBtn" class="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700">
+                    <i class="fas fa-keyboard mr-2"></i>Manual Entry
+                  </button>
+                </div>
+              </div>
+
+              <div id="manual-mode" class="hidden">
+                <div class="p-4 bg-yellow-50 border border-yellow-200 rounded-lg mb-4">
+                  <p class="text-sm text-yellow-700"><strong>Manual Entry Mode:</strong> Paste the QR code data or enter the participant ID.</p>
+                </div>
+
+                <div class="mb-4">
+                  <label class="block text-sm font-medium text-gray-700 mb-2">QR Code Data or User ID</label>
+                  <input type="text" id="manualQrInput" placeholder="Paste QR code or enter user ID..." class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+
+                <div id="manual-result" class="mt-4 p-4 bg-gray-50 border border-gray-200 rounded-lg hidden">
+                  <p id="manual-result-text" class="text-sm text-gray-700"></p>
+                </div>
+
+                <div class="mt-4 flex justify-center gap-2">
+                  <button id="submitManualBtn" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                    <i class="fas fa-check mr-2"></i>Submit
+                  </button>
+                  <button id="switchToCameraBtn" class="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700">
+                    <i class="fas fa-camera mr-2"></i>Back to Camera
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Attendance Tracking Modal -->
+        <div id="attendanceModal" class="modal-overlay hidden">
+          <div class="modal-panel w-full max-w-6xl">
+            <div class="modal-header">
+              <div class="flex items-center justify-between">
+                <h3 class="modal-title text-lg text-gray-900">Attendance Tracking - <span id="attendanceModalTitle">Event</span></h3>
+                <button id="closeAttendanceModalBtn" class="text-gray-400 hover:text-gray-500">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+            </div>
+
+            <div class="modal-body">
+              <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
+                <div class="flex items-center mb-4 md:mb-0">
+                  <div class="bg-gray-100 rounded-full px-4 py-2 mr-4">
+                    <span class="text-sm font-medium">Event Date: <span id="attendanceEventDate">-</span></span>
+                  </div>
+                  <div class="bg-blue-100 rounded-full px-4 py-2">
+                    <span class="text-sm font-medium text-blue-800"><span id="attendanceRegistered">0</span>/<span id="attendanceCapacity">—</span> Registered</span>
+                  </div>
+                </div>
+                <div class="flex">
+                  <div class="mr-2">
+                    <select id="attendanceFilter" class="text-sm border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                      <option value="all">All Participants</option>
+                      <option value="present">Present</option>
+                      <option value="absent">Absent</option>
+                    </select>
+                  </div>
+                  <div>
+                    <input type="text" id="attendanceSearch" placeholder="Search participants..." class="text-sm border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                  </div>
+                </div>
+              </div>
+
+              <div class="mb-4 bg-yellow-50 border-l-4 border-yellow-400 p-4">
+                <div class="flex">
+                  <div class="flex-shrink-0">
+                    <i class="fas fa-info-circle text-yellow-400"></i>
+                  </div>
+                  <div class="ml-3">
+                    <p class="text-sm text-yellow-700">
+                      You can mark attendance by scanning the participant's QR code or manually checking the box next to their name.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="overflow-x-auto mb-4">
+                <table class="min-w-full divide-y divide-gray-200">
+                  <thead class="bg-gray-50">
+                    <tr>
+                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Participant</th>
+                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
+                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Marked At</th>
+                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="attendanceTableBody" class="bg-white divide-y divide-gray-200">
+                    <!-- rows populated by JS -->
+                  </tbody>
+                </table>
+              </div>
+
+              <div class="flex flex-col md:flex-row justify-between items-center bg-gray-50 p-4 rounded-lg">
+                <div class="mb-4 md:mb-0">
+                  <div class="flex items-center space-x-6">
+                    <div>
+                      <div class="text-xs text-gray-500">Total Registered</div>
+                      <div class="text-lg font-bold" id="totalRegistered">0</div>
+                    </div>
+                    <div>
+                      <div class="text-xs text-gray-500">Present</div>
+                      <div class="text-lg font-bold text-green-600" id="presentCount">0</div>
+                    </div>
+                    <div>
+                      <div class="text-xs text-gray-500">Absent</div>
+                      <div class="text-lg font-bold text-red-600" id="absentCount">0</div>
+                    </div>
+                    <div>
+                      <div class="text-xs text-gray-500">Pending</div>
+                      <div class="text-lg font-bold text-yellow-600" id="pendingCount">0</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="flex space-x-2">
+                  <button id="openQrScannerBtn" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md text-sm">
+                    <i class="fas fa-qrcode mr-1"></i> Scan QR
+                  </button>
+                  <button id="exportAttendanceBtn" class="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-md text-sm">
+                    <i class="fas fa-file-export mr-1"></i> Export Report
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Event Detail View Modal -->
+        <div id="eventDetailModal" class="modal-overlay hidden">
+          <div class="modal-panel w-full max-w-5xl">
+            <div class="relative">
+              <div class="h-48 bg-blue-600 rounded-t-lg flex items-end">
+                <div class="absolute top-4 right-4">
+                  <button id="closeDetailModalBtn" class="text-white hover:text-gray-200 bg-black bg-opacity-20 rounded-full p-2">
+                    <i class="fas fa-times"></i>
+                  </button>
+                </div>
+                <div class="p-6 text-white">
+                  <h3 class="text-2xl font-extrabold" id="modalEventName"></h3>
+                  <p class="text-blue-100" id="modalEventType"></p>
+                </div>
+              </div>
+            </div>
+
+            <div class="modal-body">
+              <div class="flex flex-wrap -mx-4 mb-6">
+                <div class="w-full md:w-1/2 px-4 mb-4 md:mb-0">
+                  <div class="border rounded-lg p-4 h-full">
+                    <h4 class="font-medium text-gray-800 mb-3">Event Details</h4>
+                    <div class="space-y-3">
+                      <div class="flex items-start">
+                        <div class="flex-shrink-0 text-gray-500 w-6">
+                          <i class="fas fa-calendar"></i>
+                        </div>
+                        <div class="ml-3">
+                          <p class="text-sm font-medium text-gray-900" id="modalEventDate"></p>
+                          <p class="text-sm text-gray-500" id="modalEventTime"></p>
+                        </div>
+                      </div>
+                      <div class="flex items-start">
+                        <div class="flex-shrink-0 text-gray-500 w-6">
+                          <i class="fas fa-map-marker-alt"></i>
+                        </div>
+                        <div class="ml-3">
+                          <p class="text-sm font-medium text-gray-900" id="modalEventLocation"></p>
+                        </div>
+                      </div>
+                      <div class="flex items-start">
+                        <div class="flex-shrink-0 text-gray-500 w-6">
+                          <i class="fas fa-coins"></i>
+                        </div>
+                        <div class="ml-3">
+                          <p class="text-sm font-medium text-gray-900" id="modalEventBudget"></p>
+                          <p class="text-sm text-gray-500">Budget Allocation</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="w-full md:w-1/2 px-4">
+                  <div class="border rounded-lg p-4 h-full">
+                    <h4 class="font-medium text-gray-800 mb-3">Description</h4>
+                    <p class="text-sm text-gray-600 mb-4" id="modalEventDescription"></p>
+                    <h5 class="font-medium text-gray-800 mb-2">Required Items:</h5>
+                    <ul class="list-disc list-inside text-sm text-gray-600 mb-2" id="modalEventRequiredItems"></ul>
+                    <p class="text-sm text-gray-500 italic" id="communityServiceNote" style="display:none;">
+  Note: Cleaning tools and garbage bags will be provided.
+</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex flex-wrap -mx-4 mb-6">
+                <div class="w-full md:w-1/2 px-4 mb-4 md:mb-0">
+                  <div class="border rounded-lg p-4 h-full">
+                   
+                  <h4 class="font-medium text-gray-800 mb-3">Event Organizers</h4>
+<div class="space-y-3" id="modalEventOrganizers"></div>
+                  </div>
+                </div>
+                <div class="w-full md:w-1/2 px-4">
+                  <div class="border rounded-lg p-4 h-full">
+                    <h4 class="font-medium text-gray-800 mb-3">Event Schedule</h4>
+                    <div class="space-y-3" id="modalEventSchedule"></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mb-4">
+                <img id="modalEventImage" src="" alt="Event Cover" class="w-full max-h-64 object-cover rounded mb-4" style="display:none;">
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </main>
+    </div>
+  </div>
+<!-- Edit Event Modal -->
+<div id="editEventModal" class="modal-overlay hidden">
+  <div class="modal-panel w-full max-w-3xl">
+    <div class="modal-header">
+      <div class="flex items-center justify-between">
+        <h3 class="modal-title text-lg text-gray-900">Edit Event</h3>
+        <button id="closeEditModalBtn" class="text-gray-400 hover:text-gray-500">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+    </div>
+    <div class="modal-body">
+      <form id="editEventForm" method="POST" action="/edit_event">
+        <input type="hidden" name="event_id" id="editEventId">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Event Name</label>
+            <input type="text" name="name" id="editEventName" class="w-full px-3 py-2 border border-gray-300 rounded-md" required>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Event Type</label>
+            <select name="type" id="editEventType" class="w-full px-3 py-2 border border-gray-300 rounded-md" required>
+              <option value="community_service">Community Service</option>
+              <option value="sports">Sports Event</option>
+              <option value="education">Educational Program</option>
+              <option value="environment">Environmental Project</option>
+              <option value="health">Health Program</option>
+              <option value="leadership">Leadership Training</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Date</label>
+            <input type="date" name="date" id="editEventDate" class="w-full px-3 py-2 border border-gray-300 rounded-md" required>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Start Time</label>
+            <input type="time" name="start_time" id="editEventStartTime" class="w-full px-3 py-2 border border-gray-300 rounded-md" required>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">End Time</label>
+            <input type="time" name="end_time" id="editEventEndTime" class="w-full px-3 py-2 border border-gray-300 rounded-md" required>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Location</label>
+            <input type="text" name="location" id="editEventLocation" class="w-full px-3 py-2 border border-gray-300 rounded-md" required>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Max Participants</label>
+            <input type="number" name="max_participants" id="editEventMaxParticipants" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+          </div>
+        </div>
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+          <textarea name="description" id="editEventDescription" rows="4" class="w-full px-3 py-2 border border-gray-300 rounded-md" required></textarea>
+        </div>
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-700 mb-1">Required Items/Materials</label>
+          <textarea name="required_items" id="editEventRequiredItems" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-md"></textarea>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Registration Deadline</label>
+            <input type="date" name="registration_deadline" id="editEventRegistrationDeadline" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Budget Allocation (₱)</label>
+            <input type="number" name="budget" id="editEventBudget" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+          </div>
+        </div>
+        <div class="border-t border-gray-200 pt-4 flex justify-end">
+          <button type="button" id="cancelEditEventBtn" class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 mr-2">
+            Cancel
+          </button>
+          <button type="submit" class="bg-blue-600 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:bg-blue-700">
+            Save Changes
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+  <!-- JavaScript -->
+  <script>
+    // --- Global Variables ---
+    let lastViewedEvent = null;
+
+    // --- Helper Functions ---
+    function showModal(modal) {
+      if (!modal) return;
+      modal.classList.remove('hidden');
+      document.body.classList.add('modal-open');
+    }
+
+    function hideModal(modal) {
+      if (!modal) return;
+      modal.classList.add('hidden');
+      document.body.classList.remove('modal-open');
+    }
+
+    function formatTime12h(timeStr) {
+      if (!timeStr) return 'TBA';
+      const [h, m] = timeStr.split(':');
+      let hour = parseInt(h, 10);
+      const minute = String(m).padStart(2, '0');
+      const ampm = hour >= 12 ? 'PM' : 'AM';
+      hour = hour % 12 || 12;
+      return `${hour}:${minute} ${ampm}`;
+    }
+
+    // small on-page debug helper (visible bottom-right)
+    function debugLog(msg, level='info'){
+      try{
+        console[level === 'error' ? 'error' : 'log']('[QR DEBUG]', msg);
+        var panel = document.getElementById('qrDebugPanel');
+        if(!panel) return;
+        var entry = document.createElement('div');
+        entry.style.padding = '6px 8px';
+        entry.style.borderTop = '1px solid rgba(255,255,255,0.06)';
+        entry.style.fontSize = '12px';
+        entry.style.color = '#fff';
+        entry.textContent = msg;
+        panel.querySelector('.qr-debug-entries').prepend(entry);
+      }catch(e){ console.error('debugLog failed', e); }
+    }
+
+    // --- DOMContentLoaded: Main entry point for all event listeners ---
+    // (QR code handling is implemented in the consolidated listener below)
+
+    document.addEventListener('DOMContentLoaded', function() {
+
+      // --- Sound & Voice Functions ---
+      function playBeepSound() {
+        try {
+          const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+          const oscillator = audioContext.createOscillator();
+          const gainNode = audioContext.createGain();
+          
+          oscillator.connect(gainNode);
+          gainNode.connect(audioContext.destination);
+          
+          oscillator.frequency.value = 800;
+          oscillator.type = 'sine';
+          
+          gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+          gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+          
+          oscillator.start(audioContext.currentTime);
+          oscillator.stop(audioContext.currentTime + 0.1);
+        } catch (e) {
+          console.log('[Audio] Beep failed:', e);
+        }
+      }
+
+      function speakMessage(message) {
+        try {
+          if ('speechSynthesis' in window) {
+            speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(message);
+            utterance.rate = 1;
+            utterance.pitch = 1;
+            utterance.volume = 1;
+            speechSynthesis.speak(utterance);
+            console.log('[Voice] Speaking:', message);
+          }
+        } catch (e) {
+          console.log('[Voice] Speech failed:', e);
+        }
+      }
+
+      // --- Modal References ---
+      const createEventModal = document.getElementById('createEventModal');
+      const qrCodeModal = document.getElementById('qrCodeModal');
+      const attendanceModal = document.getElementById('attendanceModal');
+      const eventDetailModal = document.getElementById('eventDetailModal');
+      const editEventModal = document.getElementById('editEventModal');
+
+      // --- Attendance modal helpers ---
+      let currentAttendanceEventId = null;
+
+      function clearAttendanceTable() {
+        const body = document.getElementById('attendanceTableBody');
+        if (body) body.innerHTML = '';
+      }
+
+      function renderAttendanceRows(rows) {
+        const body = document.getElementById('attendanceTableBody');
+        if (!body) return;
+        body.innerHTML = '';
+        rows.forEach(r => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="flex items-center">
+                <div class="flex-shrink-0 h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center">
+                  <span class="text-gray-700 font-medium">${(r.name||'--').split(' ').map(n=>n[0]||'').slice(0,2).join('').toUpperCase()}</span>
+                </div>
+                <div class="ml-4">
+                  <div class="text-sm font-medium text-gray-900">${r.name || 'Guest'}</div>
+                  <div class="text-sm text-gray-500">${r.barangay || ''}</div>
+                </div>
+              </div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="text-sm text-gray-900">${r.phone || r.email || '—'}</div>
+              <div class="text-sm text-gray-500">${r.email || ''}</div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="text-sm text-gray-900">${r.marked_at ? new Date(r.marked_at).toLocaleString() : '—'}</div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              ${r.status === 'Present' ? '<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Present</span>' : (r.status === 'Absent' ? '<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Absent</span>' : '<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">Pending</span>')}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="flex items-center">
+                <input type="checkbox" ${r.status === 'Present' ? 'checked' : ''} class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" data-attendance-id="${r.id || ''}">
+                <button class="ml-2 text-gray-600 hover:text-gray-900 view-attendance-detail" title="View Details" data-attendance-id="${r.id || ''}">
+                  <i class="fas fa-eye"></i>
+                </button>
+              </div>
+            </td>
+          `;
+          body.appendChild(tr);
+        });
+      }
+
+      async function loadAttendanceForEvent(eventId, eventName, eventDate, capacity) {
+        currentAttendanceEventId = eventId;
+        document.getElementById('attendanceModalTitle').textContent = eventName || eventId;
+        document.getElementById('attendanceEventDate').textContent = eventDate || '—';
+        document.getElementById('attendanceCapacity').textContent = capacity || '—';
+        clearAttendanceTable();
+        document.getElementById('totalRegistered').textContent = 'Loading...';
+        try {
+          const res = await fetch(`/api/attendance/${eventId}`);
+          const data = await res.json();
+          if (!data || !data.success) {
+            document.getElementById('totalRegistered').textContent = '0';
+            return;
+          }
+          const rows = data.attendances || [];
+          // Update stats
+          const total = data.stats ? data.stats.total : rows.length;
+          const present = data.stats ? data.stats.present : rows.filter(r=>r.status==='Present').length;
+          const absent = data.stats ? data.stats.absent : rows.filter(r=>r.status==='Absent').length;
+          const pending = total - present - absent;
+          document.getElementById('totalRegistered').textContent = total;
+          document.getElementById('presentCount').textContent = present;
+          document.getElementById('absentCount').textContent = absent;
+          document.getElementById('pendingCount').textContent = pending;
+          document.getElementById('attendanceRegistered').textContent = total;
+          renderAttendanceRows(rows);
+        } catch (e) {
+          console.error('Failed to load attendance', e);
+          document.getElementById('totalRegistered').textContent = '0';
+        }
+      }
+
+      // Attach click handlers for Track Attendance buttons
+      document.querySelectorAll('.track-attendance-btn').forEach(btn => {
+        btn.addEventListener('click', (ev) => {
+          const b = ev.currentTarget;
+          const eventId = b.getAttribute('data-event-id');
+          const name = b.getAttribute('data-event-name') || '';
+          const date = b.getAttribute('data-event-date') || '';
+          showModal(attendanceModal);
+          loadAttendanceForEvent(eventId, name, date);
+        });
+      });
+
+      // Close attendance modal
+      const closeAttendanceModalBtn = document.getElementById('closeAttendanceModalBtn');
+      if (closeAttendanceModalBtn) closeAttendanceModalBtn.addEventListener('click', () => hideModal(attendanceModal));
+
+      // Simple client-side filter/search
+      const attendanceFilter = document.getElementById('attendanceFilter');
+      const attendanceSearch = document.getElementById('attendanceSearch');
+      function applyAttendanceFilters() {
+        const q = (attendanceSearch.value || '').toLowerCase();
+        const filter = attendanceFilter.value;
+        const rows = Array.from(document.querySelectorAll('#attendanceTableBody tr'));
+        rows.forEach(r => {
+          const text = r.textContent.toLowerCase();
+          let hide = false;
+          if (q && !text.includes(q)) hide = true;
+          if (filter === 'present' && !text.includes('present')) hide = true;
+          if (filter === 'absent' && !text.includes('absent')) hide = true;
+          r.style.display = hide ? 'none' : '';
+        });
+      }
+      if (attendanceFilter) attendanceFilter.addEventListener('change', applyAttendanceFilters);
+      if (attendanceSearch) attendanceSearch.addEventListener('input', applyAttendanceFilters);
+
+      // --- Generic Modal Close Buttons ---
+      document.querySelectorAll('[data-modal-hide]').forEach(button => {
+        button.addEventListener('click', () => {
+          const modalId = button.getAttribute('data-modal-hide');
+          hideModal(document.getElementById(modalId));
+        });
+      });
+
+        // --- Debug toast helper ---
+        function showDebugToast(message, level='info', timeout=6000){
+          try{
+            const toast = document.getElementById('debugToast');
+            const inner = document.getElementById('debugToastInner');
+            const msg = document.getElementById('debugToastMessage');
+            if(!toast || !msg) return;
+            msg.textContent = message;
+            // style by level
+            inner.classList.remove('border-l-4','border-green-500','border-red-500','border-yellow-400');
+            if(level === 'error') inner.classList.add('border-l-4','border-red-500');
+            else if(level === 'warning') inner.classList.add('border-l-4','border-yellow-400');
+            else inner.classList.add('border-l-4','border-green-500');
+            toast.classList.remove('hidden');
+            // auto-hide
+            window.clearTimeout(toast._hideTimeout);
+            toast._hideTimeout = window.setTimeout(() => { toast.classList.add('hidden'); }, timeout);
+          }catch(e){ console.error('showDebugToast failed', e); }
+        }
+
+      // --- Backdrop Click to Close Modals ---
+      document.querySelectorAll('.modal-overlay').forEach(modal => {
+        modal.addEventListener('click', (e) => {
+          if (e.target === modal) {
+            hideModal(modal);
+          }
+        });
+      });
+
+      // --- Create Event Modal ---
+      document.getElementById('createEventBtn')?.addEventListener('click', () => showModal(createEventModal));
+
+      // --- View Details Modal ---
+      document.querySelectorAll('.view-details-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+          const event = JSON.parse(this.dataset.event);
+          lastViewedEvent = event;
+
+          document.getElementById('modalEventName').textContent = event.name || '';
+          document.getElementById('modalEventType').textContent = event.type ? event.type.replace(/_/g, ' ').toUpperCase() : '';
+          document.getElementById('modalEventDate').textContent = event.date || '';
+          document.getElementById('modalEventTime').textContent = (event.start_time && event.end_time) ? `${formatTime12h(event.start_time)} - ${formatTime12h(event.end_time)}` : '';
+          document.getElementById('modalEventLocation').textContent = event.location || '';
+          document.getElementById('modalEventBudget').textContent = event.budget ? `₱${parseFloat(event.budget).toLocaleString(undefined, {minimumFractionDigits: 2})}` : '—';
+          document.getElementById('modalEventDescription').textContent = event.description || '';
+
+          const reqItems = document.getElementById('modalEventRequiredItems');
+          reqItems.innerHTML = '';
+          if (event.required_items) {
+            event.required_items.split(',').forEach(item => {
+              if (item.trim()) reqItems.innerHTML += `<li>${item.trim()}</li>`;
+            });
+          }
+
+          const orgDiv = document.getElementById('modalEventOrganizers');
+          orgDiv.innerHTML = '';
+          if (event.organizers) {
+            let organizers = (typeof event.organizers === 'string') ? JSON.parse(event.organizers) : event.organizers;
+            organizers.forEach(org => {
+              const initials = (org.name || '').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+              orgDiv.innerHTML += `<div class="flex items-center"><div class="flex-shrink-0 h-10 w-10 rounded-full bg-green-100 flex items-center justify-center"><span class="text-green-600 font-medium">${initials}</span></div><div class="ml-3"><p class="text-sm font-medium text-gray-900">${org.name}</p><p class="text-sm text-gray-500">${org.position}</p></div></div>`;
+            });
+          }
+          
+          showModal(eventDetailModal);
+        });
+      });
+
+      // --- Attendance Modal: open/close handlers ---
+      document.querySelectorAll('button[title="Track Attendance"]').forEach(btn => {
+        btn.addEventListener('click', function(){
+          debugLog('Track Attendance clicked');
+          showModal(attendanceModal);
+        });
+      });
+
+      const closeAttendanceBtn = document.getElementById('closeAttendanceModalBtn');
+      if(closeAttendanceBtn){
+        closeAttendanceBtn.addEventListener('click', function(){ hideModal(attendanceModal); });
+      }
+
+      // --- QR Scanner for Attendance ---
+      let scannerStream = null;
+      let scannerActive = false;
+      let currentEventId = null;
+      // prevent duplicate rapid marks
+      let isMarking = false;
+      let lastMarked = { id: null, ts: 0 };
+      const MARK_DEBOUNCE_MS = 4000; // ignore repeats within 4s
+
+      const qrScannerModal = document.getElementById('qrScannerModal');
+      const qrScannerVideo = document.getElementById('qr-scanner-video');
+      const closeQrScannerBtn = document.getElementById('closeQrScannerBtn');
+      const stopScannerBtn = document.getElementById('stopScannerBtn');
+      const openQrScannerBtn = document.getElementById('openQrScannerBtn');
+      const scannerResult = document.getElementById('scanner-result');
+      const scannerResultText = document.getElementById('scanner-result-text');
+      
+      // Manual entry elements
+      const cameraModeDiv = document.getElementById('camera-mode');
+      const manualModeDiv = document.getElementById('manual-mode');
+      const switchToManualBtn = document.getElementById('switchToManualBtn');
+      const switchToCameraBtn = document.getElementById('switchToCameraBtn');
+      const submitManualBtn = document.getElementById('submitManualBtn');
+      const manualQrInput = document.getElementById('manualQrInput');
+      const manualResult = document.getElementById('manual-result');
+      const manualResultText = document.getElementById('manual-result-text');
+
+      function switchMode(mode) {
+        if (mode === 'manual') {
+          cameraModeDiv.classList.add('hidden');
+          manualModeDiv.classList.remove('hidden');
+          stopScanner();
+        } else {
+          manualModeDiv.classList.add('hidden');
+          cameraModeDiv.classList.remove('hidden');
+          manualQrInput.value = '';
+          manualResult.classList.add('hidden');
+        }
+      }
+
+      function startQrScanner(eventId) {
+        console.log('[Scanner Init] Starting QR scanner for event:', eventId);
+        debugLog('[Scanner Init] Starting scanner for event ' + eventId);
+        
+        currentEventId = eventId;
+        scannerActive = true;
+        showModal(qrScannerModal);
+        switchMode('camera');
+
+        // Try multiple constraints for better compatibility
+        const constraints = [
+          { video: { facingMode: 'environment' } },
+          { video: { facingMode: { ideal: 'environment' } } },
+          { video: true }
+        ];
+
+        function tryGetMedia(index) {
+          console.log('[Camera] Attempting camera access - constraint set', index);
+          debugLog('[Camera] Trying camera constraint ' + index);
+          
+          if (index >= constraints.length) {
+            console.error('[Camera] All camera constraints failed');
+            showScanResult('Camera not available. Please check permissions and try again.', 'error');
+            debugLog('[Camera] ✗ All camera attempts failed', 'error');
+            scannerActive = false;
+            return;
+          }
+
+          navigator.mediaDevices.getUserMedia(constraints[index])
+            .then(stream => {
+              console.log('[Camera] ✓ Camera access granted');
+              debugLog('[Camera] ✓ Camera stream acquired');
+              scannerStream = stream;
+              qrScannerVideo.srcObject = stream;
+              
+              // Wait for video to load before starting processing
+              qrScannerVideo.onloadedmetadata = function() {
+                console.log('[Camera] Video metadata loaded - dimensions:', qrScannerVideo.videoWidth, 'x', qrScannerVideo.videoHeight);
+                debugLog('[Camera] Video dimensions: ' + qrScannerVideo.videoWidth + 'x' + qrScannerVideo.videoHeight);
+                qrScannerVideo.play().catch(e => {
+                  console.error('[Camera] Play error:', e);
+                  debugLog('[Camera] Play error: ' + e, 'error');
+                });
+                scanProcessing();
+              };
+
+              // Fallback if metadata doesn't load
+              setTimeout(() => {
+                if (scannerActive && scannerStream) {
+                  qrScannerVideo.play().catch(e => console.error('Play error:', e));
+                  scanProcessing();
+                }
+              }, 1000);
+            })
+            .catch(err => {
+              console.error('Media error with constraint ' + index + ':', err.message);
+              tryGetMedia(index + 1);
+            });
+        }
+
+        tryGetMedia(0);
+      }
+
+      function enhanceImageData(imageData) {
+        // Increase contrast to help QR detection
+        const data = imageData.data;
+        for (let i = 0; i < data.length; i += 4) {
+          const avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
+          const threshold = avg > 128 ? 255 : 0;
+          data[i] = data[i + 1] = data[i + 2] = threshold;
+        }
+        return imageData;
+      }
+
+      let scanFrameCount = 0;
+      let lastDebugFrame = 0;
+      let jsQRLoaded = false;
+      let jsQRCheckDone = false;
+
+      function scanProcessing() {
+        if (!scannerActive || !qrScannerVideo) return;
+
+        // Check if jsQR library is loaded
+        if (!jsQRCheckDone) {
+          jsQRCheckDone = true;
+          if (typeof jsQR === 'undefined') {
+            console.error('[Scanner] ERROR: jsQR library not loaded!');
+            debugLog('[Scanner] ERROR: jsQR library not loaded!', 'error');
+            showScanResult('QR library failed to load. Please refresh the page.', 'error');
+            return;
+          } else {
+            console.log('[Scanner] ✓ jsQR library loaded');
+            debugLog('[Scanner] ✓ jsQR library is available');
+            jsQRLoaded = true;
+          }
+        }
+
+        scanFrameCount++;
+
+        // Check if video has valid dimensions
+        if (qrScannerVideo.videoWidth <= 0 || qrScannerVideo.videoHeight <= 0) {
+          if (scannerActive) {
+            requestAnimationFrame(scanProcessing);
+          }
+          return;
+        }
+
+        // Log every 30 frames to avoid spam
+        if (scanFrameCount - lastDebugFrame === 30) {
+          lastDebugFrame = scanFrameCount;
+          debugLog('[Scanner Loop] Processing frame ' + scanFrameCount);
+        }
+
+        try {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+
+          canvas.width = qrScannerVideo.videoWidth;
+          canvas.height = qrScannerVideo.videoHeight;
+
+          ctx.drawImage(qrScannerVideo, 0, 0, canvas.width, canvas.height);
+
+          let imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          
+          if (!imageData || !imageData.data || imageData.data.length === 0) {
+            if (scannerActive) {
+              requestAnimationFrame(scanProcessing);
+            }
+            return;
+          }
+
+          // Try standard decoding first
+          let code = jsQR(imageData.data, canvas.width, canvas.height);
+          
+          // If no QR found, try with enhanced contrast
+          if (!code) {
+            const enhancedData = enhanceImageData(imageData);
+            code = jsQR(enhancedData.data, canvas.width, canvas.height);
+            if (code) {
+              debugLog('[Enhanced QR] QR code found after contrast enhancement');
+            }
+          }
+
+          // Log every 60 frames when no QR found
+          if (!code && scanFrameCount % 60 === 0) {
+            console.log('[Scanner] Still scanning... frame ' + scanFrameCount + ' - no QR detected');
+            debugLog('[Scanner] No QR found yet (frame ' + scanFrameCount + ')');
+          }
+
+          if (code) {
+            // QR code detected - extract user data
+            scanFrameCount = 0; // Reset counter
+            console.log('[Scanner] QR Code detected at frame ' + scanFrameCount + ':', code.data);
+            console.log('[Scanner] QR Code data type:', typeof code.data);
+            console.log('[Scanner] QR Code data length:', code.data ? code.data.length : 0);
+            
+            // Play beep sound when QR detected
+            playBeepSound();
+            
+            debugLog('[Scanner] QR Detected - Data length: ' + (code.data ? code.data.length : 0));
+            debugLog('[Scanner] QR Raw data: ' + (code.data ? code.data.substring(0, 200) : 'EMPTY'));
+            
+            // If data is empty, it means jsQR detected the QR pattern but couldn't decode
+            if (!code.data || code.data.trim() === '') {
+              debugLog('[Scanner] ERROR: QR detected but data is EMPTY - skipping', 'error');
+              console.error('[Scanner] Empty QR data detected');
+              if (scannerActive) {
+                requestAnimationFrame(scanProcessing);
+              }
+              return;
+            }
+            
+            // Try to parse the QR data - it should contain user information
+            try {
+              console.log('[Scanner] Attempting JSON parse...');
+              const userData = JSON.parse(code.data);
+              console.log('[Scanner] JSON parse successful:', userData);
+              debugLog('[Scanner] ✓ Parsed user data - ID: ' + (userData.user_id || userData.id));
+              
+              // Ensure we have at least a user_id or id
+              if ((userData.user_id || userData.id) && (userData.name || userData.full_name || userData.email)) {
+                // Valid user object from profile QR or similar
+                markAttendance(userData);
+              } else {
+                throw new Error('Missing required fields: user_id and name/email');
+              }
+            } catch (e) {
+              console.error('[Scanner] JSON parse/validation error:', e.message);
+              debugLog('[Scanner] ✗ JSON parse failed: ' + e.message, 'error');
+              
+              // If not JSON, try to extract user_id from URL or raw data
+              console.log('[Scanner] Attempting ID extraction from raw data...');
+              const userIdMatch = code.data.match(/(?:"?user_id"?\s*[:=]\s*"?([^",}]+)|user_id[=\/](\d+)|id[=\/](\d+))/i);
+              if (userIdMatch) {
+                const userId = userIdMatch[1] || userIdMatch[2] || userIdMatch[3];
+                console.log('[Scanner] Extracted user ID:', userId);
+                debugLog('[Scanner] ✓ Extracted user ID: ' + userId);
+                fetchUserAndMarkAttendance(userId);
+              } else {
+                console.error('[Scanner] Could not extract user ID');
+                debugLog('[Scanner] ✗ Could not extract user ID from: ' + code.data.substring(0, 100), 'error');
+                showScanResult('Invalid QR code format. Expected SK Connect ID card QR. Raw data: ' + code.data.substring(0, 50), 'error');
+              }
+            }
+          } else if (scannerActive) {
+            requestAnimationFrame(scanProcessing);
+          }
+        } catch (err) {
+          console.error('[Scanner] Scan processing error:', err);
+          debugLog('[Scanner] Processing error: ' + err.message, 'error');
+          if (scannerActive) {
+            requestAnimationFrame(scanProcessing);
+          }
+        }
+      }
+
+      function markAttendance(userData) {
+        console.log('[Attendance] Marking attendance for user:', userData);
+        debugLog('[Attendance] Processing user: ' + (userData.name || userData.full_name));
+        
+        // Ensure we have a valid identifier
+        const userIdentifier = userData.user_id || userData.id || userData.email || userData.username || null;
+        if (!userIdentifier) {
+          console.error('[Attendance] ERROR: No user identifier found in QR data');
+          showScanResult('⚠️ Invalid QR code: Missing user ID', 'error');
+          debugLog('[Attendance] ERROR: No user ID in data', 'error');
+          return;
+        }
+
+        // basic identifier for debounce: prefer user_id, then email, then name
+        const markId = String(userIdentifier);
+
+        // ignore if we're already marking this user recently
+        if (markId && lastMarked.id === markId && (Date.now() - lastMarked.ts) < MARK_DEBOUNCE_MS) {
+          console.warn('[Attendance] Ignoring rapid duplicate for', markId);
+          debugLog('[Attendance] Ignored rapid duplicate for ' + markId, 'error');
+          return;
+        }
+
+        if (!currentEventId) {
+          console.error('[Attendance] No event ID available');
+          showScanResult('⚠️ Event ID not available', 'error');
+          debugLog('[Attendance] ERROR: No event ID', 'error');
+          return;
+        }
+        // Prevent concurrent marking; pause scanner until API returns
+        if (isMarking) {
+          console.warn('[Attendance] Another mark in progress; skipping');
+          return;
+        }
+        isMarking = true;
+        const prevScannerActive = scannerActive;
+        scannerActive = false; // pause scanning to avoid duplicate frames
+
+        // Prepare attendance data
+        const attendanceData = {
+          event_id: currentEventId,
+          user_id: userData.user_id || userData.id || null,
+          name: userData.name || userData.full_name || userData.username || 'Unknown',
+          email: userData.email || '',
+          phone: userData.phone || '',
+          barangay: userData.barangay || '',
+          status: 'Present'
+        };
+
+        console.log('[Attendance] Sending attendance data:', attendanceData);
+        debugLog('[Attendance] Sending POST to /api/attendance/mark');
+
+        // Send to backend
+        fetch('/api/attendance/mark', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(attendanceData)
+        })
+        .then(res => {
+          console.log('[Attendance] Response status:', res.status);
+          debugLog('[Attendance] API response status: ' + res.status);
+          
+          // Parse JSON regardless of status code
+          return res.json().then(data => ({
+            status: res.status,
+            ok: res.ok,
+            data: data
+          }));
+        })
+        .then(response => {
+          const { status, ok, data } = response;
+          console.log('[Attendance] API response data:', data);
+          debugLog('[Attendance] API response: ' + JSON.stringify(data));
+          
+          if (ok && data.success) {
+            console.log('[Attendance] ✓ Success!');
+            playBeepSound();
+            speakMessage('QR code scan successful. ' + attendanceData.name + ' marked present.');
+            showScanResult(`✓ Attendance marked for ${attendanceData.name}`, 'success');
+            debugLog('[Attendance] ✓ Marked present: ' + attendanceData.name, 'success');
+            // remember this mark to prevent immediate duplicates
+            if (markId) { lastMarked.id = markId; lastMarked.ts = Date.now(); }
+            setTimeout(() => {
+              scannerResult.classList.add('hidden');
+              // resume scanning after short pause
+              isMarking = false;
+              scannerActive = prevScannerActive;
+              if (scannerActive) requestAnimationFrame(scanProcessing);
+            }, 2500);
+          } else if (status === 409 || data.duplicate) {
+            // Duplicate scan
+            console.error('[Attendance] Duplicate scan:', data);
+            playBeepSound();
+            speakMessage('QR code denied. ' + attendanceData.name + ' has already been marked for this event.');
+            showScanResult('⚠️ ' + attendanceData.name + ' has already been marked present', 'error');
+            debugLog('[Attendance] ⚠️ Duplicate: ' + (data.error || data.message), 'error');
+            // mark lastMarked to prevent retry spam
+            if (markId) { lastMarked.id = markId; lastMarked.ts = Date.now(); }
+            // allow scanning again quickly
+            isMarking = false;
+            scannerActive = prevScannerActive;
+            if (scannerActive) requestAnimationFrame(scanProcessing);
+          } else {
+            // Other error
+            console.error('[Attendance] Failed:', data);
+            playBeepSound();
+            speakMessage('QR code denied. ' + (data.message || data.error || 'Unknown error'));
+            showScanResult('Failed to mark attendance: ' + (data.message || data.error || 'Unknown error'), 'error');
+            debugLog('[Attendance] ✗ Failed: ' + (data.message || data.error || 'Unknown error'), 'error');
+            // allow scanning again
+            isMarking = false;
+            scannerActive = prevScannerActive;
+            if (scannerActive) requestAnimationFrame(scanProcessing);
+          }
+        })
+        .catch(err => {
+          console.error('[Attendance] Fetch error:', err);
+          speakMessage('QR code denied. Error: ' + err.message);
+          showScanResult('Error: ' + err.message, 'error');
+          debugLog('[Attendance] ✗ Fetch error: ' + err.message, 'error');
+          // restore scanning state
+          isMarking = false;
+          scannerActive = prevScannerActive;
+          if (scannerActive) requestAnimationFrame(scanProcessing);
+        });
+      }
+
+      function fetchUserAndMarkAttendance(userId) {
+        console.log('[User Fetch] Fetching user data for ID:', userId);
+        debugLog('[User Fetch] Fetching user ' + userId + ' from API');
+        
+        fetch(`/api/user/${userId}`)
+          .then(res => {
+            console.log('[User Fetch] Response status:', res.status);
+            return res.json();
+          })
+          .then(userData => {
+            console.log('[User Fetch] User data received:', userData);
+            debugLog('[User Fetch] ✓ User data loaded: ' + (userData.name || userData.full_name));
+            markAttendance(userData);
+          })
+          .catch(err => {
+            showScanResult('Error fetching user data: ' + err.message, 'error');
+          });
+      }
+
+      function showScanResult(message, type) {
+        scannerResultText.textContent = message;
+        scannerResult.classList.remove('hidden', 'bg-gray-50', 'bg-green-50', 'bg-red-50');
+        scannerResult.classList.remove('border-gray-200', 'border-green-200', 'border-red-200');
+        scannerResultText.classList.remove('text-gray-700', 'text-green-700', 'text-red-700');
+
+        if (type === 'success') {
+          scannerResult.classList.add('bg-green-50', 'border-green-200');
+          scannerResultText.classList.add('text-green-700');
+        } else if (type === 'error') {
+          scannerResult.classList.add('bg-red-50', 'border-red-200');
+          scannerResultText.classList.add('text-red-700');
+        } else {
+          scannerResult.classList.add('bg-gray-50', 'border-gray-200');
+          scannerResultText.classList.add('text-gray-700');
+        }
+      }
+
+      function stopScanner() {
+        scannerActive = false;
+        if (scannerStream) {
+          scannerStream.getTracks().forEach(track => track.stop());
+          scannerStream = null;
+        }
+        qrScannerVideo.srcObject = null;
+      }
+
+      function processManualEntry() {
+        const input = manualQrInput.value.trim();
+        if (!input) {
+          showManualResult('Please enter QR code data or user ID', 'error');
+          return;
+        }
+
+        try {
+          // Try to parse as JSON first
+          const userData = JSON.parse(input);
+          markAttendance(userData);
+        } catch (e) {
+          // Try to extract user ID from various formats
+          const userIdMatch = input.match(/(\d+)/);
+          if (userIdMatch) {
+            const userId = userIdMatch[1];
+            fetchUserAndMarkAttendance(userId);
+          } else {
+            showManualResult('Invalid format. Please enter a user ID or valid QR data.', 'error');
+          }
+        }
+      }
+
+      function showManualResult(message, type) {
+        manualResultText.textContent = message;
+        manualResult.classList.remove('hidden', 'bg-gray-50', 'bg-green-50', 'bg-red-50');
+        manualResult.classList.remove('border-gray-200', 'border-green-200', 'border-red-200');
+        manualResultText.classList.remove('text-gray-700', 'text-green-700', 'text-red-700');
+
+        if (type === 'success') {
+          manualResult.classList.add('bg-green-50', 'border-green-200');
+          manualResultText.classList.add('text-green-700');
+          setTimeout(() => {
+            manualQrInput.value = '';
+            manualResult.classList.add('hidden');
+          }, 2000);
+        } else if (type === 'error') {
+          manualResult.classList.add('bg-red-50', 'border-red-200');
+          manualResultText.classList.add('text-red-700');
+        } else {
+          manualResult.classList.add('bg-gray-50', 'border-gray-200');
+          manualResultText.classList.add('text-gray-700');
+        }
+      }
+
+      // Event listeners for scanner
+      openQrScannerBtn?.addEventListener('click', function() {
+        // Prefer the event currently loaded in the Attendance modal
+        const eventId = (typeof currentAttendanceEventId !== 'undefined' && currentAttendanceEventId) ? currentAttendanceEventId : (lastViewedEvent?.id || 1001);
+        startQrScanner(eventId);
+      });
+
+      const exportAttendanceBtn = document.getElementById('exportAttendanceBtn');
+      if (exportAttendanceBtn) {
+        exportAttendanceBtn.addEventListener('click', function() {
+          const eventId = (typeof currentAttendanceEventId !== 'undefined' && currentAttendanceEventId) ? currentAttendanceEventId : (lastViewedEvent?.id || null);
+          if (!eventId) {
+            alert('No event selected for export. Open the Attendance modal for an event first.');
+            return;
+          }
+          // Trigger file download from server endpoint
+          const url = `/api/attendance/${eventId}/export`;
+          window.location = url;
+        });
+      }
+
+      closeQrScannerBtn?.addEventListener('click', () => {
+        stopScanner();
+        hideModal(qrScannerModal);
+      });
+      stopScannerBtn?.addEventListener('click', stopScanner);
+      switchToManualBtn?.addEventListener('click', () => switchMode('manual'));
+      switchToCameraBtn?.addEventListener('click', () => switchMode('camera'));
+      submitManualBtn?.addEventListener('click', processManualEntry);
+      manualQrInput?.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') processManualEntry();
+      });
+
+      // --- Close buttons for other modals ---
+      const closeCreateBtn = document.getElementById('closeModalBtn');
+      if (closeCreateBtn) {
+        closeCreateBtn.addEventListener('click', function(){ debugLog('Create modal close clicked'); hideModal(createEventModal); });
+      }
+
+      const closeDetailBtn = document.getElementById('closeDetailModalBtn');
+      if (closeDetailBtn) {
+        closeDetailBtn.addEventListener('click', function(){ debugLog('Detail modal close clicked'); hideModal(eventDetailModal); });
+      }
+
+      const closeEditBtn = document.getElementById('closeEditModalBtn');
+      if (closeEditBtn) {
+        closeEditBtn.addEventListener('click', function(){ debugLog('Edit modal close clicked'); hideModal(editEventModal); });
+      }
+
+      // --- QR Code Modal ---
+      // Centralized function to open QR modal for an event id
+      function openQRForEventId(eventId){
+        if(!eventId){ debugLog('No eventId provided','error'); return; }
+        const qrContainer = document.getElementById('qrcode-container');
+        debugLog('openQRForEventId: ' + eventId);
+        qrContainer.innerHTML = '';
+  // Prefer an explicit SERVER_BASE_URL when provided (useful for phone testing on LAN).
+  // You can set this in the browser console for testing, e.g.:
+  // window.SERVER_BASE_URL = 'http://192.168.1.10:5000'
+  const base = (window.SERVER_BASE_URL && String(window.SERVER_BASE_URL).trim()) || (window.location.protocol + '//' + window.location.host);
+  // remove trailing slash if any
+  const normalizedBase = String(base).replace(/\/$/, '');
+  const url = `${normalizedBase}/mark-attendance/${eventId}`;
+        // show url for testing
+        const urlArea = document.getElementById('qrcode-url');
+        if(urlArea) urlArea.innerHTML = `<a href="${url}" target="_blank" style="color:#0ea5a0;word-break:break-all">${url}</a>`;
+
+        // try QRCode lib
+        if (typeof QRCode === 'undefined'){
+          debugLog('QRCode lib missing; using fallback image','error');
+          const img = document.createElement('img');
+          img.src = 'https://chart.googleapis.com/chart?chs=200x200&cht=qr&chl=' + encodeURIComponent(url);
+          img.alt = 'QR code';
+          qrContainer.appendChild(img);
+          // set download to image
+          document.getElementById('downloadQR').onclick = function(){
+            const link = document.createElement('a');
+            link.download = `event-qr-${eventId}.png`;
+            link.href = img.src;
+            link.click();
+          };
+          showModal(document.getElementById('qrCodeModal'));
+          return;
+        }
+
+        try{
+          new QRCode(qrContainer, { text: url, width:200, height:200, colorDark:'#0d2a52', colorLight:'#ffffff', correctLevel: QRCode.CorrectLevel.H });
+        }catch(err){
+          debugLog('QRCode generation error: '+err,'error');
+          const img = document.createElement('img');
+          img.src = 'https://chart.googleapis.com/chart?chs=200x200&cht=qr&chl=' + encodeURIComponent(url);
+          img.alt = 'QR code fallback';
+          qrContainer.appendChild(img);
+        }
+
+        // download handler
+        document.getElementById('downloadQR').onclick = function(){
+          const canvas = qrContainer.querySelector('canvas');
+          if(canvas){ const image = canvas.toDataURL('image/png'); const link = document.createElement('a'); link.download=`event-qr-${eventId}.png`; link.href=image; link.click(); return; }
+          const img = qrContainer.querySelector('img');
+          if(img){ const link = document.createElement('a'); link.download=`event-qr-${eventId}.png`; link.href=img.src; link.click(); }
+        };
+
+        showModal(document.getElementById('qrCodeModal'));
+      }
+
+      // Attach click handlers to existing buttons
+      document.querySelectorAll('[data-action="generate-qr"]').forEach(btn => {
+        btn.addEventListener('click', function(e){ e.preventDefault(); openQRForEventId(this.dataset.eventId); });
+      });
+
+      // Event delegation as a fallback if direct handlers fail
+      document.body.addEventListener('click', function(e){
+        const el = e.target.closest('[data-action="generate-qr"]');
+        if(el){ e.preventDefault(); openQRForEventId(el.dataset.eventId); }
+      });
+
+      // --- Edit Event Modal ---
+      document.querySelectorAll('button[title="Edit"]').forEach(btn => {
+        btn.addEventListener('click', function() {
+          const eventData = this.closest('tr').querySelector('.view-details-btn').dataset.event;
+          const event = JSON.parse(eventData);
+          
+          document.getElementById('editEventId').value = event.id || '';
+          document.getElementById('editEventName').value = event.name || '';
+          document.getElementById('editEventType').value = event.type || '';
+          document.getElementById('editEventDate').value = event.date || '';
+          document.getElementById('editEventStartTime').value = event.start_time || '';
+          document.getElementById('editEventEndTime').value = event.end_time || '';
+          document.getElementById('editEventLocation').value = event.location || '';
+          document.getElementById('editEventMaxParticipants').value = event.max_participants || '';
+          document.getElementById('editEventDescription').value = event.description || '';
+          document.getElementById('editEventRequiredItems').value = event.required_items || '';
+          document.getElementById('editEventRegistrationDeadline').value = event.registration_deadline || '';
+          document.getElementById('editEventBudget').value = event.budget || '';
+
+          showModal(editEventModal);
+        });
+      });
+
+      // --- Sidebar and Dropdowns ---
+      document.getElementById('mobile-menu-button')?.addEventListener('click', () => {
+        document.getElementById('mobile-menu')?.classList.toggle('hidden');
+      });
+
+      document.getElementById('userDropdownToggle')?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        document.getElementById('userDropdownMenu')?.classList.toggle('hidden');
+      });
+
+      document.addEventListener('click', () => {
+        document.getElementById('userDropdownMenu')?.classList.add('hidden');
+      });
+    });
+    </script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const statusFilter = document.getElementById('eventStatusFilter');
+      const searchInput = document.getElementById('eventSearch');
+      const showingEl = document.getElementById('eventsShowingText');
+
+      function applyEventFilters() {
+        const q = (searchInput && searchInput.value || '').toLowerCase();
+        const filter = (statusFilter && statusFilter.value || '').toLowerCase();
+        const rows = Array.from(document.querySelectorAll('#events table tbody tr'));
+        let visible = 0;
+        rows.forEach(r => {
+          const name = (r.dataset.name || '').toLowerCase();
+          const status = (r.dataset.status || '').toLowerCase();
+          let show = true;
+          if (filter && filter !== 'all events') {
+            if (filter === 'upcoming' || filter === 'ongoing' || filter === 'completed') {
+              show = (status === filter);
+            }
+          }
+          if (q && !name.includes(q)) show = false;
+          r.style.display = show ? '' : 'none';
+          if (show) visible++;
+        });
+        if (showingEl) {
+          const total = rows.length;
+          showingEl.textContent = `Showing ${visible>0?1:0} to ${visible} of ${total} events`;
+        }
+      }
+
+      if (statusFilter) statusFilter.addEventListener('change', applyEventFilters);
+      if (searchInput) searchInput.addEventListener('input', applyEventFilters);
+      // initial
+      applyEventFilters();
+    });
+    </script>
+</body>
+</html>

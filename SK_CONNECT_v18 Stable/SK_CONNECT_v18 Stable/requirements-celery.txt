@@ -1,0 +1,4 @@
+celery>=5.2
+redis>=4.0
+pywebpush>=1.13
+twilio>=8.0

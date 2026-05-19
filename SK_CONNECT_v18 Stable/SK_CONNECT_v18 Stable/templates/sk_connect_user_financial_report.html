@@ -1,0 +1,2742 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>SK Connect — Financial Reports</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+  <!-- Tailwind + Icons + Chart.js -->
+     <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/SKLOGO.png') }}">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+  <!-- Alpine.js for dropdown functionality -->
+  <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <!-- DataTables & Buttons (for transactions table: paging, search, export) -->
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" />
+  <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.dataTables.min.css" />
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+  <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
+
+  <!-- Poppins font -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- (Optional) shared styles if meron ka nito sa project -->
+  <!-- <link rel="stylesheet" href="/static/css/sk_connect_dashboard.css"> -->
+  <!-- <link rel="stylesheet" href="/static/css/sk_brand_theme.css"> -->
+
+  <!-- Minimal overrides to match Dashboard exactly -->
+  <style>
+    :root{ --sk-blue:#0d2a52; --sk-yellow:#FCD116; }
+    html,body{ height:100%; }
+    body{
+      font-family:"Poppins",system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial,"Noto Sans","Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol";
+      background:#fff;
+      color:#111827;
+    }
+    /* Sidebar + nav */
+    .sidebar{ background:var(--sk-blue)!important; color:#fff; }
+    .sidebar .sidebar-item{ color:#e5e7eb; }
+    .sidebar .sidebar-item:hover{ background:rgba(255,255,255,.06); transform:translateX(4px); }
+    .active-nav{
+      background:linear-gradient(90deg, rgba(252,209,22,.22), rgba(252,209,22,0))!important;
+      border-left:4px solid var(--sk-yellow);
+      color:#fff!important;
+    }
+    /* Topbar */
+    .app-topbar{
+      background:#fff!important; color:#111827;
+      border-bottom:1px solid #e5e7eb; position:sticky; top:0; z-index:30;
+    }
+    .brand-img{ width:40px; height:40px; border-radius:10px; object-fit:cover; }
+    /* Cards */
+    .kpi-card{ border:1px solid #eef2f7; border-radius:1rem; }
+    /* Dropdown & misc */
+    .dropdown-item:hover { background:#f3f4f6; }
+    .dropdown-divider { border-top:1px solid #e5e7eb; }
+    
+  /* Ensure transactions modal sits above other overlays (dev fix) */
+  #allTransactionsModal { z-index: 99999 !important; }
+  /* Make the inner panel sit above the backdrop and other modals */
+  #allTransactionsModal > div, #allTransactionsModal .relative { z-index: 100000 !important; }
+  
+  /* Ensure modal panels layer correctly */
+  .modal-panel { position: relative; z-index: 1; }
+
+  /* Modern Modal Styles */
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+  
+  .modal-panel {
+    animation: modalSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  
+  @keyframes modalSlideUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px) scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+  
+  .gradient-bg {
+    background: linear-gradient(135deg, #0d2a52 0%, #2147A8 50%, #8B5CF6 100%);
+  }
+  
+  .gradient-accent {
+    background: linear-gradient(135deg, #FCD116 0%, #F59E0B 100%);
+  }
+  
+  .glass-effect {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+  }
+  
+  .stat-card {
+    background: linear-gradient(135deg, rgba(33, 71, 168, 0.05) 0%, rgba(139, 92, 246, 0.05) 100%);
+    border: 1px solid rgba(33, 71, 168, 0.1);
+    transition: all 0.3s ease;
+  }
+  
+  .stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(33, 71, 168, 0.15);
+  }
+  
+  .btn-primary {
+    background: linear-gradient(135deg, #0d2a52 0%, #2147A8 100%);
+    transition: all 0.3s ease;
+  }
+  
+  .btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 20px rgba(33, 71, 168, 0.4);
+  }
+  
+  .btn-accent {
+    background: linear-gradient(135deg, #FCD116 0%, #F59E0B 100%);
+    transition: all 0.3s ease;
+  }
+  
+  .btn-accent:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 20px rgba(252, 209, 22, 0.4);
+  }
+  
+  .status-badge {
+    padding: 6px 16px;
+    border-radius: 9999px;
+    font-weight: 600;
+    font-size: 0.75rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  
+  .status-ongoing {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(6, 182, 212, 0.15) 100%);
+    color: #059669;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+  }
+  
+  .status-completed {
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(33, 71, 168, 0.15) 100%);
+    color: #7C3AED;
+    border: 1px solid rgba(139, 92, 246, 0.3);
+  }
+  
+  .status-upcoming {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(252, 209, 22, 0.15) 100%);
+    color: #D97706;
+    border: 1px solid rgba(245, 158, 11, 0.3);
+  }
+  
+  .input-modern {
+    transition: all 0.2s ease;
+    border: 2px solid #E5E7EB;
+  }
+  
+  .input-modern:focus {
+    border-color: #2147A8;
+    box-shadow: 0 0 0 3px rgba(33, 71, 168, 0.1);
+  }
+  
+  .icon-box {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, rgba(33, 71, 168, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+  }
+  </style>
+</head>
+
+<body class="antialiased"
+  data-supabase-url="{{ SUPABASE_URL or '' }}"
+  data-supabase-key="{{ SUPABASE_ANON_KEY or '' }}">
+  <div class="flex h-screen overflow-hidden">
+    <!-- Sidebar (same look as Dashboard) -->
+    <aside class="hidden md:flex md:flex-shrink-0 sidebar">
+      <div class="flex flex-col w-64">
+        <div class="px-4 py-6 flex items-center">
+          <img src="/static/images/SKLOGO.png" alt="SK Logo" class="brand-img mr-3">
+          <div>
+            <div class="text-white text-xl font-extrabold">SK<span class="text-yellow-300">Connect</span></div>
+            <div class="text-blue-200 text-xs">Los Baños Federation</div>
+          </div>
+        </div>
+
+         <div class="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
+          <nav class="flex-1 px-2 space-y-1">
+             <a href="{{ url_for('user_dashboard') }}" data-title="Dashboard" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-home mr-3 text-lg"></i> Dashboard
+            </a>
+            <a href="{{ url_for('user_announcements') }}" data-title="Announcements" class="sidebar-item active-nav flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-bullhorn mr-3 text-lg"></i> Announcements
+            </a>
+            <a href="{{ url_for('user_events_projects') }}" data-title="Events & Projects" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-calendar mr-3 text-lg"></i> Events & Projects
+            </a>
+            <div class="relative" id="finDropdownWrap">
+              <button id="finDropdownBtn" data-title="Financial Reports" class="sidebar-item flex items-center justify-between w-full px-4 py-3 text-sm font-medium rounded-md">
+                <span class="flex items-center">
+                  <i class="fas fa-chart-pie mr-3 text-lg"></i> Financial Reports
+                </span>
+                <i class="fas fa-chevron-down text-sm transition-transform" id="finChevron"></i>
+              </button>
+              <div id="finSubMenu" class="hidden pl-11 pr-2 py-1 space-y-1">
+                <a href="{{ url_for('user_financial_report') }}" class="block px-3 py-2 text-sm text-blue-100 hover:text-white rounded-md">
+                  <i class="fas fa-chart-bar mr-2"></i>Financial Dashboard
+                </a>
+                <a href="{{ url_for('user_all_transactions') }}" class="block px-3 py-2 text-sm text-blue-100 hover:text-white rounded-md">
+                  <i class="fas fa-receipt mr-2"></i>View Transactions
+                </a>
+                <a href="{{ url_for('user_all_projects') }}" class="block px-3 py-2 text-sm text-blue-100 hover:text-white rounded-md">
+                  <i class="fas fa-project-diagram mr-2"></i>View Projects
+                </a>
+              </div>
+            </div>
+            <a href="{{ url_for('user_feedback') }}" data-title="Surveys & Polls" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-poll mr-3 text-lg"></i> Survey & Polls
+            </a>
+            <a href="{{ url_for('user_documents') }}" data-title="Documents" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-file-alt mr-3 text-lg"></i> Documents
+            </a>
+            <a href="{{ url_for('user_volunteer') }}" data-title="Volunteer" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-hands-helping mr-3 text-lg"></i> Volunteer
+            </a>
+            <a href="{{ url_for('user_training_resources') }}" data-title="Training Resources" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-graduation-cap mr-3 text-lg"></i> Training Resources
+            </a>
+            <a href="{{ url_for('user_community') }}" data-title="Community Board" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-users mr-3 text-lg"></i> Community Board
+            </a>
+            <a href="{{ url_for('user_incidents') }}" data-title="Incident Reports" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-exclamation-triangle mr-3 text-lg"></i> Incident Reports
+            </a>
+          </nav>
+        </div>
+
+         <!-- user dropdown -->
+                  <div class="flex-shrink-0 flex border-t border-white/10 p-4 relative">
+                    <div id="userDropdownToggle" class="flex flex-col items-center cursor-pointer w-full">
+                      <div class="flex items-center justify-center w-full">
+                        <img class="h-9 w-9 rounded-full" src="{{ current_user.profile_pic if current_user and current_user.profile_pic else get_default_profile_image(current_user) }}" alt="Profile">
+                        <div class="ml-3 flex-1 min-w-0">
+                          <div class="text-base font-medium text-white truncate uppercase">{{ session['username'] if session.get('username') else 'Guest' }}</div>
+                          <div class="text-xs text-blue-100 mt-0.5 truncate">{{ session['position']|title if session.get('position') else 'User' }}</div>
+                        </div>
+                        <i class="fas fa-chevron-down ml-2 text-blue-200 flex-shrink-0"></i>
+                      </div>
+                    </div>
+                    <ul id="userDropdownMenu" class="absolute left-0 right-0 mx-auto bottom-14 z-20 w-60 bg-white rounded shadow-lg py-2 text-gray-700 hidden">
+                      <li>
+                        <a class="dropdown-item flex items-center px-4 py-2 hover:bg-gray-100" href="{{ url_for('profile') }}">
+                          <i class="fas fa-user mr-2"></i>Profile
+                        </a>
+                      </li>
+                      <li><a class="dropdown-item flex items-center px-4 py-2 hover:bg-gray-100" href="#"><i class="fas fa-cog mr-2"></i>Settings</a></li>
+            <li><hr class="dropdown-divider my-1"></li>
+            <li><a class="dropdown-item flex items-center px-4 py-2 hover:bg-gray-100" href="/logout"><i class="fas fa-sign-out-alt mr-2"></i>Logout</a></li>
+          </ul>
+        </div>
+      </div>
+
+    <!-- Mobile top bar (white like Dashboard) -->
+    <div class="md:hidden app-topbar w-full flex items-center justify-between px-4 py-3">
+      <div class="flex items-center">
+        <img src="/static/images/SKLOGO.png" class="brand-img mr-2" alt="SK"/>
+        <h1 class="text-lg font-extrabold">SK<span class="text-blue-700">Connect</span></h1>
+      </div>
+      <button id="mobile-menu-button" class="text-gray-700 focus:outline-none">
+        <i class="fas fa-bars text-xl"></i>
+      </button>
+    </div>
+
+    <!-- Mobile dropdown (blue like sidebar) -->
+    <div id="mobile-menu" class="md:hidden absolute top-14 left-0 right-0 sidebar z-10 hidden">
+      <nav class="px-2 pt-2 pb-3 space-y-1">
+        <a href="user_dashboard" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-home mr-2"></i> Dashboard</a>
+        <a href="user_announcements" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-bullhorn mr-2"></i> Announcements</a>
+        <a href="user_events_projects" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-calendar mr-2"></i> Events & Projects</a>
+        <a href="user_financial_report" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium bg-blue-800"><i class="fas fa-chart-pie mr-2"></i> Financial Reports</a>
+        <a href="user_feedback" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-poll mr-2"></i> Surveys & Polls</a>
+        <a href="user_documents" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-file-alt mr-2"></i> Documents</a>
+        <a href="user_volunteer" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-hands-helping mr-2"></i> Volunteer</a>
+        <a href="user_training_resources" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-graduation-cap mr-2"></i> Training Resources</a>
+        <a href="user_community" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-users mr-2"></i> Community Board</a>
+        <a href="user_incidents" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-exclamation-triangle mr-2"></i> Incident Reports</a>
+        <a href="user_approval" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-user-check mr-2"></i> User Approval</a>
+      </nav>
+    </div>
+    
+    
+    <!-- Main content -->
+    <div class="flex-1 flex flex-col overflow-hidden">
+      <!-- Top navigation -->
+      <header class="app-topbar">
+        <div class="flex justify-between items-center px-4 py-4 sm:px-6 lg:px-8">
+          <h1 class="text-2xl font-extrabold">Financial Reports & Transparency</h1>
+          <div class="flex items-center space-x-4">
+            <div class="flex space-x-2"></div>
+          </div>
+        </div>
+      </header>
+      <main class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-white">
+        <!-- Summary Cards -->
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-lg font-semibold">Summary Cards</h2>
+          <div class="flex items-center gap-2">
+            <label for="kpiYearSelect" class="text-sm text-gray-700">Year</label>
+            <select id="kpiYearSelect" class="border rounded-md px-3 py-1 text-sm bg-white">
+              <option value="">Loading...</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div id="kpiTotalBudget" data-metric="allocated" class="bg-white overflow-hidden shadow rounded-lg kpi-card cursor-pointer">
+            <div class="p-5">
+              <div class="flex items-center">
+                <div class="flex-shrink-0 bg-green-500 rounded-md p-3"><i class="fas fa-wallet text-white text-xl"></i></div>
+                <div class="ml-5">
+                  <h3 class="text-lg font-medium text-gray-900">Total Allocated Budget</h3>
+                  <p class="text-2xl font-extrabold text-green-600">{% if total_budget is defined %}₱{{ "{:,.2f}".format(total_budget|float) }}{% else %}₱2,500,000{% endif %}</p>
+                  <p class="text-sm text-gray-500">FY <span id="kpiYearLabel">2025</span></p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="kpiSpent" data-metric="spent" class="bg-white overflow-hidden shadow rounded-lg kpi-card cursor-pointer">
+            <div class="p-5">
+              <div class="flex items-center">
+                <div class="flex-shrink-0 bg-blue-500 rounded-md p-3"><i class="fas fa-chart-line text-white text-xl"></i></div>
+                <div class="ml-5">
+                  <h3 class="text-lg font-medium text-gray-900">Spent</h3>
+                  <p class="text-2xl font-extrabold text-blue-600">{% if total_spent is defined %}₱{{ "{:,.2f}".format(total_spent|float) }}{% else %}₱1,650,000{% endif %}</p>
+                  <p class="text-sm text-gray-500">{% if percent_spent is defined %}{{ percent_spent|round(0) }}% of budget{% else %}66% of budget{% endif %}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="kpiRemaining" data-metric="remaining" class="bg-white overflow-hidden shadow rounded-lg kpi-card cursor-pointer">
+            <div class="p-5">
+              <div class="flex items-center">
+                <div class="flex-shrink-0 bg-yellow-500 rounded-md p-3"><i class="fas fa-hourglass-half text-white text-xl"></i></div>
+                <div class="ml-5">
+                  <h3 class="text-lg font-medium text-gray-900">Remaining</h3>
+                  <p class="text-2xl font-extrabold text-yellow-600">{% if remaining is defined %}₱{{ "{:,.2f}".format(remaining|float) }}{% else %}₱850,000{% endif %}</p>
+                  <p class="text-sm text-gray-500">{% if total_budget and remaining is defined %}{{ ((remaining/total_budget*100)|round(0)) if total_budget|float > 0 else 0 }}% available{% else %}34% available{% endif %}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="kpiActiveProjects" data-metric="projects" class="bg-white overflow-hidden shadow rounded-lg kpi-card cursor-pointer">
+            <div class="p-5">
+              <div class="flex items-center">
+                <div class="flex-shrink-0 bg-purple-500 rounded-md p-3"><i class="fas fa-project-diagram text-white text-xl"></i></div>
+                <div class="ml-5">
+                  <h3 class="text-lg font-medium text-gray-900">Active Projects</h3>
+                  <p class="text-2xl font-extrabold text-purple-600">12</p>
+                  <p class="text-sm text-gray-500">Ongoing</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          <!-- Budget Allocation Chart -->
+          <div class="bg-white shadow rounded-lg p-6">
+            <div class="flex justify-between items-center mb-4">
+              <h3 class="text-lg font-semibold text-gray-900">Budget Allocation by Category</h3>
+              <select id="budgetYearFilter" class="text-sm border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                <option value="2026">2026</option>
+                <option value="2025">2025</option>
+                <option value="2024">2024</option>
+                <option value="2023">2023</option>
+              </select>
+            </div>
+            <div class="h-80">
+              <canvas id="budgetAllocationChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Monthly Spending Chart -->
+          <div class="bg-white shadow rounded-lg p-6">
+            <div class="flex justify-between items-center mb-4">
+              <h3 class="text-lg font-semibold text-gray-900">Monthly Spending Trend</h3>
+              <div class="flex space-x-2">
+                <!-- wired buttons for dynamic year selection -->
+                <button id="monthlyYear2026" data-year="2026" class="text-sm text-gray-600 hover:bg-gray-100 px-3 py-1 rounded-md">2026</button>
+                <button id="monthlyYear2025" data-year="2025" class="text-sm bg-blue-100 text-blue-800 px-3 py-1 rounded-md">2025</button>
+                <button id="monthlyYear2024" data-year="2024" class="text-sm text-gray-600 hover:bg-gray-100 px-3 py-1 rounded-md">2024</button>
+              </div>
+            </div>
+            <div class="h-80">
+              <canvas id="monthlySpendingChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Project-wise Budget Breakdown -->
+        <div id="projects" class="bg-white shadow rounded-lg p-6 mb-8">
+          <div class="flex justify-between items-center mb-6">
+            <h3 class="text-lg font-semibold text-gray-900">Project-wise Budget Breakdown</h3>
+            <div class="flex space-x-2 items-center gap-4">
+              <div class="w-72">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Filter by Barangay</label>
+                <select id="barangayFilter" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
+                  <option value="">All Barangays</option>
+                  <option value="Anos">Anos</option>
+                  <option value="Bagong Silang">Bagong Silang</option>
+                  <option value="Bambang">Bambang</option>
+                  <option value="Batong Malake">Batong Malake</option>
+                  <option value="Baybayin">Baybayin</option>
+                  <option value="Bayog">Bayog</option>
+                  <option value="Lalakay">Lalakay</option>
+                  <option value="Maahas">Maahas</option>
+                  <option value="Malinta">Malinta</option>
+                  <option value="Mayondon">Mayondon</option>
+                  <option value="Putho-Tuntungin">Putho-Tuntungin</option>
+                  <option value="San Antonio">San Antonio</option>
+                  <option value="SK FED OF LOS BAÑOS">SK FED OF LOS BAÑOS</option>
+                  <option value="Tadlac">Tadlac</option>
+                  <option value="Timugan">Timugan</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="overflow-x-auto">
+            <div class="relative w-full" style="max-height: 320px; overflow-y: auto;">
+              <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                  <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Project Name</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Budget Allocated</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount Spent</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Remaining</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                  </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200" id="projectTableBody">
+                  {% for project in all_projects %}
+                  <tr data-project='{{ {"id": project.id, "barangay": project.barangay|default("")}|tojson }}'>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="text-sm font-medium text-gray-900">{{ project.name }}</div>
+                      <div class="text-sm text-gray-500">{{ project.description }}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
+                        {% if project.category == 'education' %}bg-blue-100 text-blue-800
+                        {% elif project.category == 'sports' %}bg-purple-100 text-purple-800
+                        {% elif project.category == 'environment' %}bg-green-100 text-green-800
+                        {% elif project.category == 'health' %}bg-red-100 text-red-800
+                        {% elif project.category == 'infrastructure' %}bg-yellow-100 text-yellow-800
+                        {% elif project.category == 'social' %}bg-cyan-100 text-cyan-800
+                        {% else %}bg-gray-100 text-gray-800{% endif %}">
+                        {{ project.category|title }}
+                      </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">₱{{ project.budget_allocated | float | round(2) | string | replace(',', '') }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">₱{{ project.amount_spent | float | round(2) | string | replace(',', '') }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-green-600 font-medium">₱{{ (project.budget_allocated|float - project.amount_spent|float) | round(2) }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
+                        {% if project.status == 'Completed' %}bg-green-100 text-green-800
+                        {% elif project.status == 'Ongoing' %}bg-blue-100 text-blue-800
+                        {% elif project.status == 'Upcoming' %}bg-yellow-100 text-yellow-800
+                        {% else %}bg-gray-100 text-gray-800{% endif %}">
+                        {{ project.status }}
+                      </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <button class="text-blue-600 hover:text-blue-900 mr-3" onclick="showProjectDetail('{{ project.id }}')">View</button>
+                    </td>
+                  </tr>
+                  {% else %}
+                  <tr>
+                    <td colspan="7" class="px-6 py-4 text-center text-gray-500">No projects found.</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- KPI View All Modal -->
+        <div id="kpiModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+          <div class="relative top-12 mx-auto w-11/12 max-w-5xl shadow-lg rounded-md bg-white overflow-hidden">
+            <div class="h-14 bg-blue-600 flex items-center justify-between px-6">
+              <h3 class="text-lg font-semibold text-white">All Projects — Budget Breakdown</h3>
+              <button onclick="hideModal('kpiModal')" class="text-white hover:text-gray-200"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="p-4 overflow-x-auto max-h-[60vh]">
+              <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50 sticky top-0">
+                  <tr>
+                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Project</th>
+                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                    <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Budget Allocated</th>
+                    <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Amount Spent</th>
+                    <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Remaining</th>
+                    <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">% Spent</th>
+                    <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                  </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                  {% if all_projects is defined and all_projects %}
+                    {% for p in all_projects %}
+                    {% set b = (p.budget_allocated | float(0)) %}
+                    {% set s = (p.amount_spent | float(0)) %}
+                    {% set rem = (b - s) if (b - s) > 0 else 0 %}
+                    {% set pct = (s / b * 100) if b > 0 else 0 %}
+                    <tr>
+                      <td class="px-4 py-3 text-sm text-gray-900">{{ p.name or p.title or '—' }}</td>
+                      <td class="px-4 py-3 text-sm text-gray-500">{{ (p.category or p.project_category)|title if (p.category or p.project_category) else '—' }}</td>
+                      <td class="px-4 py-3 text-sm text-right text-gray-900">₱{{ "{:,.2f}".format(b) }}</td>
+                      <td class="px-4 py-3 text-sm text-right text-gray-900">₱{{ "{:,.2f}".format(s) }}</td>
+                      <td class="px-4 py-3 text-sm text-right text-green-600 font-medium">₱{{ "{:,.2f}".format(rem) }}</td>
+                      <td class="px-4 py-3 text-sm text-right text-gray-500">{{ pct|round(1) }}%</td>
+                      <td class="px-4 py-3 text-center">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
+                          {% if p.status == 'Completed' %}bg-green-100 text-green-800
+                          {% elif p.status == 'Ongoing' %}bg-blue-100 text-blue-800
+                          {% elif p.status == 'Upcoming' %}bg-yellow-100 text-yellow-800
+                          {% else %}bg-gray-100 text-gray-800{% endif %}">
+                          {{ p.status or '—' }}
+                        </span>
+                      </td>
+                      <td class="px-4 py-3 text-center text-sm">
+                        <button class="text-blue-600 hover:text-blue-900" onclick="showProjectDetail('{{ p.id }}')">View</button>
+                      </td>
+                    </tr>
+                    {% endfor %}
+                  {% else %}
+                    <tr>
+                      <td colspan="6" class="px-4 py-4 text-center text-gray-500">No projects found.</td>
+                    </tr>
+                  {% endif %}
+                </tbody>
+              </table>
+            </div>
+            <div class="flex justify-end mt-4">
+              <button onclick="hideModal('kpiModal')" class="px-4 py-2 bg-gray-100 text-gray-800 rounded-md">Close</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Financial Activities -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <!-- Recent Transactions -->
+          <div id="transactions" class="bg-white shadow rounded-lg p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Recent Transactions </h3>
+            <div class="space-y-4" id="transactionsContainer">
+              {% set sorted_transactions = recent_transactions | sort(attribute='date', reverse=True) | list %}
+              {% for tx in sorted_transactions %}
+              <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg transaction-item" data-project-id="{{ tx.project_id|default('') }}" data-barangay="{{ tx.barangay|default('') }}">
+                <div class="flex items-center">
+                  <div class="bg-{{ 'green' if tx.type == 'income' else 'red' }}-100 p-2 rounded-full mr-4">
+                    <i class="fas fa-arrow-{{ 'up' if tx.type == 'income' else 'down' }} text-{{ 'green' if tx.type == 'income' else 'red' }}-600"></i>
+                  </div>
+                  <div>
+                    <p class="font-medium text-gray-900">{{ tx.title }}</p>
+                    <p class="text-sm text-gray-500">Description: {{ tx.description }}</p>
+                  </div>
+                </div>
+                <div class="text-right">
+                  <p class="font-semibold text-{{ 'green' if tx.type == 'income' else 'red' }}-600">
+                    {{ tx.type == 'income' and '+' or '-' }}₱{{ tx.amount | float | round(2) | string | replace(',', '') }}
+                  </p>
+                  <p class="text-sm text-gray-500">{{ tx.category }}</p>
+                </div>
+              </div>
+              {% else %}
+              <div class="text-center text-gray-500 py-4">No recent transactions found.</div>
+              {% endfor %}
+            </div>
+          
+          </div>
+
+          <!-- Financial Reports Library -->
+          <div class="bg-white shadow rounded-lg p-6">
+            <div class="flex justify-between items-center mb-4">
+              <h3 class="text-lg font-semibold text-gray-900">Financial Reports</h3>
+
+            </div>
+            <div class="space-y-3" id="reportsContainer">
+              {% if financial_reports %}
+                {% for report in financial_reports %}
+                  {% set file_ext = report.file_url.split('.')[-1].lower() if report.file_url else '' %}
+                  {% set file_icon = 'fas fa-file-pdf text-red-600' if file_ext == 'pdf' else ('fas fa-file-excel text-green-600' if file_ext in ['xlsx', 'xls'] else ('fas fa-file-word text-blue-600' if file_ext in ['doc', 'docx'] else 'fas fa-file text-gray-600')) %}
+                  <div class="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 report-item" data-report-id="{{ report.id }}">
+                    <div class="flex items-center">
+                      <i class="{{ file_icon }} mr-3"></i>
+                      <div>
+                        <p class="font-medium text-gray-900">{{ report.title or 'Untitled Report' }}</p>
+                        <p class="text-sm text-gray-500">
+                          Type: {{ report.report_type|title if report.report_type else 'N/A' }}
+                          {% if report.created_at %}
+                            • Uploaded on {{ report.created_at.split('T')[0] }}
+                          {% endif %}
+                        </p>
+                        {% if report.description %}
+                          <p class="text-xs text-gray-400 mt-1">{{ report.description }}</p>
+                        {% endif %}
+                      </div>
+                    </div>
+                    <div class="flex space-x-2">
+                      <button class="text-blue-600 hover:text-blue-800 transition-colors" title="Download" onclick="downloadReport('{{ report.id }}')"><i class="fas fa-download"></i></button>
+                    </div>
+                  </div>
+                {% endfor %}
+              {% else %}
+                <div class="text-center py-8 text-gray-500">
+                  <i class="fas fa-file-upload text-4xl mb-2 opacity-50"></i>
+                  <p>No financial reports uploaded yet.</p>
+                  <p class="text-sm mt-2">Click "Upload New" to add your first report.</p>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+
+  <div id="addProjectModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+    <div class="relative top-10 mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-md bg-white">
+      <div class="mt-3">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-lg font-medium text-gray-900">Add New Project</h3>
+          <button id="closeProjectModal" class="text-gray-400 hover:text-gray-600"><i class="fas fa-times"></i></button>
+        </div>
+
+        <form id="addProjectForm" method="POST" action="/create_project" class="space-y-4">
+          <!-- Debug: Show current user data -->
+          <!-- Current User: {{ current_user }} -->
+          <!-- Current User Barangay: {{ current_user.barangay if current_user else 'NO USER' }} -->
+          
+          <!-- Hidden barangay field - auto-populated from current user's barangay -->
+          <input type="hidden" name="barangay" id="projectBarangay" value="{{ current_user.barangay if current_user else '' }}">
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Project Name</label>
+              <input type="text" name="name" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="Enter project name">
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Category</label>
+              <select name="category" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                <option value="">Select category</option>
+                <option value="education">Education</option>
+                <option value="sports">Sports</option>
+                <option value="environment">Environment</option>
+                <option value="health">Health</option>
+                <option value="infrastructure">Infrastructure</option>
+                <option value="social">Social Development</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Project Description</label>
+            <textarea name="description" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="Brief description of the project"></textarea>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Budget Allocated</label>
+              <div class="relative">
+                <span class="absolute left-3 top-2 text-gray-500">₱</span>
+                <input type="number" name="budget_allocated" class="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="0.00">
+              </div>
+            </div>
+
+            <!-- <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Amount Spent</label>
+              <div class="relative">
+                <span class="absolute left-3 top-2 text-gray-500">₱</span>
+                <input type="number" name="amount_spent" class="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="0.00">
+              </div>
+            </div> -->
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Start Date</label>
+              <input type="date" name="start_date" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Target End Date</label>
+              <input type="date" name="end_date" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Project Manager</label>
+            <input type="text" name="project_manager" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="Enter project manager name">
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+            <select name="status" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+              <option value="Ongoing">Ongoing</option>
+              <option value="Completed">Completed</option>
+              <option value="Upcoming">Upcoming</option>
+            </select>
+          </div>
+
+          <div class="flex justify-end space-x-3 pt-4">
+            <button type="button" id="cancelProject" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md">Cancel</button>
+            <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-md">Add Project</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Project Detail View Modal -->
+  <div id="projectDetailModal" class="fixed inset-0 bg-gradient-to-br from-gray-900/50 via-blue-900/30 to-purple-900/30 backdrop-blur-sm flex items-center justify-center z-50 hidden p-4 overflow-y-auto">
+    <div class="modal-panel w-full max-w-5xl glass-effect rounded-3xl shadow-2xl overflow-hidden my-8">
+      <!-- Header with Gradient -->
+      <div class="gradient-bg relative overflow-hidden">
+        <div class="absolute inset-0 opacity-20">
+          <div class="absolute top-0 right-0 w-64 h-64 bg-yellow-400 rounded-full filter blur-3xl"></div>
+          <div class="absolute bottom-0 left-0 w-64 h-64 bg-purple-500 rounded-full filter blur-3xl"></div>
+        </div>
+        <div class="relative px-8 py-6 flex items-center justify-between">
+          <div>
+            <div class="flex items-center gap-3 mb-2">
+              <div class="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
+              <span class="text-white/100 text-sm font-medium uppercase tracking-wider" id="modalProjectCategory">Education</span>
+            </div>
+            <h3 class="text-3xl font-bold text-white" id="modalProjectName">Youth Leadership Program</h3>
+          </div>
+          <button id="closeProjectDetailModalBtn" class="text-white/90 hover:text-white hover:bg-white/20 rounded-2xl p-3 transition duration-200">
+            <i class="fas fa-times text-xl"></i>
+          </button>
+        </div>
+      </div>
+
+     <!-- Body Content -->
+<div class="p-8">
+  <!-- Stats Grid -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+    <!-- Year filter for KPI cards -->
+    <div class="lg:col-span-3 flex items-center justify-end mb-2">
+      <label for="kpiYearSelect" class="mr-2 text-sm font-medium text-gray-700">Year</label>
+      <select id="kpiYearSelect" class="border rounded-md px-3 py-1 text-sm bg-white">
+        <option value="">Loading years...</option>
+      </select>
+    </div>
+
+    <!-- Project Info Card -->
+    <div class="stat-card rounded-2xl p-6 space-y-5 lg:col-span-2">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="icon-box">
+          <i class="fas fa-chart-line text-blue-600"></i>
+        </div>
+        <h4 class="font-bold text-gray-800 text-lg">Project Info</h4>
+      </div>
+
+      <div class="grid grid-cols-2 gap-4">
+
+        <!-- TIMELINE -->
+        <div class="flex flex-col gap-1 p-3 bg-blue-50 rounded-xl border border-blue-100">
+          <div class="flex items-center gap-2">
+            <i class="fas fa-calendar-alt text-blue-600 text-base"></i>
+            <p class="text-sm text-gray-500 font-medium">Timeline</p>
+          </div>
+          <p class="text-sm font-semibold text-gray-800">
+            <span id="modalProjectStartDate">Jan 15</span> → <span id="modalProjectEndDate">Dec 15</span>
+          </p>
+        </div>
+
+        <!-- BUDGET -->
+        <div class="flex flex-col gap-1 p-3 bg-green-50 rounded-xl border border-green-100">
+          <div class="flex items-center gap-2">
+            <i class="fas fa-coins text-green-600 text-base"></i>
+            <p class="text-sm text-gray-500 font-medium">Budget</p>
+          </div>
+          <p class="text-sm font-semibold text-gray-800" id="modalProjectBudget">₱50,000</p>
+        </div>
+
+        <!-- SPENT -->
+        <div class="flex flex-col gap-1 p-3 bg-red-50 rounded-xl border border-red-100">
+          <div class="flex items-center gap-2">
+            <i class="fas fa-wallet text-red-600 text-base"></i>
+            <p class="text-sm text-gray-500 font-medium">Spent</p>
+          </div>
+          <p class="text-sm font-semibold text-red-600" id="modalProjectSpent">₱35,000</p>
+        </div>
+
+        <!-- REMAINING BALANCE -->
+        <div class="flex flex-col gap-1 p-3 bg-yellow-50 rounded-xl border border-yellow-100">
+          <div class="flex items-center gap-2">
+            <i class="fas fa-piggy-bank text-yellow-600 text-base"></i>
+            <p class="text-sm text-gray-500 font-medium">Remaining</p>
+          </div>
+          <p class="text-sm font-semibold text-gray-800" id="modalProjectRemaining">₱0.00</p>
+        </div>
+
+        <!-- PROJECT MANAGER -->
+        <div class="flex flex-col gap-1 p-3 bg-purple-50 rounded-xl border border-purple-100">
+          <div class="flex items-center gap-2">
+            <i class="fas fa-user-tie text-purple-600 text-base"></i>
+            <p class="text-sm text-gray-500 font-medium">Manager</p>
+          </div>
+          <p class="text-sm font-semibold text-gray-800" id="modalProjectManager">Juan Dela Cruz</p>
+        </div>
+
+        <!-- BARANGAY -->
+        <div class="flex flex-col gap-1 p-3 bg-indigo-50 rounded-xl border border-indigo-100">
+          <div class="flex items-center gap-2">
+            <i class="fas fa-map-marker-alt text-indigo-600 text-base"></i>
+            <p class="text-sm text-gray-500 font-medium">Barangay</p>
+          </div>
+          <p class="text-sm font-semibold text-gray-800" id="modalProjectBarangay">-</p>
+        </div>
+
+        <!-- STATUS -->
+        <div class="flex flex-col gap-1 p-3 bg-gray-50 rounded-xl border border-gray-200 col-span-2">
+          <div class="flex items-center gap-2">
+            <i class="fas fa-info-circle text-gray-600 text-base"></i>
+            <p class="text-sm text-gray-500 font-medium">Status</p>
+          </div>
+          <span class="status-badge status-ongoing text-sm font-bold w-fit" id="modalProjectStatus">
+            <i class="fas fa-circle text-sm mr-1"></i> Ongoing
+          </span>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Description Card (Full Width) -->
+    <div class="stat-card rounded-2xl p-6">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="icon-box">
+          <i class="fas fa-align-left text-purple-600"></i>
+        </div>
+        <h4 class="font-bold text-gray-800 text-lg">Description</h4>
+      </div>
+      <p class="text-gray-700 leading-relaxed text-base" id="modalProjectDescription">
+        A comprehensive program designed to develop leadership skills among youth in the community through workshops, seminars, and hands-on activities.
+      </p>
+    </div>
+    
+  </div>
+</div>
+
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Expense Modal -->
+  <div id="addExpenseModal" class="fixed inset-0 bg-gradient-to-br from-gray-900/50 via-blue-900/30 to-purple-900/30 backdrop-blur-sm flex items-center justify-center z-50 hidden p-4">
+    <div class="modal-panel w-full max-w-lg glass-effect rounded-3xl shadow-2xl">
+      <!-- Header -->
+      <div class="gradient-accent relative overflow-hidden">
+        <div class="absolute inset-0 opacity-20">
+          <div class="absolute top-0 right-0 w-32 h-32 bg-orange-500 rounded-full filter blur-2xl"></div>
+        </div>
+        <div class="relative px-8 py-6 flex items-center justify-between">
+          <div class="flex items-center gap-4">
+            <div class="w-12 h-12 rounded-2xl bg-white/30 backdrop-blur-sm flex items-center justify-center">
+              <i class="fas fa-receipt text-gray-900 text-xl"></i>
+            </div>
+            <h3 class="text-2xl font-bold text-gray-900">Add Expense</h3>
+          </div>
+          <button id="closeAddExpenseModalBtn" class="text-gray-900/80 hover:text-gray-900 hover:bg-white/30 rounded-2xl p-3 transition duration-200">
+            <i class="fas fa-times text-xl"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Form -->
+      <form id="addExpenseForm" class="p-8 space-y-6">
+        <input type="hidden" name="project_id" id="expenseProjectId">
+        <input type="hidden" name="barangay" id="expenseBarangay" value="{{ current_user.barangay if current_user else '' }}">
+        
+        <div>
+          <label class="block text-sm font-bold text-gray-800 mb-2 flex items-center gap-2">
+            <i class="fas fa-heading text-blue-600"></i>
+            Expense Title
+          </label>
+          <input type="text" name="title" id="expenseTitle" class="input-modern w-full px-4 py-3 rounded-xl focus:outline-none bg-white" required>
+        </div>
+
+        <div class="grid grid-cols-2 gap-6">
+          <div>
+            <label class="block text-sm font-bold text-gray-800 mb-2 flex items-center gap-2">
+              <i class="fas fa-money-bill-wave text-green-600"></i>
+              Amount
+            </label>
+            <div class="relative">
+              <span class="absolute left-4 top-3.5 text-gray-500 font-bold">₱</span>
+              <input type="number" step="0.01" name="amount" id="expenseAmount" class="input-modern w-full pl-10 pr-4 py-3 rounded-xl focus:outline-none bg-white" required>
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-bold text-gray-800 mb-2 flex items-center gap-2">
+              <i class="fas fa-tag text-purple-600"></i>
+              Category
+            </label>
+            <select name="category" id="expenseCategory" class="input-modern w-full px-4 py-3 rounded-xl focus:outline-none bg-white">
+              <option value="">Select category</option>
+              <option value="supplies">Supplies</option>
+              <option value="logistics">Logistics</option>
+              <option value="honoraria">Honoraria</option>
+              <option value="transport">Transport</option>
+              <option value="misc">Miscellaneous</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-sm font-bold text-gray-800 mb-2 flex items-center gap-2">
+            <i class="fas fa-calendar text-orange-600"></i>
+            Date
+          </label>
+          <input type="date" name="date" id="expenseDate" class="input-modern w-full px-4 py-3 rounded-xl focus:outline-none bg-white" required>
+        </div>
+
+        <div>
+          <label class="block text-sm font-bold text-gray-800 mb-2 flex items-center gap-2">
+            <i class="fas fa-comment-alt text-gray-600"></i>
+            Description
+          </label>
+          <textarea name="description" id="expenseDescription" rows="4" class="input-modern w-full px-4 py-3 rounded-xl focus:outline-none bg-white"></textarea>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex gap-4 pt-4">
+          <button type="button" id="cancelAddExpenseBtn" class="flex-1 px-6 py-3 rounded-xl font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 transition">
+            Cancel
+          </button>
+          <button type="submit" class="flex-1 btn-primary text-white px-6 py-3 rounded-xl font-semibold flex items-center justify-center gap-2">
+            <i class="fas fa-check"></i>
+            Save Expense
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Unauthorized Access Modal -->
+  <div id="unauthorizedModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50 flex items-center justify-center">
+    <div class="relative mx-auto p-5 border w-full max-w-md shadow-lg rounded-md bg-white">
+      <div class="mt-3">
+        <div class="flex justify-between items-center mb-4">
+          <div class="flex items-center gap-3">
+            <div class="flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
+              <i class="fas fa-lock text-red-600 text-lg"></i>
+            </div>
+            <h3 class="text-lg font-medium text-gray-900">Access Denied</h3>
+          </div>
+          <button onclick="hideModal('unauthorizedModal')" class="text-gray-400 hover:text-gray-600"><i class="fas fa-times"></i></button>
+        </div>
+
+        <div class="mt-4 mb-6">
+          <p class="text-gray-700 font-medium mb-2">❌ You cannot alter this project</p>
+          <p class="text-gray-600 text-sm">Only System Admins and Barangay Officers can edit or delete projects in their barangay.</p>
+        </div>
+
+        <div class="flex justify-end gap-3">
+          <button onclick="hideModal('unauthorizedModal')" class="px-4 py-2 bg-gray-100 text-gray-800 rounded-md hover:bg-gray-200">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification (non-blocking) -->
+  <div id="toastNotif" class="fixed top-6 right-6 z-60 hidden">
+    <div id="toastInner" class="max-w-sm w-full bg-red-600 text-white rounded-lg shadow-lg px-4 py-3 flex items-start gap-3">
+      <div class="flex-shrink-0 mt-0.5">
+        <i class="fas fa-lock"></i>
+      </div>
+      <div class="flex-1">
+        <p id="toastMessage" class="text-sm font-medium">Access denied</p>
+        <p id="toastSub" class="text-xs opacity-90">You are not authorized to alter this project.</p>
+      </div>
+      <button id="toastClose" class="text-white/90 hover:text-white ml-2"><i class="fas fa-times"></i></button>
+    </div>
+  </div>
+
+  <!-- embed server data as JSON (keeps template delimiters out of inline JS parsing) -->
+  <script id="server-data" type="application/json">
+  {
+    "transactions": {{ all_transactions|default([])|tojson|safe }},
+    "projects":     {{ all_projects|default([])|tojson|safe }}
+  }
+  </script>
+
+  <script>
+  // read embedded server JSON safely (avoids editor/JS parser red-underlines)
+  let SERVER_TRANSACTIONS = [];
+  let SERVER_PROJECTS = [];
+  try {
+    const __SD = JSON.parse(document.getElementById('server-data')?.textContent || '{}');
+    SERVER_TRANSACTIONS = Array.isArray(__SD.transactions) ? __SD.transactions : [];
+    SERVER_PROJECTS = Array.isArray(__SD.projects) ? __SD.projects : [];
+  } catch (err) {
+    console.warn('Failed to parse server-data JSON', err);
+    SERVER_TRANSACTIONS = [];
+    SERVER_PROJECTS = [];
+  }
+  // dito nag bago tang ina 
+  
+  const financialData = {
+    budgetAllocation: {
+      labels: ['Education', 'Sports', 'Environment', 'Health', 'Infrastructure', 'Social Development'],
+      data: [30, 25, 15, 12, 10, 8],
+      colors: ['#3B82F6', '#8B5CF6', '#10B981', '#EF4444', '#F59E0B', '#06B6D4']
+    },
+    monthlySpending: {
+      labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+      data: [120000, 150000, 180000, 140000, 200000, 160000, 0, 0, 0, 0, 0, 0]
+    },
+    // sample datasets per KPI metric (used when API not available)
+    byMetric: {
+      spent: [120000, 150000, 180000, 140000, 200000, 160000, 0, 0, 0, 0, 0, 0],
+      allocated: [180000, 225000, 270000, 210000, 300000, 240000, 0, 0, 0, 0, 0, 0], // example: allocated > spent
+      remaining: [60000, 75000, 90000, 70000, 100000, 80000, 0, 0, 0, 0, 0, 0], // allocated-spent
+      projects: [1,2,1,2,3,1,0,0,0,0,0,0] // sample project counts per month
+    }
+  };
+  const metricConfig = {
+    spent: { label: 'Spent', color: '#3B82F6', currency: true },
+    allocated: { label: 'Allocated', color: '#10B981', currency: true },
+    remaining: { label: 'Remaining', color: '#F59E0B', currency: true },
+    projects: { label: 'Active Projects', color: '#8B5CF6', currency: false }
+  };
+
+  // compute monthly series from transactions (keeps earlier behavior)
+  function getMonthlySeriesFromTransactions(year, metric) {
+    const arr = new Array(12).fill(0);
+    if (!Array.isArray(SERVER_TRANSACTIONS) || !SERVER_TRANSACTIONS.length) return arr;
+    SERVER_TRANSACTIONS.forEach(tx => {
+      const d = new Date(tx.date);
+      if (isNaN(d)) return;
+      if (String(d.getFullYear()) !== String(year)) return;
+      const m = d.getMonth();
+      const amt = parseFloat(tx.amount) || 0;
+      if (metric === 'spent') {
+        if (tx.type && tx.type === 'income') return;
+        arr[m] += Math.abs(amt);
+      } else if (metric === 'projects') {
+        // optionally count transactions that map to projects -- keep simple
+        arr[m] += 1;
+      } else {
+        // transactions typically represent expenses; allocated/remaining better derived from projects
+      }
+    });
+    return arr;
+  }
+  // current logged-in user's barangay available to client-side scripts
+  const CURRENT_USER_BARANGAY = "{{ current_user.barangay|default('')|e }}";
+
+  // compute monthly series from projects (for allocated/remaining/projects metrics)
+  function computeMonthlyFromProjects(year, metric) {
+    const arr = new Array(12).fill(0);
+    if (!Array.isArray(SERVER_PROJECTS) || !SERVER_PROJECTS.length) return arr;
+    SERVER_PROJECTS.forEach(p => {
+      const start = getMonthIndexFromDateStr(p.start_date);
+      const end = getMonthIndexFromDateStr(p.end_date);
+      const budget = parseFloat(p.budget_allocated) || 0;
+      const spent = parseFloat(p.amount_spent) || 0;
+      const rem = budget - spent;
+      const monthlyAlloc = budget / 12;
+      const monthlySpent = spent / 12;
+      const monthlyRem = rem / 12;
+
+      // distribute budget/effectively over project duration (simplified)
+      if (start !== null && end !== null && start <= end) {
+        for (let m = 0; m < 12; m++) {
+          if (m < start || m > end) continue;
+          arr[m] += (metric === 'allocated' ? monthlyAlloc : metric === 'spent' ? monthlySpent : metric === 'remaining' ? monthlyRem : 0);
+        }
+      }
+    });
+    return arr;
+  }
+
+  // Attempt to fetch monthly spending for a year and metric; prefer local computed series
+  async function fetchMonthlySpending(year, metric) {
+    // 1) If metric is 'spent' and we have transactions, use full transactions table aggregation
+    if (metric === 'spent' && Array.isArray(SERVER_TRANSACTIONS) && SERVER_TRANSACTIONS.length) {
+      return { labels: financialData.monthlySpending.labels, data: getMonthlySeriesFromTransactions(year, 'spent') };
+    }
+
+    // 2) If we have project rows, derive allocated / remaining / projects from projects data
+    if (Array.isArray(SERVER_PROJECTS) && SERVER_PROJECTS.length) {
+      if (metric === 'allocated' || metric === 'remaining' || metric === 'projects' || metric === 'spent') {
+        // for 'spent' here: fallback to project-distributed spent when transaction-level not available
+        return { labels: financialData.monthlySpending.labels, data: computeMonthlyFromProjects(year, metric) };
+      }
+    }
+
+    // 3) Try API as before
+    try {
+      const res = await fetch(`/api/monthly_spending?year=${encodeURIComponent(year)}&metric=${encodeURIComponent(metric)}`);
+      if (!res.ok) throw new Error('Network response not ok');
+      const json = await res.json();
+      return { labels: json.labels || financialData.monthlySpending.labels, data: json.data || financialData.monthlySpending.data };
+    } catch (err) {
+      console.warn('Could not fetch monthly spending, using fallback sample data.', err);
+      const labels = financialData.monthlySpending.labels;
+      const data = (metric && financialData.byMetric[metric]) ? financialData.byMetric[metric] : financialData.monthlySpending.data;
+      return { labels, data };
+    }
+  }
+
+  // chart instances (accessible for updates)
+    let monthlySpendingChart = null;
+    // track current year & metric for the monthly chart
+    let currentMonthlyYear = '2025';
+    let currentMonthlyMetric = 'spent';
+
+    function initializeCharts() {
+      // Budget allocation (unchanged behavior)
+      const budgetCtx = document.getElementById('budgetAllocationChart').getContext('2d');
+      new Chart(budgetCtx, {
+        type: 'doughnut',
+        data: {
+          labels: financialData.budgetAllocation.labels,
+          datasets: [{
+            data: financialData.budgetAllocation.data,
+            backgroundColor: financialData.budgetAllocation.colors,
+            borderWidth: 2,
+            borderColor: '#ffffff'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: { padding: 20, usePointStyle: true, font: { size: 12 } }
+            }
+          }
+        }
+      });
+
+      // Create monthly spending chart and keep reference for updates
+      const spendingCtx = document.getElementById('monthlySpendingChart').getContext('2d');
+      monthlySpendingChart = new Chart(spendingCtx, {
+        type: 'line',
+        data: {
+          labels: financialData.monthlySpending.labels.slice(),
+          datasets: [{
+            label: 'Monthly Spending',
+            data: financialData.monthlySpending.data.slice(),
+            borderColor: '#3B82F6',
+            backgroundColor: 'rgba(59,130,246,.1)',
+            borderWidth: 3,
+            fill: true,
+            tension: 0.4,
+            pointBackgroundColor: '#3B82F6',
+            pointBorderColor: '#ffffff',
+            pointBorderWidth: 2,
+            pointRadius: 6
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: { callback: v => '₱' + v.toLocaleString() }
+            }
+          }
+        }
+      });
+    }
+
+    // Update chart with filtered data for selected barangay
+    async function updateMonthlySpendingChartWithFilter(year, metric, selectedBarangay) {
+      if (!monthlySpendingChart) return;
+      
+      let chartData;
+      if (selectedBarangay && metric === 'spent') {
+        // Use filtered transaction data for spending
+        chartData = getMonthlySpendingForFilter(year, selectedBarangay);
+      } else if (selectedBarangay) {
+        // For other metrics with filter, compute from filtered projects
+        const filteredProjects = getFilteredProjects(selectedBarangay);
+        const arr = new Array(12).fill(0);
+        
+        filteredProjects.forEach(p => {
+          const start = getMonthIndexFromDateStr(p.start_date);
+          const end = getMonthIndexFromDateStr(p.end_date);
+          const budget = parseFloat(p.budget_allocated) || 0;
+          const spent = parseFloat(p.amount_spent) || 0;
+          const rem = budget - spent;
+          const monthlyAlloc = budget / 12;
+          const monthlySpent = spent / 12;
+          const monthlyRem = rem / 12;
+
+          if (start !== null && end !== null && start <= end) {
+            for (let m = 0; m < 12; m++) {
+              if (m < start || m > end) continue;
+              arr[m] += (metric === 'allocated' ? monthlyAlloc : metric === 'remaining' ? monthlyRem : metric === 'spent' ? monthlySpent : 0);
+            }
+          }
+        });
+        chartData = arr;
+      } else {
+        // No filter, use original fetch
+        const payload = await fetchMonthlySpending(year, metric);
+        chartData = payload.data;
+      }
+
+      // Update chart data
+      monthlySpendingChart.data.labels = financialData.monthlySpending.labels;
+      monthlySpendingChart.data.datasets[0].data = chartData;
+      const cfg = metricConfig[metric] || metricConfig.spent;
+      monthlySpendingChart.data.datasets[0].label = cfg.label;
+      monthlySpendingChart.data.datasets[0].borderColor = cfg.color;
+      monthlySpendingChart.data.datasets[0].backgroundColor = cfg.currency ? `${cfg.color}33` : `${cfg.color}22`;
+      monthlySpendingChart.data.datasets[0].pointBackgroundColor = cfg.color;
+
+      // Adjust y-axis tick formatting
+      if (monthlySpendingChart.options && monthlySpendingChart.options.scales && monthlySpendingChart.options.scales.y) {
+        monthlySpendingChart.options.scales.y.ticks.callback = cfg.currency
+          ? (v => '₱' + Number(v).toLocaleString())
+          : (v => Number(v).toLocaleString());
+      }
+      monthlySpendingChart.update();
+    }
+
+    // Update chart with new year data and update active button styling
+    async function updateMonthlySpendingChart(year, metric) {
+      return (async () => {
+        currentMonthlyYear = year || currentMonthlyYear;
+        currentMonthlyMetric = metric || currentMonthlyMetric;
+        const payload = await fetchMonthlySpending(currentMonthlyYear, currentMonthlyMetric);
+        if (!monthlySpendingChart) return;
+        monthlySpendingChart.data.labels = payload.labels;
+        monthlySpendingChart.data.datasets[0].data = payload.data;
+        const cfg = metricConfig[currentMonthlyMetric] || metricConfig.spent;
+        monthlySpendingChart.data.datasets[0].label = cfg.label;
+        monthlySpendingChart.data.datasets[0].borderColor = cfg.color;
+        monthlySpendingChart.data.datasets[0].backgroundColor = cfg.currency ? `${cfg.color}33` : `${cfg.color}22`;
+        monthlySpendingChart.data.datasets[0].pointBackgroundColor = cfg.color;
+
+        // adjust y-axis tick formatting depending on metric (currency vs simple number)
+        if (monthlySpendingChart.options && monthlySpendingChart.options.scales && monthlySpendingChart.options.scales.y) {
+          monthlySpendingChart.options.scales.y.ticks.callback = cfg.currency
+            ? (v => '₱' + Number(v).toLocaleString())
+            : (v => Number(v).toLocaleString());
+        }
+        monthlySpendingChart.update();
+
+        // update active button styles (include 2026)
+        document.querySelectorAll('#monthlyYear2026, #monthlyYear2025, #monthlyYear2024').forEach(btn => {
+          if (btn.dataset.year === String(currentMonthlyYear)) {
+            btn.classList.add('bg-blue-100', 'text-blue-800');
+            btn.classList.remove('text-gray-600');
+          } else {
+            btn.classList.remove('bg-blue-100', 'text-blue-800');
+            btn.classList.add('text-gray-600');
+          }
+        });
+
+        // highlight selected KPI card
+        document.querySelectorAll('#kpiTotalBudget, #kpiSpent, #kpiRemaining, #kpiActiveProjects').forEach(c => {
+          if (c.dataset.metric === currentMonthlyMetric) c.classList.add('ring-2', 'ring-blue-400');
+          else c.classList.remove('ring-2', 'ring-blue-400');
+        });
+      })();
+    }
+
+    // helper: safe text escape for inserting into innerHTML
+    function escapeHtml(str) {
+      if (!str && str !== 0) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+    
+    // Compute KPI values for a given year and optional barangay filter.
+    // Uses transaction-level data for `spent` when available; falls back to project.amount_spent.
+    function computeKPIs(year, barangay) {
+      let totalBudget = 0;
+      let totalSpent = 0;
+      let activeCount = 0;
+      if (!Array.isArray(SERVER_PROJECTS)) SERVER_PROJECTS = [];
+      if (!Array.isArray(SERVER_TRANSACTIONS)) SERVER_TRANSACTIONS = [];
+      const y = parseInt(year, 10) || (new Date()).getFullYear();
+
+      // Determine projects active in the year and matching barangay (if provided)
+      const activeProjects = SERVER_PROJECTS.filter(p => {
+        try {
+          if (barangay && String(p.barangay || '').trim() !== String(barangay).trim()) return false;
+          const start = p.start_date ? new Date(String(p.start_date)) : null;
+          const end = p.end_date ? new Date(String(p.end_date)) : null;
+          let activeInYear = true;
+          if (start && !isNaN(start)) if (start.getFullYear() > y) activeInYear = false;
+          if (end && !isNaN(end)) if (end.getFullYear() < y) activeInYear = false;
+          return activeInYear;
+        } catch (e) { return false; }
+      });
+
+      const activeProjectIds = new Set(activeProjects.map(p => p.id));
+
+      // Total budget = sum of budget_allocated for active projects
+      // Prorate each project's budget to the selected year based on project duration overlap.
+      // If start/end are missing, infer sensible defaults so the project still contributes for the appropriate year.
+      totalBudget = 0;
+      activeProjects.forEach(p => {
+        try {
+          const raw = (p.budget_allocated || '').toString().replace(/,/g, '');
+          const budget = parseFloat(raw) || 0;
+
+          // Infer start/end dates: prefer explicit start/end, fall back to created_at, and if one side is missing
+          // use the other side so duration is at least 1 month.
+          let s = p.start_date ? new Date(String(p.start_date)) : null;
+          let e = p.end_date ? new Date(String(p.end_date)) : null;
+          const ca = p.created_at ? new Date(String(p.created_at)) : null;
+          if ((!s || isNaN(s)) && ca && !isNaN(ca)) s = ca;
+          if ((!e || isNaN(e)) && s && !isNaN(s)) e = new Date(s); // default end = start (1-month project)
+          if ((!s || isNaN(s)) && e && !isNaN(e)) s = new Date(e);
+
+          if (s && e && !isNaN(s) && !isNaN(e)) {
+            const projStartIdx = s.getFullYear() * 12 + s.getMonth();
+            const projEndIdx = e.getFullYear() * 12 + e.getMonth();
+            const yearStartIdx = y * 12 + 0;
+            const yearEndIdx = y * 12 + 11;
+            const overlapStart = Math.max(projStartIdx, yearStartIdx);
+            const overlapEnd = Math.min(projEndIdx, yearEndIdx);
+            if (overlapEnd >= overlapStart) {
+              const monthsInYear = overlapEnd - overlapStart + 1;
+              const projDurationMonths = Math.max(1, projEndIdx - projStartIdx + 1);
+              totalBudget += budget * (monthsInYear / projDurationMonths);
+              return;
+            }
+          }
+
+          // If we couldn't infer dates but created_at falls in the year, count full budget for that year
+          if (ca && !isNaN(ca) && ca.getFullYear() === y) {
+            totalBudget += budget;
+            return;
+          }
+
+          // Otherwise do not count this project's budget for the selected year (avoids double-counting)
+        } catch (e) { /* ignore per-project errors */ }
+      });
+
+      // Total spent: prefer transaction-level aggregation for the year
+      if (Array.isArray(SERVER_TRANSACTIONS) && SERVER_TRANSACTIONS.length) {
+        totalSpent = SERVER_TRANSACTIONS.reduce((s, tx) => {
+          try {
+            const d = new Date(tx.date);
+            if (isNaN(d)) return s;
+            if (String(d.getFullYear()) !== String(y)) return s;
+            // if barangay filter applied, require match on tx.barangay or project's barangay
+            if (barangay) {
+              if (String(tx.barangay || '').trim() !== String(barangay).trim()) {
+                // try project association
+                if (!(tx.project_id && activeProjectIds.has(tx.project_id))) return s;
+              }
+            }
+            if ((tx.type || '').toLowerCase() === 'income') return s;
+            return s + Math.abs(parseFloat(tx.amount) || 0);
+          } catch (e) { return s; }
+        }, 0);
+      } else {
+        // fallback: sum project.amount_spent for active projects
+        totalSpent = activeProjects.reduce((s, p) => s + (parseFloat(p.amount_spent) || 0), 0);
+      }
+
+      // active project count (not completed)
+      activeCount = activeProjects.reduce((c, p) => c + ((String((p.status || '')).toLowerCase() !== 'completed') ? 1 : 0), 0);
+
+      // debug: log active project ids and totals to assist troubleshooting
+      try { console.debug('computeKPIs:', { year: y, activeCount: activeProjects.length, activeIds: activeProjects.slice(0,10).map(p=>p.id), totalBudget, totalSpent }); } catch(e) {}
+      return { totalBudget, totalSpent, remaining: Math.max(0, totalBudget - totalSpent), activeCount };
+    }
+
+    // Update KPI card DOM nodes for a specific year and optional barangay and category
+    function updateKPIsForYear(year, barangay, category) {
+      try {
+        const k = computeKPIs(year, barangay || '');
+        const fmt = v => '₱' + (v || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        const totalEl = document.querySelector('#kpiTotalBudget .text-2xl');
+        const spentEl = document.querySelector('#kpiSpent .text-2xl');
+        const remEl = document.querySelector('#kpiRemaining .text-2xl');
+        const actEl = document.querySelector('#kpiActiveProjects .text-2xl');
+        if (totalEl) totalEl.textContent = fmt(k.totalBudget);
+        if (spentEl) spentEl.textContent = fmt(k.totalSpent);
+        if (remEl) remEl.textContent = fmt(k.remaining);
+        if (actEl) actEl.textContent = String(k.activeCount);
+        // update percent subtitles for Spent and Remaining
+        try {
+          const spentPctEl = document.querySelector('#kpiSpent .text-sm');
+          const remPctEl = document.querySelector('#kpiRemaining .text-sm');
+          const pctSpent = (k.totalBudget > 0) ? Math.round((k.totalSpent / k.totalBudget) * 100) : 0;
+          const pctRem = (k.totalBudget > 0) ? Math.round((k.remaining / k.totalBudget) * 100) : 0;
+          if (spentPctEl) spentPctEl.textContent = `${pctSpent}% of budget`;
+          if (remPctEl) remPctEl.textContent = `${pctRem}% available`;
+        } catch (e) { /* ignore */ }
+        // update visible FY label above KPI cards
+        try {
+          const y = year || currentMonthlyYear || document.getElementById('kpiYearSelect')?.value || '';
+          const yEl = document.getElementById('kpiYearLabel');
+          if (yEl && y) yEl.textContent = String(y);
+        } catch(e) {}
+        // debug: log what was rendered into KPI cards
+        try { console.debug('updateKPIsForYear:', { year: year, rendered: { total: k.totalBudget, spent: k.totalSpent, remaining: k.remaining, active: k.activeCount } }); } catch(e) {}
+      } catch (err) {
+        console.warn('updateKPIsForYear error', err);
+      }
+    }
+    function formatNumber(v) {
+      const n = parseFloat(v) || 0;
+      return n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+    function capitalize(s){ return s ? String(s).charAt(0).toUpperCase() + String(s).slice(1) : s; }
+
+    // populate transactions table from SERVER_TRANSACTIONS JSON (client-side fallback)
+    function populateTransactionsTable() {
+      const tbody = document.querySelector('#transactionsTable tbody');
+      if (!tbody) { console.warn('populateTransactionsTable: tbody not found'); return; }
+
+      if (Array.isArray(SERVER_TRANSACTIONS) && SERVER_TRANSACTIONS.length) {
+        // always replace tbody with client-side data to avoid duplicates
+        tbody.innerHTML = '';
+        SERVER_TRANSACTIONS.forEach(t => {
+          const tr = document.createElement('tr');
+          tr.className = 'hover:bg-gray-50 transition';
+          tr.innerHTML = `
+            <td class="px-4 py-3 text-sm text-gray-500">${escapeHtml(t.project_id || '—')}</td>
+            <td class="px-4 py-3 text-sm font-medium text-gray-900">${escapeHtml(t.title || '—')}</td>
+            <td class="px-4 py-3 text-sm text-right font-semibold text-gray-800">₱${formatNumber(t.amount)}</td>
+            <td class="px-4 py-3 text-center">
+              <span class="px-3 py-1 text-xs font-semibold rounded-full ${t.type === 'income' ? 'bg-green-100 text-green-700 border border-green-200' : 'bg-red-100 text-red-700 border border-red-200'}">
+                ${escapeHtml(capitalize(t.type || '—'))}
+              </span>
+            </td>
+            <td class="px-4 py-3 text-sm text-gray-600">${escapeHtml(t.category || '—')}</td>
+            <td class="px-4 py-3 text-sm text-gray-500">${escapeHtml(t.date || '—')}</td>
+            <td class="px-4 py-3 text-sm text-gray-500 max-w-xs truncate">${escapeHtml(t.description || '—')}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+        console.info('populateTransactionsTable: rendered', SERVER_TRANSACTIONS.length, 'rows');
+      } else {
+        // use existing template rows (if server rendered them). If none, show a debug message.
+        const existingRows = tbody.querySelectorAll('tr');
+        const hasDataRows = Array.from(existingRows).some(r => r.querySelector('td'));
+        if (!hasDataRows) {
+          tbody.innerHTML = `<tr><td colspan="7" class="px-4 py-6 text-center text-gray-500">No transactions found (client debug).</td></tr>`;
+        }
+        console.info('populateTransactionsTable: no SERVER_TRANSACTIONS available, kept template rows (hasDataRows=' + hasDataRows + ')');
+      }
+    }
+
+    // show/hide modal
+    function showModal(id){
+      const el = document.getElementById(id);
+      if (!el) { console.warn('showModal: element not found', id); return; }
+      el.classList.remove('hidden');
+      
+      // If it's the transactions modal, ensure it's populated
+      if (id === 'allTransactionsModal') {
+        // Fetch transactions data if needed
+        if (!window.SERVER_TRANSACTIONS) {
+          fetch('/api/transactions')
+            .then(response => response.json())
+            .then(data => {
+              window.SERVER_TRANSACTIONS = data;
+              updateTransactionsTable();
+            })
+            .catch(err => console.error('Error fetching transactions:', err));
+        } else {
+          updateTransactionsTable();
+        }
+      }
+    }
+
+    function hideModal(id){ 
+      const el = document.getElementById(id); 
+      if (!el) return; 
+      el.classList.add('hidden'); 
+    }
+
+    // Update transactions table with current data
+    function updateTransactionsTable() {
+      const tbody = document.querySelector('#transactionsTable tbody');
+      if (!tbody || !window.SERVER_TRANSACTIONS) return;
+
+      // Prepare formatted row arrays for DataTables (or fallback DOM insertion)
+      const formattedRows = window.SERVER_TRANSACTIONS.map(tx => {
+        const typeLabel = (tx.type || '').toLowerCase();
+        const badge = `<span class="px-3 py-1 text-xs font-semibold rounded-full ${typeLabel === 'income' ? 'bg-green-100 text-green-700 border border-green-200' : 'bg-red-100 text-red-700 border border-red-200'}">${escapeHtml(capitalize(tx.type || '—'))}</span>`;
+        return [
+          escapeHtml(tx.project_id || '—'),
+          escapeHtml(tx.title || '—'),
+          `₱${formatNumber(tx.amount)}`,
+          badge,
+          escapeHtml(tx.category || '—'),
+          escapeHtml(tx.date || '—'),
+          escapeHtml(tx.description || '')
+        ];
+      });
+
+      // If DataTables is initialized, use its API to populate rows (preferred)
+      if (typeof jQuery !== 'undefined' && $.fn && $.fn.dataTable && $.fn.dataTable.isDataTable('#transactionsTable')) {
+        const dt = $('#transactionsTable').DataTable();
+        dt.clear();
+        if (formattedRows.length) dt.rows.add(formattedRows);
+        dt.draw();
+        return;
+      }
+
+      // Fallback: directly populate tbody (if DataTables not present)
+      tbody.innerHTML = '';
+      if (formattedRows.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="7" class="px-6 py-4 text-center text-gray-500">No transactions found.</td>
+          </tr>`;
+        return;
+      }
+
+      formattedRows.forEach(cols => {
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-gray-50 transition';
+        tr.innerHTML = `
+          <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${cols[0]}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${cols[1]}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${cols[2]}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${cols[3]}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${cols[4]}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${cols[5]}</td>
+          <td class="px-6 py-4 text-sm text-gray-900">${cols[6]}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Helper function to format numbers with commas
+    function numberWithCommas(x) {
+      return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+
+    function viewProject(id){ alert('Viewing project: ' + id); }
+  function editProject(id, hasPermission) {
+    // Check if user has permission - if not, show unauthorized modal
+    if (hasPermission === 'false') {
+      showModal('unauthorizedModal');
+      return false;
+    }
+    fetch(`/api/project/${id}`)
+      .then(res => res.json())
+      .then(project => {
+        console.log('API project response:', project);
+        currentProject = project;
+        // Helper function to safely set value
+        function setValue(elementId, value) {
+          const el = document.getElementById(elementId);
+          if (el) el.value = value !== null && value !== undefined ? value : '';
+        }
+        setValue('editProjectId', project.id);
+        setValue('editProjectName', project.name);
+        setValue('editProjectCategory', project.category);
+        setValue('editProjectDescription', project.description);
+        setValue('editProjectBudget', project.budget_allocated);
+        setValue('editProjectSpent', project.amount_spent);
+        setValue('editProjectStartDate', project.start_date);
+        setValue('editProjectEndDate', project.end_date);
+        setValue('editProjectManager', project.project_manager);
+        document.getElementById('editProjectStatus').value = project.status || 'Ongoing';
+        // show created_at as human readable
+        try {
+          const ca = project.created_at ? new Date(String(project.created_at).replace('Z','')) : null;
+          document.getElementById('editProjectCreatedAt').value = ca ? ca.toLocaleString() : (project.created_at || '');
+        } catch (e) {
+          document.getElementById('editProjectCreatedAt').value = project.created_at || '';
+        }
+        // update modal title and expense hidden id
+        try {
+          const titleEl = document.getElementById('editProjectModalTitle');
+          if (titleEl) titleEl.textContent = (project.name || 'Untitled') + ' (ID: ' + (project.id || '') + ')';
+          const expenseIdEl = document.getElementById('expenseProjectId');
+          if (expenseIdEl) expenseIdEl.value = project.id || project.project_id || '';
+        } catch (e) { /* ignore */ }
+        // Show/hide Add Expense button based on permissions (sadmin or barangay match)
+        try {
+          const openBtn = document.getElementById('openAddExpenseBtn');
+          const userPosition = '{{ (current_user.position if current_user else "") | lower }}';
+          const userBarangay = '{{ current_user.barangay if current_user else "" }}'.trim();
+          const projectBarangay = (project.barangay || project['barangay'] || '').toString().trim();
+          const canManage = (userPosition === 'sadmin') || (projectBarangay && userBarangay && projectBarangay.toLowerCase() === userBarangay.toLowerCase());
+          if (openBtn) {
+            if (canManage) {
+              openBtn.classList.remove('hidden');
+              openBtn.style.display = '';
+            } else {
+              openBtn.classList.add('hidden');
+              openBtn.style.display = 'none';
+            }
+          }
+        } catch (e) { /* ignore */ }
+        // Only show modal if permission is true
+        if (hasPermission === 'true') {
+          showModal('editProjectModal');
+        }
+      });
+  }
+  function deleteProject(id, hasPermission){
+    // Check if user has permission
+    if (hasPermission === 'false') {
+      alert('❌ You are not authorized to alter this project.\n\nOnly System Admins and Barangay Officers can delete projects in their barangay.');
+      return false;
+    }
+    if(confirm('Are you sure you want to archive this project?')) {
+      fetch(`/delete_project/${id}`, {method: 'POST'})
+        .then(() => location.reload());
+    }
+  }
+  
+  function downloadReport(reportId) {
+    if (!reportId) {
+      alert('Invalid report ID');
+      return;
+    }
+    // Redirect to the download endpoint
+    window.location.href = `/download_financial_report/${reportId}`;
+  }
+  
+  function deleteReport(reportId) {
+    if (!reportId) {
+      alert('Invalid report ID');
+      return;
+    }
+    
+    if(confirm('Are you sure you want to delete this report? This action cannot be undone.')) {
+      fetch(`/delete_financial_report/${reportId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+      .then(response => {
+        if (response.ok) {
+          // Remove the report from the UI
+          const reportItem = document.querySelector(`[data-report-id="${reportId}"]`);
+          if (reportItem) {
+            reportItem.style.opacity = '0.5';
+            reportItem.style.pointerEvents = 'none';
+          }
+          // Reload after a short delay to show the deletion
+          setTimeout(() => location.reload(), 500);
+        } else {
+          alert('Error deleting report. Please try again.');
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('Error deleting report: ' + error.message);
+      });
+    }
+  }
+
+  let currentProject = null;
+
+  // Add Expense modal wiring
+  document.addEventListener('DOMContentLoaded', function () {
+    const openBtn = document.getElementById('openAddExpenseBtn');
+    const closeBtn = document.getElementById('closeAddExpenseModalBtn');
+    const cancelBtn = document.getElementById('cancelAddExpenseBtn');
+    const addModal = document.getElementById('addExpenseModal');
+    const addForm = document.getElementById('addExpenseForm');
+
+    function showAddExpense(project) {
+      // Permission check: sadmin can add for any project; other users only if their barangay matches the project's barangay
+      const userPosition = '{{ (current_user.position if current_user else "") | lower }}';
+      const userBarangay = '{{ current_user.barangay if current_user else "" }}'.trim();
+
+      if (!project) {
+        alert('Please select a project first by clicking on it.');
+        return;
+      }
+
+      const projectBarangay = (project.barangay || project['barangay'] || '').toString().trim();
+
+      if (userPosition !== 'sadmin') {
+        if (!projectBarangay) {
+          alert('Cannot add expense: project has no barangay set.');
+          return;
+        }
+        if (projectBarangay.toLowerCase() !== (userBarangay || '').toLowerCase()) {
+          alert('You are not authorized to add expenses for this project (barangay mismatch).');
+          return;
+        }
+      }
+
+      // authorized: set project id and ensure expense barangay comes from the project
+      document.getElementById('expenseProjectId').value = project.id || project.project_id || '';
+      document.getElementById('expenseBarangay').value = projectBarangay || userBarangay || '';
+      // Clear form fields
+      document.getElementById('expenseTitle').value = '';
+      document.getElementById('expenseAmount').value = '';
+      document.getElementById('expenseCategory').value = '';
+      document.getElementById('expenseDescription').value = '';
+      // default date to today
+      const today = new Date().toISOString().slice(0,10);
+      document.getElementById('expenseDate').value = today;
+      addModal.classList.remove('hidden');
+    }
+
+    if (openBtn) openBtn.addEventListener('click', function () { showAddExpense(currentProject); });
+    if (closeBtn) closeBtn.addEventListener('click', function () { addModal.classList.add('hidden'); });
+    if (cancelBtn) cancelBtn.addEventListener('click', function () { addModal.classList.add('hidden'); });
+
+    if (addForm) {
+      addForm.addEventListener('submit', function (ev) {
+        ev.preventDefault();
+        
+        const projectId = document.getElementById('expenseProjectId').value;
+        const title = document.getElementById('expenseTitle').value?.trim();
+        const amountStr = document.getElementById('expenseAmount').value?.trim();
+        const amount = parseFloat(amountStr);
+        
+        // Validation
+        if (!projectId) {
+          alert('❌ Please select a project first');
+          return;
+        }
+        if (!title) {
+          alert('❌ Please enter an expense title');
+          return;
+        }
+        if (!amountStr || amount <= 0 || isNaN(amount)) {
+          alert('❌ Please enter a valid amount greater than 0');
+          return;
+        }
+        
+        const fd = new FormData(addForm);
+        fd.append('type', 'expense');
+        console.log('Submitting expense:', {projectId, title, amount});
+        
+        fetch('/add_transaction', {
+          method: 'POST',
+          body: fd,
+          credentials: 'same-origin',
+          headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        }).then(r => {
+          console.log('Response status:', r.status);
+          return r.json().catch(()=>({success:false, error:'Invalid JSON response'}));
+        })
+          .then(json => {
+            console.log('Response:', json);
+            if (json && json.success) {
+              alert('✓ Expense added successfully! The project amount spent has been updated.');
+              addModal.classList.add('hidden');
+              addForm.reset();
+              location.reload();
+            } else {
+              const err = json && json.error ? json.error : 'Unknown error';
+              console.error('Error:', err);
+              alert('❌ Failed to add expense:\n' + err);
+            }
+          }).catch(err => {
+            console.error('Network error:', err);
+            alert('❌ Network error: ' + err.message);
+          });
+      });
+    }
+  });
+
+  function showProjectDetail(projectId) {
+    fetch(`/api/project/${projectId}`)
+      .then(res => res.json())
+      .then(project => {
+        currentProject = project;
+        document.getElementById('modalProjectName').textContent = project.name || '';
+        document.getElementById('modalProjectCategory').textContent = project.category || '';
+               document.getElementById('modalProjectStartDate').textContent = 'Start: ' + (project.start_date || '');
+        document.getElementById('modalProjectEndDate').textContent = 'End: ' + (project.end_date || '');
+        const budgetVal = parseFloat(project.budget_allocated) || 0;
+        const spentVal = parseFloat(project.amount_spent) || 0;
+        document.getElementById('modalProjectBudget').textContent = '₱' + (budgetVal).toLocaleString(undefined, {minimumFractionDigits:2});
+        document.getElementById('modalProjectSpent').textContent = '₱' + (spentVal).toLocaleString(undefined, {minimumFractionDigits:2});
+        // remaining = allocated - spent
+        const remainingVal = Math.max(0, budgetVal - spentVal);
+        const remainingEl = document.getElementById('modalProjectRemaining');
+        if (remainingEl) remainingEl.textContent = '₱' + (remainingVal).toLocaleString(undefined, {minimumFractionDigits:2});
+        // barangay
+        const barangayEl = document.getElementById('modalProjectBarangay');
+        if (barangayEl) barangayEl.textContent = project.barangay || '';
+        document.getElementById('modalProjectManager').textContent = project.project_manager || '';
+        document.getElementById('modalProjectStatus').textContent = project.status || '';
+        document.getElementById('modalProjectStatus').className =
+          "px-2 inline-flex text-xs leading-5 font-semibold rounded-full " +
+          (project.status === 'Completed' ? 'bg-green-100 text-green-800' :
+           project.status === 'Ongoing' ? 'bg-blue-100 text-blue-800' :
+           project.status === 'Upcoming' ? 'bg-yellow-100 text-yellow-800' :
+           'bg-gray-100 text-gray-800');
+        document.getElementById('modalProjectDescription').textContent = project.description || '';
+        // disable edit/delete if user barangay doesn't match project barangay
+        try {
+          const modalEditBtn = document.getElementById('editProjectDetailBtn');
+          const modalDeleteBtn = document.getElementById('deleteProjectDetailBtn');
+          const projBarangay = project.barangay || '';
+          if (CURRENT_USER_BARANGAY && projBarangay && CURRENT_USER_BARANGAY !== projBarangay) {
+            if (modalEditBtn) {
+              modalEditBtn.setAttribute('disabled', 'disabled');
+              modalEditBtn.classList.add('opacity-50', 'cursor-not-allowed');
+              modalEditBtn.title = 'You can only edit projects within your barangay.';
+            }
+            if (modalDeleteBtn) {
+              modalDeleteBtn.setAttribute('disabled', 'disabled');
+              modalDeleteBtn.classList.add('opacity-50', 'cursor-not-allowed');
+              modalDeleteBtn.title = 'You can only delete projects within your barangay.';
+            }
+          } else {
+            if (modalEditBtn) {
+              modalEditBtn.removeAttribute('disabled');
+              modalEditBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+              modalEditBtn.title = '';
+            }
+            if (modalDeleteBtn) {
+              modalDeleteBtn.removeAttribute('disabled');
+              modalDeleteBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+              modalDeleteBtn.title = '';
+            }
+          }
+        } catch (err) {
+          console.warn('Error applying barangay permissions:', err);
+        }
+        showModal('projectDetailModal');
+      });
+  }
+
+  const closeProjectDetailModalBtn = document.getElementById('closeProjectDetailModalBtn');
+  if (closeProjectDetailModalBtn) {
+    closeProjectDetailModalBtn.onclick = function() {
+      hideModal('projectDetailModal');
+    };
+  }
+
+  const editProjectDetailBtn = document.getElementById('editProjectDetailBtn');
+  if (editProjectDetailBtn) {
+    editProjectDetailBtn.onclick = function() {
+      if (!currentProject) return;
+      const editProjectId = document.getElementById('editProjectId');
+      const editProjectName = document.getElementById('editProjectName');
+      const editProjectCategory = document.getElementById('editProjectCategory');
+      const editProjectDescription = document.getElementById('editProjectDescription');
+      const editProjectBudget = document.getElementById('editProjectBudget');
+      const editProjectSpent = document.getElementById('editProjectSpent');
+      const editProjectStartDate = document.getElementById('editProjectStartDate');
+      const editProjectEndDate = document.getElementById('editProjectEndDate');
+      const editProjectManager = document.getElementById('editProjectManager');
+      const editProjectStatus = document.getElementById('editProjectStatus');
+      if (editProjectId) editProjectId.value = currentProject.id || '';
+      if (editProjectName) editProjectName.value = currentProject.name || '';
+      if (editProjectCategory) editProjectCategory.value = currentProject.category || '';
+      if (editProjectDescription) editProjectDescription.value = currentProject.description || '';
+      if (editProjectBudget) editProjectBudget.value = currentProject.budget_allocated || '';
+      if (editProjectSpent) editProjectSpent.value = currentProject.amount_spent || '';
+      if (editProjectStartDate) editProjectStartDate.value = currentProject.start_date || '';
+      if (editProjectEndDate) editProjectEndDate.value = currentProject.end_date || '';
+      if (editProjectManager) editProjectManager.value = currentProject.project_manager || '';
+      if (editProjectStatus) editProjectStatus.value = currentProject.status || 'Ongoing';
+      hideModal('projectDetailModal');
+      showModal('editProjectModal');
+    };
+  }
+
+  const deleteProjectDetailBtn = document.getElementById('deleteProjectDetailBtn');
+  if (deleteProjectDetailBtn) {
+    deleteProjectDetailBtn.onclick = function() {
+      if (!currentProject) return;
+      if (confirm('Are you sure you want to archive this project?')) {
+        fetch(`/delete_project/${currentProject.id}`, {method: 'POST'})
+          .then(() => location.reload());
+      }
+    };
+  };
+
+  document.addEventListener('DOMContentLoaded', function () {
+    const links = document.querySelectorAll('.sidebar-item, .mobile-nav');
+    const here = window.location.pathname + window.location.hash;
+    let matched = false;
+    links.forEach(a => {
+      const href = new URL(a.getAttribute('href'), window.location.origin);
+      const key = href.pathname + href.hash;
+      if (here === key || here.endsWith(key)) {
+        a.classList.add('active-nav');
+        matched = true;
+      } else {
+        a.classList.remove('active-nav');
+      }
+    });
+    if (!matched) {
+      const fr = Array.from(links).find(a => (a.dataset && a.dataset.title === 'Financial Reports'));
+      fr?.classList.add('active-nav');
+    }
+
+    const mobileMenuButton = document.getElementById('mobile-menu-button');
+    const mobileMenu = document.getElementById('mobile-menu');
+    mobileMenuButton?.addEventListener('click', () => mobileMenu?.classList.toggle('hidden'));
+
+    const userDropdownToggle = document.getElementById('userDropdownToggle');
+    const userDropdownMenu = document.getElementById('userDropdownMenu');
+    userDropdownToggle?.addEventListener('click', function (e) {
+      e.stopPropagation(); userDropdownMenu?.classList.toggle('hidden');
+    });
+    document.addEventListener('click', function () { userDropdownMenu?.classList.add('hidden'); });
+
+    const uploadReportBtn = document.getElementById('uploadReportBtn');
+    if (uploadReportBtn) uploadReportBtn.addEventListener('click', () => showModal('uploadModal'));
+    const uploadReportBtn2 = document.getElementById('uploadReportBtn2');
+    if (uploadReportBtn2) uploadReportBtn2.addEventListener('click', () => showModal('uploadModal'));
+    const closeUploadModalBtn = document.getElementById('closeUploadModal');
+    if (closeUploadModalBtn) closeUploadModalBtn.addEventListener('click', () => hideModal('uploadModal'));
+    const cancelUploadBtn = document.getElementById('cancelUpload');
+    if (cancelUploadBtn) cancelUploadBtn.addEventListener('click', () => hideModal('uploadModal'));
+
+    const addProjectBtn = document.getElementById('addProjectBtn');
+    if (addProjectBtn) addProjectBtn.addEventListener('click', () => showModal('addProjectModal'));
+    const closeProjectModalBtn = document.getElementById('closeProjectModal');
+    if (closeProjectModalBtn) closeProjectModalBtn.addEventListener('click', () => hideModal('addProjectModal'));
+    const cancelProjectBtn = document.getElementById('cancelProject');
+    if (cancelProjectBtn) cancelProjectBtn.addEventListener('click', () => hideModal('addProjectModal'));
+
+    // Debug: Log form submission data
+    document.getElementById('addProjectForm').addEventListener('submit', function(e) {
+      const formData = new FormData(this);
+      console.log('DEBUG: Form submitted');
+      console.log('DEBUG: Barangay field value:', formData.get('barangay'));
+      console.log('DEBUG: Project name:', formData.get('name'));
+      console.log('DEBUG: Category:', formData.get('category'));
+      console.log('All form data:');
+      for (let [key, value] of formData.entries()) {
+        console.log(`  ${key}: ${value}`);
+      }
+    });
+
+    const fileInput = document.getElementById('fileInput');
+    if (fileInput) {
+      fileInput.addEventListener('change', function(e){
+        const file = e.target.files[0];
+        if (file) {
+          const mb = (file.size / 1024 / 1024).toFixed(2);
+          alert(`Selected file: ${file.name} (${mb} MB)`);
+        }
+      });
+    }
+
+    const dropZone = document.querySelector('.border-dashed');
+    if (dropZone) {
+      dropZone.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        dropZone.classList.add('border-blue-400');
+      });
+      dropZone.addEventListener('dragleave', function(e) {
+        e.preventDefault();
+        dropZone.classList.remove('border-blue-400');
+      });
+      dropZone.addEventListener('drop', function(e) {
+        e.preventDefault();
+        dropZone.classList.remove('border-blue-400');
+        if (e.dataTransfer.files.length && typeof fileInput !== 'undefined' && fileInput) {
+          fileInput.files = e.dataTransfer.files;
+        }
+      });
+    }
+
+    initializeCharts();
+    
+    // Track current selected barangay filter
+    let currentBarangayFilter = '';
+    
+    // wire year buttons to update the monthly spending chart using current metric
+    document.getElementById('monthlyYear2026')?.addEventListener('click', () => {
+      const selectedBarangay = document.getElementById('barangayFilter')?.value || '';
+      currentBarangayFilter = selectedBarangay;
+      if (selectedBarangay) {
+        updateMonthlySpendingChartWithFilter('2026', currentMonthlyMetric, selectedBarangay);
+      } else {
+        updateMonthlySpendingChart('2026', currentMonthlyMetric);
+      }
+      // also update KPI numbers for the selected year (respect current barangay filter)
+      try { updateKPIsForYear('2026', selectedBarangay); } catch(e){}
+    });
+    
+    document.getElementById('monthlyYear2025')?.addEventListener('click', () => {
+      const selectedBarangay = document.getElementById('barangayFilter')?.value || '';
+      currentBarangayFilter = selectedBarangay;
+      if (selectedBarangay) {
+        updateMonthlySpendingChartWithFilter('2025', currentMonthlyMetric, selectedBarangay);
+      } else {
+        updateMonthlySpendingChart('2025', currentMonthlyMetric);
+      }
+      // also update KPI numbers for the selected year (respect current barangay filter)
+      try { updateKPIsForYear('2025', selectedBarangay); } catch(e){}
+    });
+
+    // wire 2024 year button too (was missing)
+    document.getElementById('monthlyYear2024')?.addEventListener('click', () => {
+      const selectedBarangay = document.getElementById('barangayFilter')?.value || '';
+      currentBarangayFilter = selectedBarangay;
+      if (selectedBarangay) {
+        updateMonthlySpendingChartWithFilter('2024', currentMonthlyMetric, selectedBarangay);
+      } else {
+        updateMonthlySpendingChart('2024', currentMonthlyMetric);
+      }
+      // also update KPI numbers for the selected year (respect current barangay filter)
+      try { updateKPIsForYear('2024', selectedBarangay); } catch(e){}
+    });
+
+    // wire barangay filter change to update charts and KPIs
+    const barangayEl = document.getElementById('barangayFilter');
+    if (barangayEl) {
+      barangayEl.addEventListener('change', function () {
+        const selected = this.value || '';
+        currentBarangayFilter = selected;
+        // update table, KPIs and transactions list
+        filterByBarangay(selected);
+        // update monthly chart according to current year/metric
+        if (selected) updateMonthlySpendingChartWithFilter(currentMonthlyYear, currentMonthlyMetric, selected);
+        else updateMonthlySpendingChart(currentMonthlyYear, currentMonthlyMetric);
+      });
+    }
+
+    // wire KPI year dropdown to update KPI cards (respect current barangay filter)
+    const kpiYearSelect = document.getElementById('kpiYearSelect');
+    if (kpiYearSelect) {
+      // initialize select value to currentMonthlyYear if present
+      try { kpiYearSelect.value = String(currentMonthlyYear); } catch(e){}
+      kpiYearSelect.addEventListener('change', function () {
+        const selectedYear = this.value || currentMonthlyYear;
+        // keep the current barangay filter in effect
+        const barangay = currentBarangayFilter || document.getElementById('barangayFilter')?.value || '';
+        updateKPIsForYear(selectedYear, barangay);
+      });
+    }
+
+    // Toast helper: show a small non-blocking notification
+    function showToast(message, subtext, duration=3500) {
+      try {
+        const wrap = document.getElementById('toastNotif');
+        const msg = document.getElementById('toastMessage');
+        const sub = document.getElementById('toastSub');
+        const close = document.getElementById('toastClose');
+        if (!wrap || !msg || !sub) return;
+        msg.textContent = message || 'Access denied';
+        sub.textContent = subtext || 'You are not authorized to alter this project.';
+        wrap.classList.remove('hidden');
+        wrap.classList.add('opacity-0');
+        // animate in
+        requestAnimationFrame(() => {
+          wrap.classList.remove('opacity-0');
+          wrap.classList.add('opacity-100');
+        });
+        let hideTimeout = setTimeout(() => {
+          wrap.classList.add('opacity-0');
+          setTimeout(() => wrap.classList.add('hidden'), 300);
+        }, duration);
+        close.onclick = () => { clearTimeout(hideTimeout); wrap.classList.add('opacity-0'); setTimeout(() => wrap.classList.add('hidden'), 200); };
+      } catch (err) { console.warn('showToast error', err); }
+    }
+
+    // If user clicks the disabled edit/delete buttons (disabled attr prevents click events),
+    // capture clicks on the wrapper and show a toast notification when appropriate.
+    const actionWrap = document.getElementById('projectDetailActionWrap');
+    if (actionWrap) {
+      actionWrap.addEventListener('click', function (e) {
+        const btn = e.target.closest('button');
+        if (!btn) return;
+        // If the button is disabled (has attribute) or has the not-allowed class, show toast
+        if (btn.hasAttribute('disabled') || btn.classList.contains('cursor-not-allowed')) {
+          e.stopPropagation();
+          e.preventDefault();
+          showToast('❌ You are not authorized', 'Only System Admins and Barangay Officers can alter this project.');
+        }
+      });
+    }
+    
+    document.getElementById('monthlyYear2024')?.addEventListener('click', () => {
+      const selectedBarangay = document.getElementById('barangayFilter')?.value || '';
+      currentBarangayFilter = selectedBarangay;
+      if (selectedBarangay) {
+        updateMonthlySpendingChartWithFilter('2024', currentMonthlyMetric, selectedBarangay);
+      } else {
+        updateMonthlySpendingChart('2024', currentMonthlyMetric);
+      }
+    });
+
+    // wire KPI cards to change metric used by monthly chart
+    ['kpiTotalBudget','kpiSpent','kpiRemaining','kpiActiveProjects'].forEach(id => {
+      const el = document.getElementById(id);
+      el?.addEventListener('click', function(){
+        const metric = this.dataset.metric || 'spent';
+        const selectedBarangay = document.getElementById('barangayFilter')?.value || '';
+        if (selectedBarangay) {
+          updateMonthlySpendingChartWithFilter(currentMonthlyYear, metric, selectedBarangay);
+        } else {
+          updateMonthlySpendingChart(currentMonthlyYear, metric);
+        }
+      });
+    });
+
+    // initialize with default year + metric
+    updateMonthlySpendingChart(currentMonthlyYear, currentMonthlyMetric);
+    
+    // Recalculate spending for all projects on page load
+    fetch('/api/recalculate_spending', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      credentials: 'same-origin'
+    })
+      .then(async (res) => {
+        if (!res.ok) {
+          const text = await res.text().catch(() => '<no body>');
+          throw new Error(`Recalc API error: ${res.status} ${res.statusText} - ${text}`);
+        }
+        const ct = res.headers.get('content-type') || '';
+        if (ct.includes('application/json')) return res.json();
+        // attempt to parse text body as JSON if content-type is missing/misconfigured
+        const txt = await res.text().catch(() => '');
+        try { return txt ? JSON.parse(txt) : { success: false, error: 'empty response' }; }
+        catch (e) { return { success: false, error: 'invalid json response', raw: txt }; }
+      })
+      .then(json => {
+        if (json && json.success) {
+          console.log(`✓ Recalculated spending for ${json.updated} projects`);
+        } else {
+          console.warn('Failed to recalculate spending:', json && json.error ? json.error : json);
+        }
+      })
+      .catch(err => {
+        console.error('Error recalculating spending:', err);
+      });
+  });
+
+  window.addEventListener('click', function (event) {
+    const uploadModal = document.getElementById('uploadModal');
+    if (uploadModal && !uploadModal.classList.contains('hidden') && event.target === uploadModal) {
+      hideModal('uploadModal');
+    }
+    const projectModal = document.getElementById('addProjectModal');
+    if (projectModal && !projectModal.classList.contains('hidden') && event.target === projectModal) {
+      hideModal('addProjectModal');
+    }
+    const editModal = document.getElementById('editProjectModal');
+    if (editModal && !editModal.classList.contains('hidden') && event.target === editModal) {
+      hideModal('editProjectModal');
+    }
+  });
+
+  document.getElementById('editProjectForm').onsubmit = function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    fetch('/edit_project', {
+      method: 'POST',
+      body: formData
+    }).then(() => {
+      hideModal('editProjectModal');
+      location.reload();
+    });
+  };
+
+  document.getElementById('editProjectSpent').addEventListener('input', function() {
+    const budget = parseFloat(document.getElementById('editProjectBudget').value) || 0;
+    let spent = parseFloat(this.value) || 0;
+    if (spent < 0) spent = 0;
+    if (spent > budget) spent = budget;
+    this.value = spent;
+  });
+
+  document.getElementById('editProjectBudget').addEventListener('input', function() {
+    const budget = parseFloat(this.value) || 0;
+    let spent = parseFloat(document.getElementById('editProjectSpent').value) || 0;
+    if (spent > budget) {
+      document.getElementById('editProjectSpent').value = budget;
+    }
+  });
+
+  document.getElementById('cancelEditProjectBtn').addEventListener('click', function() {
+    hideModal('editProjectModal');
+  });
+  document.getElementById('closeEditProjectModalBtn').addEventListener('click', function() {
+    hideModal('editProjectModal');
+
+});
+  </script>
+
+
+<!-- Sorting + CSV Export for Transactions Modal -->
+<script>
+ // sortDirection: true = ascending, false = descending
+ let sortDirection = true;
+
+ function sortTable(columnIndex) {
+   const table = document.getElementById("transactionsTable");
+   if (!table) return;
+   const tbody = table.querySelector("tbody");
+   const rows = Array.from(tbody.querySelectorAll("tr")).filter(r => r.querySelector("td"));
+   
+   rows.sort((a, b) => {
+     const aText = a.children[columnIndex].innerText.trim().replace(/[₱,]/g, '');
+     const bText = b.children[columnIndex].innerText.trim().replace(/[₱,]/g, '');
+     const aNum = parseFloat(aText);
+     const bNum = parseFloat(bText);
+     
+     if (!isNaN(aNum) && !isNaN(bNum)) {
+       return sortDirection ? aNum - bNum : bNum - aNum;
+     } else {
+       return sortDirection 
+         ? aText.localeCompare(bText, undefined, { numeric: true, sensitivity: 'base' }) 
+         : bText.localeCompare(aText, undefined, { numeric: true, sensitivity: 'base' });
+     }
+   });
+
+   // Re-attach sorted rows
+   rows.forEach(r => tbody.appendChild(r));
+   sortDirection = !sortDirection;
+ }
+
+ document.getElementById("exportCsvBtn")?.addEventListener("click", () => {
+   const table = document.getElementById("transactionsTable");
+   if (!table) return;
+   const rows = Array.from(table.querySelectorAll("tr"));
+   let csv = [];
+
+   rows.forEach(row => {
+     const cols = Array.from(row.querySelectorAll("th,td")).map(col => {
+       let text = col.innerText.replace(/₱/g, '').replace(/,/g, '').trim();
+       if (text.includes(',')) text = `"${text}"`;
+       return text;
+     });
+     csv.push(cols.join(","));
+   });
+
+   const blob = new Blob([csv.join("\n")], { type: "text/csv;charset=utf-8;" });
+   const url = URL.createObjectURL(blob);
+   const a = document.createElement("a");
+   a.href = url;
+   a.download = "transactions_export.csv";
+   a.click();
+   URL.revokeObjectURL(url);
+ });
+
+ // ensure the "View Expenses" button opens the modal (redundant if onclick present)
+ // Initialize all modal functionality
+document.addEventListener('DOMContentLoaded', function() {
+  // Set up click handlers for both transaction buttons
+  const allTransactionsBtn = document.getElementById('allTransactionsBtn');
+  const viewAllTransactionsBtn = document.getElementById('viewAllTransactionsBtn');
+  
+  function openTransactionsModal() {
+    const modal = document.getElementById('allTransactionsModal');
+    if (modal) {
+      modal.classList.remove('hidden');
+      // Update table data if needed
+      if (typeof updateTransactionsTable === 'function') {
+        updateTransactionsTable();
+      }
+    }
+  }
+  
+  if (allTransactionsBtn) {
+    allTransactionsBtn.addEventListener('click', openTransactionsModal);
+  }
+  
+  if (viewAllTransactionsBtn) {
+    viewAllTransactionsBtn.addEventListener('click', openTransactionsModal);
+  }
+  
+  // Close modal when clicking outside
+  const modal = document.getElementById('allTransactionsModal');
+  if (modal) {
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        hideModal('allTransactionsModal');
+      }
+    });
+  }
+  
+  // Search functionality for transactions
+  const searchInput = document.getElementById('transactionSearch');
+  if (searchInput) {
+    searchInput.addEventListener('input', (e) => {
+      const searchTerm = e.target.value.toLowerCase();
+      const rows = document.querySelectorAll('#transactionsTable tbody tr');
+      
+      rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(searchTerm) ? '' : 'none';
+      });
+    });
+  }
+
+  // Initialize DataTable for transactionsTable if available
+  if (typeof jQuery !== 'undefined' && jQuery.fn && jQuery.fn.dataTable) {
+    $(document).ready(function() {
+      // If already initialized, destroy to avoid duplicate init
+      if ($.fn.dataTable.isDataTable('#transactionsTable')) {
+        $('#transactionsTable').DataTable().destroy();
+      }
+
+      $('#transactionsTable').DataTable({
+        pageLength: 25,
+        order: [[5, 'desc']], // sort by Date column (index 5)
+        dom: 'Bfrtip',
+        buttons: [
+          { extend: 'csvHtml5', text: '<i class="fas fa-file-csv"></i> CSV', filename: 'transactions_export', exportOptions: { columns: ':visible' } },
+          { extend: 'excelHtml5', text: '<i class="fas fa-file-excel"></i> Excel', filename: 'transactions_export', exportOptions: { columns: ':visible' } }
+        ],
+        columnDefs: [
+          { targets: [2], type: 'num' } // Amount column
+        ]
+      });
+    });
+  }
+});
+  </script>
+
+  <!-- Modal Functionality -->
+  <script>
+    // Get filtered projects for selected barangay
+    function getFilteredProjects(selectedBarangay) {
+      if (!selectedBarangay || !Array.isArray(SERVER_PROJECTS)) return SERVER_PROJECTS || [];
+      return SERVER_PROJECTS.filter(p => p.barangay === selectedBarangay);
+    }
+
+    // Get filtered transactions for selected barangay
+    function getFilteredTransactions(selectedBarangay) {
+      if (!selectedBarangay || !Array.isArray(SERVER_TRANSACTIONS)) return SERVER_TRANSACTIONS || [];
+      const filteredProjectIds = new Set(getFilteredProjects(selectedBarangay).map(p => p.id));
+      // Include transactions that either:
+      // 1. Have a project_id matching filtered projects, OR
+      // 2. Have a barangay field matching the selected barangay
+      return SERVER_TRANSACTIONS.filter(tx => {
+        // Check if transaction's barangay matches selected barangay
+        if (tx.barangay === selectedBarangay) {
+          return true;
+        }
+        // Or check if transaction's project_id matches a filtered project
+        if (tx.project_id && filteredProjectIds.has(tx.project_id)) {
+          return true;
+        }
+        return false;
+      });
+    }
+
+    // Get monthly spending data for filtered transactions
+    function getMonthlySpendingForFilter(year, selectedBarangay) {
+      const arr = new Array(12).fill(0);
+      const filteredTx = getFilteredTransactions(selectedBarangay);
+      
+      filteredTx.forEach(tx => {
+        const d = new Date(tx.date);
+        if (isNaN(d)) return;
+        if (String(d.getFullYear()) !== String(year)) return;
+        const m = d.getMonth();
+        const amt = parseFloat(tx.amount) || 0;
+        if (tx.type !== 'income') {
+          arr[m] += Math.abs(amt);
+        }
+      });
+      return arr;
+    }
+
+    // Filter projects by barangay and update all related metrics
+    function filterByBarangay(selectedBarangay) {
+      const rows = document.querySelectorAll('#projectTableBody tr');
+      let totalBudget = 0;
+      let totalSpent = 0;
+      let activeProjectCount = 0;
+      
+      // Get filtered projects
+      const filteredProjects = getFilteredProjects(selectedBarangay);
+      const filteredProjectIds = new Set(filteredProjects.map(p => p.id));
+      
+      // Filter project table rows
+      rows.forEach(row => {
+        if (row.cells.length === 1) {
+          row.style.display = '';
+          return;
+        }
+        
+        const projectData = row.getAttribute('data-project');
+        if (projectData) {
+          try {
+            const project = JSON.parse(projectData);
+            const isMatch = !selectedBarangay || project.barangay === selectedBarangay;
+            row.style.display = isMatch ? '' : 'none';
+          } catch (e) {
+            row.style.display = '';
+          }
+        } else {
+          row.style.display = '';
+        }
+      });
+
+      // Calculate metrics from filtered projects
+      filteredProjects.forEach(p => {
+        const budget = parseFloat(p.budget_allocated) || 0;
+        const spent = parseFloat(p.amount_spent) || 0;
+        totalBudget += budget;
+        totalSpent += spent;
+        if (p.status !== 'Completed') {
+          activeProjectCount++;
+        }
+      });
+
+      // Update KPI cards
+      const remaining = totalBudget - totalSpent;
+      const percentSpent = totalBudget > 0 ? ((totalSpent / totalBudget) * 100).toFixed(0) : 0;
+      const percentRemaining = totalBudget > 0 ? ((remaining / totalBudget) * 100).toFixed(0) : 0;
+
+      document.querySelector('#kpiTotalBudget .text-2xl').textContent = '₱' + totalBudget.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      document.querySelector('#kpiSpent .text-2xl').textContent = '₱' + totalSpent.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      document.querySelector('#kpiSpent .text-sm').textContent = percentSpent + '% of budget';
+      document.querySelector('#kpiRemaining .text-2xl').textContent = '₱' + remaining.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      document.querySelector('#kpiRemaining .text-sm').textContent = percentRemaining + '% available';
+      document.querySelector('#kpiActiveProjects .text-2xl').textContent = activeProjectCount;
+
+      // Filter transactions by barangay - show only 3 most recent per barangay (or 3 overall if all barangays selected)
+      const transactionItems = document.querySelectorAll('.transaction-item');
+      
+      // Convert NodeList to Array and collect transaction data with dates
+      const transactionArray = Array.from(transactionItems).map(tx => {
+        const txBarangay = tx.getAttribute('data-barangay');
+        const txProjectId = tx.getAttribute('data-project-id');
+        
+        // Find the date from SERVER_TRANSACTIONS using project_id or barangay
+        let txDate = null;
+        const matchingServerTx = SERVER_TRANSACTIONS.find(stx => {
+          if (stx.barangay === txBarangay && txBarangay) return true;
+          if (stx.project_id === txProjectId && txProjectId) return true;
+          return false;
+        });
+        if (matchingServerTx) {
+          txDate = new Date(matchingServerTx.date);
+        }
+        
+        return { element: tx, barangay: txBarangay, projectId: txProjectId, date: txDate };
+      });
+      
+      let visibleTransactionCount = 0;
+      
+      if (!selectedBarangay) {
+        // Show all barangays: sort by date (newest first) and show top 3
+        transactionArray.sort((a, b) => {
+          const dateA = a.date || new Date(0);
+          const dateB = b.date || new Date(0);
+          return dateB - dateA; // Newest first
+        });
+        
+        transactionArray.forEach((txObj, index) => {
+          if (index < 3) {
+            txObj.element.style.display = '';
+            visibleTransactionCount++;
+          } else {
+            txObj.element.style.display = 'none';
+          }
+        });
+      } else {
+        // Filter by selected barangay first
+        const filteredProjects = getFilteredProjects(selectedBarangay);
+        const barangayTransactions = transactionArray.filter(txObj => {
+          if (txObj.barangay === selectedBarangay) {
+            return true;
+          } else if (txObj.projectId) {
+            return filteredProjects.some(p => String(p.id) === String(txObj.projectId));
+          }
+          return false;
+        });
+        
+        // Sort filtered transactions by date (newest first)
+        barangayTransactions.sort((a, b) => {
+          const dateA = a.date || new Date(0);
+          const dateB = b.date || new Date(0);
+          return dateB - dateA; // Newest first
+        });
+        
+        // Show only the top 3
+        transactionArray.forEach(txObj => {
+          const isInTopThree = barangayTransactions.slice(0, 3).includes(txObj);
+          txObj.element.style.display = isInTopThree ? '' : 'none';
+          if (isInTopThree) visibleTransactionCount++;
+        });
+      }
+
+      // Show "no transactions" message if all are hidden
+      const transactionContainer = document.getElementById('transactionsContainer');
+      const noTxMessage = transactionContainer.querySelector('#noTransactionsMsg');
+      
+      if (visibleTransactionCount === 0 && transactionItems.length > 0) {
+        if (!noTxMessage) {
+          const msg = document.createElement('div');
+          msg.className = 'text-center text-gray-500 py-4';
+          msg.textContent = 'No transactions for selected barangay.';
+          msg.id = 'noTransactionsMsg';
+          transactionContainer.appendChild(msg);
+        }
+      } else if (noTxMessage) {
+        noTxMessage.remove();
+      }
+
+      // Update charts with filtered data
+      if (monthlySpendingChart) {
+        updateMonthlySpendingChartWithFilter(currentMonthlyYear, currentMonthlyMetric, selectedBarangay);
+      }
+    }
+
+    // Filter projects by barangay
+    function filterProjectsByBarangay(selectedBarangay) {
+      filterByBarangay(selectedBarangay);
+    }
+
+    // Updated modal functions with proper handling
+    function showModal(modalId) {
+      // Hide all modals first
+      document.querySelectorAll('.fixed.inset-0').forEach(m => m.classList.add('hidden'));
+      const modal = document.getElementById(modalId);
+      if (modal) {
+        modal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+      }
+    }
+
+    function hideModal(modalId) {
+      const modal = document.getElementById(modalId);
+      if (modal) {
+        modal.classList.add('hidden');
+        document.body.style.overflow = '';
+      }
+    }
+
+    // Updated edit project function with defensive modal handling
+    function editProject(id) {
+      hideModal('allTransactionsModal'); // ensure transactions modal is closed first
+      const modal = document.getElementById('editProjectModal');
+      if (!modal) return;
+      
+      // Show edit modal
+      modal.classList.remove('hidden');
+      
+      // Fetch and populate project data
+      fetch(`/api/project/${id}`)
+        .then(res => res.json())
+        .then(project => {
+          document.getElementById('editProjectId').value = project.id || '';
+          document.getElementById('editProjectName').value = project.name || '';
+          // Add other field population as needed
+        })
+        .catch(err => console.error('Error fetching project:', err));
+    }
+
+    // Initialize all modal functionality
+    document.addEventListener('DOMContentLoaded', function() {
+      // Initialize transactions to show only latest 3 on page load
+      filterByBarangay('');
+      
+      // Setup barangay filter
+      const barangayFilter = document.getElementById('barangayFilter');
+      if (barangayFilter) {
+        barangayFilter.addEventListener('change', function(e) {
+          filterByBarangay(e.target.value);
+        });
+      }
+
+      // Setup modal close on outside click
+      document.querySelectorAll('.fixed.inset-0').forEach(modal => {
+        modal.addEventListener('click', function(e) {
+          if (e.target === this) {
+            hideModal(this.id);
+          }
+        });
+      });
+      
+      // Initialize search functionality for transactions
+      const searchInput = document.getElementById('transactionSearch');
+      if (searchInput) {
+        searchInput.addEventListener('input', function(e) {
+          const searchTerm = e.target.value.toLowerCase();
+          const rows = document.querySelectorAll('#transactionsTable tbody tr');
+          
+          rows.forEach(function(row) {
+            const text = row.textContent.toLowerCase();
+            row.style.display = text.includes(searchTerm) ? '' : 'none';
+          });
+        });
+      }
+
+      // Initialize sorting functionality
+      const headers = document.querySelectorAll('#transactionsTable th[onclick]');
+      headers.forEach(header => {
+        header.style.cursor = 'pointer';
+      });
+    });
+
+    // --- FIX: All Transactions Modal Control ---
+    function openAllTransactions() {
+      // hide all other modals first to prevent overlap
+      document.querySelectorAll('.fixed.inset-0').forEach(m => m.classList.add('hidden'));
+
+      const modal = document.getElementById('allTransactionsModal');
+      if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+
+        // Update table data if needed
+        if (typeof updateTransactionsTable === 'function') {
+          updateTransactionsTable();
+        }
+      } else {
+        console.error('⚠️ allTransactionsModal not found in DOM');
+      }
+    }
+
+    function closeAllTransactions() {
+      const modal = document.getElementById('allTransactionsModal');
+      if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+      }
+    }
+
+    // Close modal when clicking outside
+    document.getElementById('allTransactionsModal')?.addEventListener('click', function(e) {
+      if (e.target === this) {
+        closeAllTransactions();
+      }
+    });
+  </script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const sel = document.getElementById('kpiYearSelect');
+      // populate years dynamically from SERVER_PROJECTS and SERVER_TRANSACTIONS
+      if (sel) {
+        const years = new Set();
+        const nowYear = (new Date()).getFullYear();
+        // gather years from project start/end
+        (SERVER_PROJECTS || []).forEach(p => {
+          try {
+            if (p.start_date) years.add(new Date(String(p.start_date)).getFullYear());
+            if (p.end_date) years.add(new Date(String(p.end_date)).getFullYear());
+          } catch (e) {}
+        });
+        // gather years from transactions
+        (SERVER_TRANSACTIONS || []).forEach(t => {
+          try { if (t.date) years.add(new Date(String(t.date)).getFullYear()); } catch(e){}
+        });
+        // ensure current year present
+        years.add(nowYear);
+        const arr = Array.from(years).filter(Boolean).map(Number).sort((a,b) => b - a);
+        sel.innerHTML = '';
+        if (arr.length === 0) arr.push(nowYear);
+        arr.forEach(y => {
+          const o = document.createElement('option'); o.value = String(y); o.textContent = String(y); sel.appendChild(o);
+        });
+        // set default to current year when available
+        currentMonthlyYear = String(nowYear);
+        if (arr.includes(nowYear)) sel.value = String(nowYear); else sel.value = String(arr[0]);
+        sel.addEventListener('change', function () {
+          const yr = this.value;
+          currentMonthlyYear = yr;
+          const barangay = document.getElementById('barangayFilter')?.value || '';
+          updateKPIsForYear(yr, barangay);
+          if (barangay) updateMonthlySpendingChartWithFilter(yr, currentMonthlyMetric, barangay);
+          else updateMonthlySpendingChart(yr, currentMonthlyMetric);
+        });
+        // keep other year controls in sync (budget filter and monthly buttons)
+        const budgetSel = document.getElementById('budgetYearFilter');
+        if (budgetSel) {
+          budgetSel.addEventListener('change', function() {
+            const yr = this.value;
+            // mirror selection to kpi selector
+            try { sel.value = yr; } catch(e) {}
+            currentMonthlyYear = yr;
+            const barangay = document.getElementById('barangayFilter')?.value || '';
+            updateKPIsForYear(yr, barangay);
+            if (barangay) updateMonthlySpendingChartWithFilter(yr, currentMonthlyMetric, barangay);
+            else updateMonthlySpendingChart(yr, currentMonthlyMetric);
+          });
+        }
+        // monthly year quick-buttons should also update KPIs
+        document.querySelectorAll('#monthlyYear2026, #monthlyYear2025, #monthlyYear2024').forEach(btn => {
+          btn.addEventListener('click', function() {
+            const yr = this.dataset.year || this.getAttribute('data-year');
+            if (!yr) return;
+            currentMonthlyYear = String(yr);
+            try { sel.value = String(yr); } catch(e) {}
+            const barangay = document.getElementById('barangayFilter')?.value || '';
+            updateKPIsForYear(currentMonthlyYear, barangay);
+            updateMonthlySpendingChart(currentMonthlyYear, currentMonthlyMetric);
+          });
+        });
+      }
+
+      // initial render: ensure currentMonthlyYear is set and update KPIs for that year
+      currentMonthlyYear = currentMonthlyYear || document.getElementById('kpiYearSelect')?.value || String(nowYear);
+      updateKPIsForYear(currentMonthlyYear, document.getElementById('barangayFilter')?.value || '');
+    });
+  
+    /* Financial Reports dropdown toggle */
+    (function(){
+      const btn = document.getElementById('finDropdownBtn');
+      const menu = document.getElementById('finSubMenu');
+      const chevron = document.getElementById('finChevron');
+      if(btn && menu){
+        btn.addEventListener('click', function(e){
+          e.preventDefault();
+          e.stopPropagation();
+          const isHidden = menu.classList.toggle('hidden');
+          if(chevron) chevron.style.transform = isHidden ? '' : 'rotate(180deg)';
+        });
+      }
+    })();</script>
+</body>
+</html>

@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>SK Connect — Document Management System</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+  <!-- Tailwind + Icons -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+
+  <!-- Poppins -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root{ --sk-blue:#0d2a52; --sk-yellow:#FCD116; }
+    html,body{ height:100%; }
+    body{
+      font-family:"Poppins",system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial,"Noto Sans";
+      background:#fff; color:#111827;
+    }
+    .sidebar{ background:var(--sk-blue)!important; color:#fff; }
+    .sidebar .sidebar-item{ color:#e5e7eb; }
+    .sidebar .sidebar-item:hover{ background:rgba(255,255,255,.06); transform:translateX(4px); }
+    .active-nav{
+      background:linear-gradient(90deg, rgba(252,209,22,.22), rgba(252,209,22,0))!important;
+      border-left:4px solid var(--sk-yellow); color:#fff!important;
+    }
+    .brand-img{ width:40px; height:40px; border-radius:10px; object-fit:cover; }
+    .app-topbar{ background:#fff!important; color:#111827; border-bottom:1px solid #e5e7eb; position:sticky; top:0; z-index:30; }
+    .soft-card{ border:1px solid #eef2f7; border-radius:1rem; }
+    .pill{ display:inline-flex; align-items:center; padding:.125rem .5rem; border-radius:.5rem; font-size:.75rem; font-weight:600; }
+    .dot{ width:.5rem; height:.5rem; border-radius:9999px; display:inline-block; }
+    .file-dropzone { transition: all 0.2s ease; }
+    .file-dropzone.drag-over { background-color: #f0f9ff; border-color: #0d2a52; }
+    .document-card:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.05); transition: all 0.2s; }
+  </style>
+</head>
+
+<body class="antialiased">
+  <div class="flex h-screen overflow-hidden">
+    <!-- Sidebar (unchanged) -->
+    <aside class="hidden md:flex md:flex-shrink-0 sidebar">
+      <div class="flex flex-col w-64">
+        <div class="px-4 py-6 flex items-center">
+          <img src="/static/images/SKLOGO.png" alt="SK Logo" class="brand-img mr-3">
+          <div>
+            <div class="text-white text-xl font-extrabold">SK<span class="text-yellow-300">Connect</span></div>
+            <div class="text-blue-200 text-xs">Los Baños Federation</div>
+          </div>
+        </div>
+        <div class="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
+          <nav class="flex-1 px-2 space-y-1">
+            <a href="admin_dashboard" data-title="Dashboard" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md"><i class="fas fa-home mr-3 text-lg"></i> Dashboard</a>
+            <a href="admin_announcements" data-title="Announcements" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md"><i class="fas fa-bullhorn mr-3 text-lg"></i> Announcements</a>
+            <a href="admin_events_projects" data-title="Events & Projects" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md"><i class="fas fa-calendar mr-3 text-lg"></i> Events & Projects</a>
+            <a href="admin_financial_report" data-title="Financial Reports" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md"><i class="fas fa-chart-pie mr-3 text-lg"></i> Financial Reports</a>
+            <a href="admin_feedback" data-title="Surveys & Polls" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md"><i class="fas fa-poll mr-3 text-lg"></i> Surveys & Polls</a>
+            <a href="admin_documents" data-title="Documents" class="sidebar-item active-nav flex items-center px-4 py-3 text-sm font-medium rounded-md"><i class="fas fa-file-alt mr-3 text-lg"></i> Documents</a>
+            <a href="admin_volunteer" data-title="Volunteer" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md"><i class="fas fa-hands-helping mr-3 text-lg"></i> Volunteer</a>
+            <a href="admin_training_resources" data-title="Training Resources" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md"><i class="fas fa-graduation-cap mr-3 text-lg"></i> Training Resources</a>
+            <a href="admin_community" data-title="Community Board" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md"><i class="fas fa-users mr-3 text-lg"></i> Community Board</a>
+            <a href="admin_incidents" data-title="Incident Reports" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md"><i class="fas fa-exclamation-triangle mr-3 text-lg"></i> Incident Reports</a>
+            <a href="admin_user_approval" data-title="User Approval" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md"><i class="fas fa-user-check mr-3 text-lg"></i> User Approval</a>
+          </nav>
+        </div>
+        <div class="flex-shrink-0 flex border-t border-white/10 p-4 relative">
+          <div id="userDropdownToggle" class="flex flex-col items-center cursor-pointer w-full">
+            <div class="flex items-center justify-center w-full">
+              <img class="h-9 w-9 rounded-full" src="{{ current_user.profile_pic if current_user and current_user.profile_pic else get_default_profile_image(current_user) }}" alt="Profile">
+              <div class="ml-3 flex-1 min-w-0">
+                <div class="text-base font-medium text-white truncate uppercase">{{ session['username'] if session.get('username') else 'Guest' }}</div>
+                <div class="text-xs text-blue-100 mt-0.5 truncate">{{ session['position']|title if session.get('position') else 'User' }}</div>
+              </div>
+              <i class="fas fa-chevron-down ml-2 text-blue-200 flex-shrink-0"></i>
+            </div>
+          </div>
+          <ul id="userDropdownMenu" class="absolute left-0 right-0 mx-auto bottom-14 z-20 w-60 bg-white rounded shadow-lg py-2 text-gray-700 hidden">
+            <li><a class="dropdown-item flex items-center px-4 py-2 hover:bg-gray-100" href="{{ url_for('profile') }}"><i class="fas fa-user mr-2"></i>Profile</a></li>
+            <li><a class="dropdown-item flex items-center px-4 py-2 hover:bg-gray-100" href="#"><i class="fas fa-cog mr-2"></i>Settings</a></li>
+            <li><hr class="dropdown-divider my-1"></li>
+            <li><a class="dropdown-item flex items-center px-4 py-2 hover:bg-gray-100" href="/logout"><i class="fas fa-sign-out-alt mr-2"></i>Logout</a></li>
+          </ul>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Mobile top bar (unchanged) -->
+    <div class="md:hidden app-topbar w-full flex items-center justify-between px-4 py-3">
+      <div class="flex items-center">
+        <img src="/static/images/SKLOGO.png" class="brand-img mr-2" alt="SK"/>
+        <h1 class="text-lg font-extrabold">SK<span class="text-blue-700">Connect</span></h1>
+      </div>
+      <button id="mobile-menu-button" class="text-gray-700 focus:outline-none"><i class="fas fa-bars text-xl"></i></button>
+    </div>
+    <div id="mobile-menu" class="md:hidden absolute top-14 left-0 right-0 sidebar z-10 hidden">
+      <nav class="px-2 pt-2 pb-3 space-y-1">
+        <a href="admin_dashboard" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-home mr-2"></i> Dashboard</a>
+        <a href="admin_announcements" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-bullhorn mr-2"></i> Announcements</a>
+        <a href="admin_events_projects" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-calendar mr-2"></i> Events & Projects</a>
+        <a href="admin_financial_report" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-chart-pie mr-2"></i> Financial Reports</a>
+        <a href="admin_feedback" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-poll mr-2"></i> Surveys & Polls</a>
+        <a href="admin_documents" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium bg-blue-800"><i class="fas fa-file-alt mr-2"></i> Documents</a>
+        <a href="admin_volunteer" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-hands-helping mr-2"></i> Volunteer</a>
+        <a href="admin_training_resources" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-graduation-cap mr-2"></i> Training Resources</a>
+        <a href="admin_community" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-users mr-2"></i> Community Board</a>
+        <a href="admin_incidents" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-exclamation-triangle mr-2"></i> Incident Reports</a>
+        <a href="admin_user_approval" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-user-check mr-2"></i> User Approval</a>
+      </nav>
+    </div>
+
+    <!-- MAIN CONTENT AREA (redesigned) -->
+    <div class="flex-1 flex flex-col overflow-hidden">
+      <!-- HEADER (unchanged structure) -->
+      <header class="bg-white shadow">
+        <div class="flex justify-between items-center px-4 py-4 sm:px-6 lg:px-8 relative">
+          <h1 class="text-2xl font-bold text-gray-900">Document Management System</h1>
+          <div class="flex items-center space-x-3">
+            <button id="notifBtn" class="relative p-2 rounded-full text-gray-500 hover:text-gray-700">
+              <i class="fa-regular fa-bell text-xl"></i>
+              <span id="notifDot" class="absolute -top-0.5 -right-0.5 dot bg-red-600 hidden"></span>
+            </button>
+            <div id="notifPanel" class="hidden absolute right-6 top-16 w-80 bg-white rounded-lg soft-card border border-gray-100 z-50">
+              <div class="px-4 py-3 border-b flex items-center justify-between">
+                <span class="font-semibold text-gray-800">Notifications</span>
+                <button id="markAllRead" class="text-xs text-blue-600 hover:underline">Clear all</button>
+              </div>
+              <div id="notifList" class="max-h-80 overflow-auto divide-y"><p class="p-4 text-sm text-gray-500">No new notifications</p></div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- MAIN CONTENT: Document Upload, List + Templates (Citizen Template replaced) -->
+      <main class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-gray-50">
+        
+        <!-- ========== UPLOAD SECTION (New) ========== -->
+        <div class="bg-white rounded-xl soft-card shadow-sm p-6 mb-8">
+          <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2 mb-4"><i class="fas fa-cloud-upload-alt text-blue-600"></i> Upload Document</h2>
+          <div id="uploadDropzone" class="file-dropzone border-2 border-dashed border-gray-300 rounded-xl p-6 text-center cursor-pointer hover:border-blue-400 transition">
+            <i class="fas fa-file-upload text-4xl text-gray-400 mb-2"></i>
+            <p class="text-gray-600">Click or drag & drop to upload (PDF, DOCX, JPG, PNG)</p>
+            <input type="file" id="fileInput" class="hidden" accept=".pdf,.docx,.doc,.jpg,.jpeg,.png,.xlsx,.txt">
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Document Title *</label>
+              <input type="text" id="docTitle" class="w-full border rounded-lg px-4 py-2 focus:ring-blue-500 focus:border-blue-500" placeholder="e.g., Annual Budget Report 2025">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Short Description (optional)</label>
+              <input type="text" id="docDesc" class="w-full border rounded-lg px-4 py-2 focus:ring-blue-500" placeholder="Brief summary of the document">
+            </div>
+          </div>
+          <button id="uploadBtn" class="mt-5 bg-blue-700 hover:bg-blue-800 text-white font-medium py-2.5 px-6 rounded-lg transition flex items-center gap-2 shadow-sm"><i class="fas fa-upload"></i> Upload Document</button>
+          <div id="uploadMessage" class="mt-3 text-sm hidden"></div>
+        </div>
+
+        <!-- ========== DOCUMENT LIST SECTION (Cards Layout) ========== -->
+        <div class="bg-white rounded-xl soft-card shadow-sm mb-8 overflow-hidden">
+          <div class="px-6 py-4 border-b bg-gray-50 flex flex-wrap justify-between items-center">
+            <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2"><i class="fas fa-folder-open text-blue-600"></i> All Documents</h2>
+            <div class="text-sm text-gray-500" id="docCount">0 document(s)</div>
+          </div>
+          <div id="documentsGrid" class="p-5 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            <!-- Dynamic document cards appear here -->
+            <div class="text-center py-10 col-span-full text-gray-400">No documents uploaded yet. Click upload to add files.</div>
+          </div>
+        </div>
+
+        <!-- ========== DOCUMENT TEMPLATES SECTION (New: Upload/Download Templates) ========== -->
+        <div class="bg-white rounded-xl soft-card shadow-sm">
+          <div class="px-6 py-4 border-b bg-gray-50 flex flex-wrap justify-between items-center">
+            <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2"><i class="fas fa-copy text-indigo-600"></i> Document Templates</h2>
+            <div class="flex gap-2">
+              <label class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-sm font-medium px-4 py-2 rounded-lg cursor-pointer transition flex items-center gap-2 border border-indigo-200">
+                <i class="fas fa-plus-circle"></i> Upload Template
+                <input type="file" id="templateFileInput" class="hidden" accept=".pdf,.docx,.doc,.xlsx,.pptx,.txt">
+              </label>
+            </div>
+          </div>
+          <div id="templatesGrid" class="p-5 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <!-- dynamic template cards -->
+            <div class="text-center py-6 col-span-full text-gray-400">No templates available. Upload your first template.</div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- File Preview Modal (optional) -->
+  <div id="previewModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 items-center justify-center p-4">
+    <div class="bg-white rounded-xl max-w-3xl w-full max-h-[85vh] overflow-hidden flex flex-col">
+      <div class="flex justify-between items-center px-5 py-3 border-b">
+        <h3 class="font-semibold text-lg" id="previewTitle">Document Preview</h3>
+        <button id="closePreview" class="text-gray-500 hover:text-gray-800"><i class="fas fa-times text-xl"></i></button>
+      </div>
+      <div id="previewContent" class="flex-1 overflow-auto p-5 bg-gray-100 flex items-center justify-center">
+        <p class="text-gray-500">Preview not available for this file type. You can download it.</p>
+      </div>
+      <div class="p-3 border-t flex justify-end">
+        <button id="downloadFromPreview" class="bg-blue-600 text-white px-4 py-2 rounded-lg">Download</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* ============================================
+       DOCUMENT MANAGEMENT SYSTEM - SUPABASE INTEGRATION
+       Stores documents in Supabase with server-side file storage
+    ============================================ */
+    
+    let allDocuments = [];
+    let allTemplates = [];
+
+    // Load documents from backend API
+    async function loadData() {
+      try {
+        // Load regular documents
+        const docsRes = await fetch('/api/documents?is_template=false');
+        const docData = await docsRes.json();
+        allDocuments = Array.isArray(docData) ? docData : [];
+
+        // Load templates
+        const templatesRes = await fetch('/api/documents?is_template=true');
+        const templateData = await templatesRes.json();
+        allTemplates = Array.isArray(templateData) ? templateData : [];
+      } catch (e) {
+        console.error('Error loading documents:', e);
+        allDocuments = [];
+        allTemplates = [];
+      }
+    }
+
+    function getFileIcon(type) {
+      if(type && type.includes('pdf')) return ['fa-file-pdf', 'text-red-600'];
+      if(type && (type.includes('word') || type.includes('doc'))) return ['fa-file-word', 'text-blue-600'];
+      if(type && (type.includes('excel') || type.includes('sheet'))) return ['fa-file-excel', 'text-green-600'];
+      if(type && type.includes('image')) return ['fa-file-image', 'text-purple-500'];
+      if(type && type.includes('powerpoint')) return ['fa-file-powerpoint', 'text-orange-500'];
+      return ['fa-file-alt', 'text-gray-500'];
+    }
+
+    function formatDate(iso) {
+      if(!iso) return 'Unknown';
+      const d = new Date(iso);
+      return d.toLocaleDateString('en-PH', { year:'numeric', month:'short', day:'numeric' });
+    }
+
+    function formatBytes(bytes) {
+      if(!bytes) return 'Unknown';
+      if(bytes < 1024) return bytes + ' B';
+      if(bytes < 1048576) return (bytes/1024).toFixed(1) + ' KB';
+      return (bytes/1048576).toFixed(1) + ' MB';
+    }
+
+    // Render all documents (cards)
+    function renderDocuments() {
+      const grid = document.getElementById('documentsGrid');
+      if(!grid) return;
+      if(allDocuments.length === 0) {
+        grid.innerHTML = '<div class="text-center py-10 col-span-full text-gray-400">No documents uploaded yet. Click upload to add files.</div>';
+        document.getElementById('docCount').innerText = '0 document(s)';
+        return;
+      }
+      document.getElementById('docCount').innerText = `${allDocuments.length} document(s)`;
+      grid.innerHTML = allDocuments.map(doc => {
+        const [icon, color] = getFileIcon(doc.file_type);
+        return `
+          <div class="document-card border rounded-xl p-4 bg-white hover:shadow-md transition-all">
+            <div class="flex items-start justify-between">
+              <div class="flex items-center gap-3">
+                <i class="fas ${icon} text-3xl ${color}"></i>
+                <div class="truncate">
+                  <h3 class="font-bold text-gray-800 truncate max-w-[180px]">${escapeHtml(doc.title || 'Untitled')}</h3>
+                  <p class="text-xs text-gray-500">${formatDate(doc.created_at)}</p>
+                </div>
+              </div>
+            </div>
+            ${doc.description ? `<p class="text-sm text-gray-600 mt-2 line-clamp-2">${escapeHtml(doc.description)}</p>` : '<p class="text-xs text-gray-400 italic mt-1">No description</p>'}
+            <div class="flex flex-wrap items-center justify-between mt-3 gap-2">
+              <span class="text-[11px] text-gray-400">${formatBytes(doc.file_size)}</span>
+              <div class="flex gap-2">
+                <button data-id="${doc.id}" class="download-doc text-blue-600 hover:text-blue-800 text-sm font-medium"><i class="fas fa-download mr-1"></i>Download</button>
+                <button data-id="${doc.id}" class="delete-doc text-red-600 hover:text-red-800 text-sm font-medium"><i class="fas fa-trash mr-1"></i>Delete</button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+      
+      // Attach download events
+      document.querySelectorAll('.download-doc').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          e.preventDefault();
+          const id = btn.getAttribute('data-id');
+          window.location.href = `/download_document/${id}`;
+        });
+      });
+
+      // Attach delete events
+      document.querySelectorAll('.delete-doc').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          e.preventDefault();
+          const id = btn.getAttribute('data-id');
+          if(confirm('Are you sure you want to delete this document?')) {
+            try {
+              const res = await fetch(`/delete_document/${id}`, { method: 'POST' });
+              if(res.ok) {
+                loadData().then(() => { renderDocuments(); renderTemplates(); });
+              } else {
+                alert('Error deleting document');
+              }
+            } catch(err) {
+              alert('Error: ' + err.message);
+            }
+          }
+        });
+      });
+    }
+
+    function escapeHtml(str) { 
+      if(!str) return ''; 
+      return str.replace(/[&<>]/g, function(m){ 
+        if(m === '&') return '&amp;'; 
+        if(m === '<') return '&lt;'; 
+        if(m === '>') return '&gt;'; 
+        return m;
+      }); 
+    }
+    
+    // Render templates
+    function renderTemplates() {
+      const grid = document.getElementById('templatesGrid');
+      if(!grid) return;
+      if(allTemplates.length === 0) {
+        grid.innerHTML = '<div class="text-center py-6 col-span-full text-gray-400">No templates available. Upload a template (.pdf, .docx, .xlsx).</div>';
+        return;
+      }
+      grid.innerHTML = allTemplates.map(tpl => {
+        const [icon, color] = getFileIcon(tpl.file_type);
+        return `
+          <div class="border rounded-lg p-3 bg-gray-50 hover:bg-white transition flex items-center justify-between">
+            <div class="flex items-center gap-2 truncate">
+              <i class="fas ${icon} ${color} text-xl"></i>
+              <div class="truncate">
+                <p class="font-medium text-sm truncate max-w-[130px]">${escapeHtml(tpl.title || tpl.file_name)}</p>
+                <p class="text-[10px] text-gray-400">${formatDate(tpl.created_at)}</p>
+              </div>
+            </div>
+            <div class="flex gap-1">
+              <button data-id="${tpl.id}" class="download-template bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs px-3 py-1 rounded-md transition"><i class="fas fa-download mr-1"></i>Get</button>
+              <button data-id="${tpl.id}" class="delete-template bg-red-50 hover:bg-red-100 text-red-700 text-xs px-2 py-1 rounded-md transition"><i class="fas fa-trash"></i></button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      document.querySelectorAll('.download-template').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          e.preventDefault();
+          const id = btn.getAttribute('data-id');
+          window.location.href = `/download_document/${id}`;
+        });
+      });
+
+      document.querySelectorAll('.delete-template').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          e.preventDefault();
+          const id = btn.getAttribute('data-id');
+          if(confirm('Delete this template?')) {
+            try {
+              const res = await fetch(`/delete_document/${id}`, { method: 'POST' });
+              if(res.ok) {
+                loadData().then(() => { renderDocuments(); renderTemplates(); });
+              }
+            } catch(err) {
+              alert('Error: ' + err.message);
+            }
+          }
+        });
+      });
+    }
+
+    // Upload Document Logic - Send to backend
+    let pendingFile = null;
+    function handleFileSelect(file) {
+      if(!file) return;
+      const allowed = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'image/jpeg', 'image/png', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'text/plain', 'text/csv'];
+      if(!allowed.includes(file.type) && !file.type.startsWith('image/')) {
+        alert('Unsupported file type. Allowed: PDF, DOCX, JPG, PNG, XLSX, CSV, TXT');
+        return false;
+      }
+      pendingFile = file;
+      document.getElementById('uploadMessage').innerHTML = `<span class="text-green-600"><i class="fas fa-check-circle"></i> File selected: ${file.name}</span>`;
+      document.getElementById('uploadMessage').classList.remove('hidden');
+      return true;
+    }
+
+    document.getElementById('fileInput')?.addEventListener('change', (e) => { if(e.target.files[0]) handleFileSelect(e.target.files[0]); });
+    const dropzone = document.getElementById('uploadDropzone');
+    if(dropzone) {
+      dropzone.addEventListener('click', () => document.getElementById('fileInput').click());
+      dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('drag-over'); });
+      dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag-over'));
+      dropzone.addEventListener('drop', (e) => { e.preventDefault(); dropzone.classList.remove('drag-over'); const file = e.dataTransfer.files[0]; if(file) handleFileSelect(file); });
+    }
+
+    document.getElementById('uploadBtn')?.addEventListener('click', async () => {
+      const title = document.getElementById('docTitle').value.trim();
+      if(!title) { alert('Please enter a document title'); return; }
+      if(!pendingFile) { alert('Please select a file first'); return; }
+
+      const formData = new FormData();
+      formData.append('title', title);
+      formData.append('description', document.getElementById('docDesc').value.trim());
+      formData.append('file', pendingFile);
+      formData.append('is_template', 'false');
+
+      try {
+        const res = await fetch('/upload_document', { method: 'POST', body: formData });
+        if(res.ok) {
+          document.getElementById('uploadMessage').innerHTML = '<span class="text-green-600">✅ Upload successful!</span>';
+          document.getElementById('docTitle').value = '';
+          document.getElementById('docDesc').value = '';
+          pendingFile = null;
+          setTimeout(() => document.getElementById('uploadMessage').classList.add('hidden'), 2000);
+          addNotif(`New document "${title}" uploaded.`);
+          await loadData();
+          renderDocuments();
+        } else {
+          const errData = await res.json();
+          alert('Error: ' + errData.error);
+        }
+      } catch(err) {
+        alert('Upload error: ' + err.message);
+      }
+    });
+
+    // Template upload
+    document.getElementById('templateFileInput')?.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if(!file) return;
+
+      const formData = new FormData();
+      formData.append('title', file.name);
+      formData.append('description', 'Template');
+      formData.append('file', file);
+      formData.append('is_template', 'true');
+
+      try {
+        const res = await fetch('/upload_document', { method: 'POST', body: formData });
+        if(res.ok) {
+          addNotif(`Template "${file.name}" uploaded!`);
+          await loadData();
+          renderTemplates();
+          alert('Template uploaded!');
+        } else {
+          alert('Error uploading template');
+        }
+      } catch(err) {
+        alert('Error: ' + err.message);
+      }
+    });
+
+    // Simple notification system
+    let notifications = [];
+    function addNotif(msg) {
+      notifications.unshift({ id: Date.now(), text: msg, time: 'Just now', unread: true });
+      renderNotifs();
+    }
+    function renderNotifs() {
+      const list = document.getElementById('notifList');
+      const dot = document.getElementById('notifDot');
+      if(!list) return;
+      if(notifications.length === 0) { list.innerHTML = '<p class="p-4 text-sm text-gray-500">No notifications</p>'; dot.classList.add('hidden'); return; }
+      let hasUnread = false;
+      list.innerHTML = notifications.slice(0,5).map(n => { if(n.unread) hasUnread=true; return `<div class="px-4 py-3 border-b text-sm ${n.unread ? 'bg-blue-50' : ''}"><p>${n.text}</p><p class="text-xs text-gray-400">${n.time}</p></div>`; }).join('');
+      if(hasUnread) dot.classList.remove('hidden'); else dot.classList.add('hidden');
+    }
+    document.getElementById('markAllRead')?.addEventListener('click', () => { notifications = []; renderNotifs(); });
+    const notifBtn = document.getElementById('notifBtn'), panel = document.getElementById('notifPanel');
+    if(notifBtn && panel) {
+      notifBtn.addEventListener('click', (e) => { e.stopPropagation(); panel.classList.toggle('hidden'); });
+      document.addEventListener('click', () => panel.classList.add('hidden'));
+    }
+
+    // Close modal preview
+    document.getElementById('closePreview')?.addEventListener('click', () => { document.getElementById('previewModal').classList.add('hidden'); document.getElementById('previewModal').style.display = 'none'; });
+
+    // User dropdown toggle
+    const toggle = document.getElementById('userDropdownToggle'), menu = document.getElementById('userDropdownMenu');
+    toggle?.addEventListener('click', (e) => { e.stopPropagation(); menu?.classList.toggle('hidden'); });
+    document.addEventListener('click', () => menu?.classList.add('hidden'));
+
+    // Mobile menu
+    const mobileBtn = document.getElementById('mobile-menu-button');
+    const mobileMenu = document.getElementById('mobile-menu');
+    mobileBtn?.addEventListener('click', () => mobileMenu?.classList.toggle('hidden'));
+
+    // Initialize on page load
+    async function initPage() {
+      await loadData();
+      renderDocuments();
+      renderTemplates();
+    }
+    initPage();
+  </script>
+</body>
+</html>

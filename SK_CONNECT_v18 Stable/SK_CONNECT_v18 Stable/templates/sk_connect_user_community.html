@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>SK Connect — Suggestions</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+  <!-- Tailwind + Icons + (optional) Chart.js -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root{ --sk-blue:#0d2a52; --sk-yellow:#FCD116; --sk-accent:#3b82f6; }
+    html, body { height:100%; margin:0; overflow:hidden; }
+    body{
+      font-family:"Poppins",system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial,"Noto Sans";
+      background:#fff;
+      color:#111827;
+    }
+    main { overflow:auto; -webkit-overflow-scrolling:touch; }
+    body.modal-open { overflow:hidden; }
+
+    /* Sidebar + nav - copied to match Code A sizing/style */
+    .sidebar{ background:var(--sk-blue)!important; color:#fff; }
+    .sidebar .sidebar-item{ color:#e5e7eb; transition:background .15s ease, transform .15s ease; }
+    .sidebar .sidebar-item:hover{ background:rgba(255,255,255,.06); transform:translateX(4px); }
+    .active-nav{
+      background:linear-gradient(90deg, rgba(252,209,22,.22), rgba(252,209,22,0))!important;
+      border-left:4px solid var(--sk-yellow);
+      color:#fff!important;
+    }
+    .brand-img{ width:40px; height:40px; border-radius:10px; object-fit:cover; }
+
+    /* Topbar */
+    .app-topbar{
+      background:#fff!important;
+      color:#111827;
+      border-bottom:1px solid #e5e7eb;
+      position:sticky;
+      top:0;
+      z-index:50!important;
+    }
+    #page-title{ font-weight:800; }
+
+    /* Cards / controls */
+    .card-like{
+      background:#fff;
+      border:1px solid #e5e7eb;
+      border-radius:16px;
+      box-shadow:0 6px 16px rgba(16,24,40,.06);
+      transition:box-shadow .15s ease, transform .05s ease;
+    }
+    .card-like:hover{ box-shadow:0 10px 24px rgba(16,24,40,.09); }
+    .btn-primary{ background:#2563eb; transition:background .15s ease, transform .05s ease; }
+    .btn-primary:hover{ background:#1d4ed8; }
+    .btn-success{ box-shadow:0 6px 16px rgba(16,185,129,.25); }
+
+    .chip{
+      padding:.5rem 1rem;
+      border-radius:9999px;
+      font-size:.875rem;
+      font-weight:500;
+      cursor:pointer;
+      transition:all .15s ease;
+      background:#f3f4f6;
+      color:#6b7280;
+      border:2px solid transparent;
+    }
+    .chip i{ margin-right:.25rem; }
+    .chip:hover{ background:#e5e7eb; color:#374151; transform:translateY(-1px); }
+    .chip.active{
+      background:linear-gradient(135deg,#6366f1,#4f46e5);
+      color:#fff;
+      border-color:rgba(255,255,255,.3);
+      box-shadow:0 4px 12px rgba(0,0,0,.16);
+    }
+    .chip.active[data-category="infrastructure"]{ background:linear-gradient(135deg,#3b82f6,#1d4ed8); }
+    .chip.active[data-category="events"]{ background:linear-gradient(135deg,#ec4899,#be185d); }
+    .chip.active[data-category="programs"]{ background:linear-gradient(135deg,#8b5cf6,#7c3aed); }
+    .chip.active[data-category="environment"]{ background:linear-gradient(135deg,#10b981,#059669); }
+    .chip.active[data-category="safety"]{ background:linear-gradient(135deg,#f59e0b,#d97706); }
+
+    .react{ color:#4b5563; transition:color .15s ease, transform .05s ease; }
+    .react:hover{ color:#047857; transform:translateY(-1px); }
+
+    /* Centered modals with blurred background */
+    .modal-overlay{
+      position:fixed;
+      inset:0;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:2rem 1rem;
+      background:rgba(17,24,39,.60);
+      backdrop-filter:blur(6px);
+      -webkit-backdrop-filter:blur(6px);
+      z-index:100!important;
+      overflow-y:auto;
+    }
+    .modal-overlay.hidden{ display:none!important; }
+    .modal-panel{
+      width:100%;
+      max-width:36rem;
+      max-height:90vh;
+      background:#fff;
+      border-radius:.75rem;
+      box-shadow:0 20px 45px rgba(0,0,0,.18);
+      overflow:hidden;
+      display:flex;
+      flex-direction:column;
+    }
+    .modal-header{
+      position:sticky;
+      top:0;
+      background:#fff;
+      border-bottom:1px solid #e5e7eb;
+      padding:1rem 1.5rem;
+      z-index:1;
+    }
+    .modal-title{ font-weight:800; }
+    .modal-body{ padding:1rem 1.5rem; overflow:auto; max-height:calc(90vh - 64px); }
+    .form-control{
+      width:100%;
+      border:1px solid #d1d5db;
+      border-radius:.375rem;
+      padding:.5rem .75rem;
+      font-size:.875rem;
+      outline:none;
+    }
+    .form-control:focus{ border-color:#10b981; box-shadow:0 0 0 2px rgba(16,185,129,.18); }
+
+    .overflow-y-auto{ scrollbar-width:thin; }
+    .admin-response{ background:#f0fdf4; border-left:4px solid #22c55e; border-radius:1rem; }
+  </style>
+</head>
+
+<body class="antialiased">
+  <div class="flex h-screen overflow-hidden">
+    <!-- Sidebar -->
+    <aside class="hidden md:flex md:flex-shrink-0 sidebar">
+      <div class="flex flex-col w-64">
+        <div class="px-4 py-6 flex items-center">
+          <img src="/static/images/SKLOGO.png" alt="SK Logo" class="brand-img mr-3">
+          <div>
+            <div class="text-white text-xl font-extrabold">SK<span class="text-yellow-300">Connect</span></div>
+            <div class="text-blue-200 text-xs">Los Baños Federation</div>
+          </div>
+        </div>
+
+        <div class="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
+          <nav class="flex-1 px-2 space-y-1">
+            <a href="{{ url_for('user_dashboard') }}" data-title="Dashboard" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-home mr-3 text-lg"></i> Dashboard
+            </a>
+            <a href="{{ url_for('user_announcements') }}" data-title="Announcements" class="sidebar-item  flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-bullhorn mr-3 text-lg"></i> Announcements
+            </a>
+            <a href="{{ url_for('user_events_projects') }}" data-title="Events & Projects" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-calendar mr-3 text-lg"></i> Events & Projects
+            </a>
+            <a href="{{ url_for('user_financial_report') }}" data-title="Financial Reports" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-chart-pie mr-3 text-lg"></i> Financial Reports
+            </a>
+            <a href="{{ url_for('user_feedback') }}" data-title="Suggestions & Polls" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-poll mr-3 text-lg"></i> Survey & Polls
+            </a>
+            <a href="{{ url_for('user_documents') }}" data-title="Documents" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-file-alt mr-3 text-lg"></i> Documents
+            </a>
+            <a href="{{ url_for('user_volunteer') }}" data-title="Volunteer" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-hands-helping mr-3 text-lg"></i> Volunteer
+            </a>
+            <a href="{{ url_for('user_training_resources') }}" data-title="Training Resources" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-graduation-cap mr-3 text-lg"></i> Training Resources
+            </a>
+            <a href="{{ url_for('user_community') }}" data-title="Suggestions" class="sidebar-item active-nav flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-lightbulb mr-3 text-lg"></i> Suggestions
+            </a>
+            <a href="{{ url_for('user_incidents') }}" data-title="Youth Warning Wall" class="sidebar-item  flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-exclamation-triangle mr-3 text-lg"></i> Incident Reports
+            </a>
+          </nav>
+        </div>
+
+        <!-- user dropdown -->
+        <div class="flex-shrink-0 flex border-t border-white/10 p-4 relative">
+          <div id="userDropdownToggle" class="flex flex-col items-center cursor-pointer w-full">
+            <div class="flex items-center justify-center w-full">
+              <img class="h-9 w-9 rounded-full" src="{{ current_user.profile_pic if current_user and current_user.profile_pic else get_default_profile_image(current_user) }}" alt="Profile">
+              <div class="ml-3 flex-1 min-w-0">
+                <div class="text-base font-medium text-white truncate uppercase">{{ session['username'] if session.get('username') else 'Guest' }}</div>
+                <div class="text-xs text-blue-100 mt-0.5 truncate">{{ session['position']|title if session.get('position') else 'User' }}</div>
+              </div>
+              <i class="fas fa-chevron-down ml-2 text-blue-200 flex-shrink-0"></i>
+            </div>
+          </div>
+          <ul id="userDropdownMenu" class="absolute left-0 right-0 mx-auto bottom-14 z-20 w-60 bg-white rounded shadow-lg py-2 text-gray-700 hidden">
+            <li>
+              <a class="dropdown-item flex items-center px-4 py-2 hover:bg-gray-100" href="{{ url_for('profile') }}">
+                <i class="fas fa-user mr-2"></i>Profile
+              </a>
+            </li>
+            <li><a class="dropdown-item flex items-center px-4 py-2 hover:bg-gray-100" href="#"><i class="fas fa-cog mr-2"></i>Settings</a></li>
+            <li><hr class="dropdown-divider my-1"></li>
+            <li><a class="dropdown-item flex items-center px-4 py-2 hover:bg-gray-100" href="/logout"><i class="fas fa-sign-out-alt mr-2"></i>Logout</a></li>
+          </ul>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Mobile top bar -->
+    <div class="md:hidden app-topbar w-full flex items-center justify-between px-4 py-3">
+      <div class="flex items-center">
+        <img src="/static/images/SKLOGO.png" class="brand-img mr-2" alt="SK"/>
+        <h1 class="text-lg font-extrabold">SK<span class="text-blue-700">Connect</span></h1>
+      </div>
+      <button id="mobile-menu-button" class="text-gray-700 focus:outline-none">
+        <i class="fas fa-bars text-xl"></i>
+      </button>
+    </div>
+    <!-- Mobile dropdown (blue like sidebar) -->
+    <div id="mobile-menu" class="md:hidden absolute top-14 left-0 right-0 sidebar z-10 hidden">
+      <nav class="px-2 pt-2 pb-3 space-y-1">
+        <a href="user_dashboard" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-home mr-2"></i> Dashboard</a>
+        <a href="user_announcements" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-bullhorn mr-2"></i> Announcements</a>
+        <a href="user_events_projects" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-calendar mr-2"></i> Events & Projects</a>
+        <a href="user_financial_report" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-chart-pie mr-2"></i> Financial Reports</a>
+        <a href="user_feedback" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-comment-alt mr-2"></i> Suggestions & Polls</a>
+        <a href="user_documents" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-file-alt mr-2"></i> Documents</a>
+        <a href="user_volunteer" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-hands-helping mr-2"></i> Volunteer</a>
+        <a href="user_training_resources" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-graduation-cap mr-2"></i> Training Resources</a>
+        <a href="user_community" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium bg-blue-800"><i class="fas fa-lightbulb mr-2"></i> Suggestions</a>
+        <a href="user_incidents" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-exclamation-triangle mr-2"></i> Incident Reports</a>
+        <a href="user_approval" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-user-check mr-2"></i> User Approval</a>
+      </nav>
+    </div>
+
+    <!-- Main -->
+    <div class="flex-1 min-w-0 flex flex-col overflow-hidden">
+      <!-- Topbar -->
+      <header class="app-topbar hidden md:block">
+        <div class="flex justify-between items-center px-4 py-4 sm:px-6 lg:px-8">
+          <h1 id="page-title" class="text-2xl text-gray-900">Suggestions</h1>
+          <button class="relative p-2 rounded-full text-gray-400 hover:text-gray-600 focus:outline-none">
+            <i class="fas fa-bell text-xl"></i>
+            <span class="absolute -top-0.5 -right-0.5 inline-block w-2 h-2 bg-red-600 rounded-full"></span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Only this scrolls -->
+      <main class="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 pb-8 pt-4 md:pt-6">
+        <!-- ============== SUGGESTIONS ============== -->
+        <section id="suggestions" class="tab-content">
+          <div class="mt-2 md:mt-4 mb-8">
+            <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-6">
+              <div>
+                <h2 class="text-2xl font-bold text-gray-900">Suggestions</h2>
+                <p class="text-gray-600 mt-1">Ideas and suggestions from community members</p>
+              </div>
+              <button id="openSuggestionModalBtn" class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium shadow btn-success">
+                <i class="fas fa-lightbulb mr-2"></i> Submit Suggestion
+              </button>
+            </div>
+
+            <!-- FILTER CHIPS -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
+              <div class="flex flex-wrap gap-2">
+                <button class="chip active" data-category="all">All Categories</button>
+                <button class="chip" data-category="infrastructure"><i class="fas fa-road mr-1"></i>Infrastructure</button>
+                <button class="chip" data-category="events"><i class="fas fa-calendar mr-1"></i>Events</button>
+                <button class="chip" data-category="programs"><i class="fas fa-users mr-1"></i>Programs</button>
+                <button class="chip" data-category="environment"><i class="fas fa-seedling mr-1"></i>Environment</button>
+                <button class="chip" data-category="safety"><i class="fas fa-shield-alt mr-1"></i>Safety</button>
+              </div>
+            </div>
+
+            <!-- LIST (full width like your user page) -->
+            <div class="grid grid-cols-1 gap-6">
+              <div class="space-y-6" id="suggestionList">
+                {% for suggestion in suggestions %}
+                <article class="suggest-card bg-white rounded-xl shadow-sm border border-gray-200 p-6 card-like"
+                         data-id="s{{ suggestion.id }}" data-category="{{ suggestion.category }}">
+                  <header class="flex items-start justify-between">
+                    <div class="flex items-start space-x-3">
+                      <div class="h-10 w-10 rounded-full bg-blue-50 flex items-center justify-center">
+                        <i class="fas fa-user text-blue-600"></i>
+                      </div>
+                      <div>
+                        <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                          {{ suggestion.category|capitalize }}
+                        </span>
+                        <div class="mt-1 text-sm text-gray-500">
+                          By {{ suggestion.author or 'Anonymous' }} • {{ suggestion.time_ago }}
+                        </div>
+                      </div>
+                    </div>
+                  </header>
+
+                  <h3 class="mt-4 text-lg font-semibold text-gray-900">{{ suggestion.title }}</h3>
+                  <p class="mt-2 text-gray-700">{{ suggestion.description }}</p>
+
+                  <div class="mt-4 flex items-center justify-between text-sm">
+                    <div class="flex items-center gap-6">
+                      <button class="react" data-type="like"><span class="emoji">👍</span>
+                        <span class="count">{{ suggestion.likes or 0 }}</span></button>
+                      <button class="react" data-type="love"><span class="emoji">❤️</span>
+                        <span class="count">{{ suggestion.loves or 0 }}</span></button>
+                      <button class="react" data-type="clap"><span class="emoji">🙌</span>
+                        <span class="count">{{ suggestion.claps or 0 }}</span></button>
+                      <button class="toggle-comments text-blue-600 hover:underline" data-target="c-s{{ suggestion.id }}">
+                        View comments (<span class="comment-count">{{ suggestion.comments|length }}</span>)
+                      </button>
+                    </div>
+                  </div>
+
+                  <section id="c-s{{ suggestion.id }}" class="comments mt-4 hidden">
+                    <ul class="space-y-3">
+                      {% for comment in suggestion.comments %}
+                      <li class="border border-gray-200 rounded p-3">
+                        <div class="text-sm text-gray-600 mb-1"><b>{{ comment.author or 'Anonymous' }}</b> • {{ comment.time_ago }}</div>
+                        <p class="text-gray-800">{{ comment.text }}</p>
+                      </li>
+                      {% endfor %}
+                    </ul>
+                    <form class="comment-form mt-3 flex gap-2">
+                      <input type="text" required placeholder="Write a comment..."
+                             class="flex-1 border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500">
+                      <button class="px-3 py-2 rounded bg-blue-600 text-white text-sm">Post</button>
+                    </form>
+                  </section>
+                </article>
+                {% endfor %}
+              </div>
+            </div>
+
+            <!-- RIGHT: quick submit -->
+            <aside class="space-y-6 mt-6">
+              <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 card-like">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">Submit New Suggestion</h3>
+                <form id="sideSuggestForm" method="POST" action="{{ url_for('submit_suggestion') }}">
+                  <input type="text" name="title" required class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500" placeholder="Brief title for your suggestion">
+                  <select name="category" required class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 mt-3">
+                    <option value="" disabled selected>Select category</option>
+                    <option value="infrastructure">Infrastructure</option>
+                    <option value="events">Events</option>
+                    <option value="programs">Programs</option>
+                    <option value="environment">Environment</option>
+                    <option value="safety">Safety</option>
+                  </select>
+                  <textarea name="description" rows="4" required class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 mt-3" placeholder="Describe your suggestion in detail"></textarea>
+                  <input type="text" name="author" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 mt-3" placeholder="Your name (optional)">
+                  <button class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-md text-sm font-medium mt-4 btn-primary">Submit Suggestion</button>
+                </form>
+              </div>
+            </aside>
+          </div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+
+  <!-- Suggestion Modal -->
+<div id="suggestionModal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="suggestionModalTitle">
+  <div class="modal-panel">
+    <div class="modal-header">
+      <div class="flex justify-between items-center">
+        <h3 id="suggestionModalTitle" class="modal-title text-lg text-gray-900">Submit Suggestion</h3>
+        <button id="closeSuggestionModal" type="button" class="text-gray-500 hover:text-gray-700">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+    </div>
+
+    <div class="modal-body">
+      <form id="suggestionModalForm" method="POST" action="{{ url_for('submit_suggestion') }}">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Title</label>
+          <input name="title" type="text" required class="form-control" placeholder="Brief title">
+        </div>
+
+        <div class="mt-3">
+          <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+          <select name="category" required class="form-control">
+            <option value="" disabled selected>Select category</option>
+            <option value="infrastructure">Infrastructure</option>
+            <option value="events">Events</option>
+            <option value="programs">Programs</option>
+            <option value="environment">Environment</option>
+            <option value="safety">Safety</option>
+          </select>
+        </div>
+
+        <div class="mt-3">
+          <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+          <textarea name="description" rows="4" required class="form-control" placeholder="Describe your suggestion"></textarea>
+        </div>
+
+        <div class="mt-3">
+          <label class="block text-sm font-medium text-gray-700 mb-1">Your Name (optional)</label>
+          <input name="author" type="text" class="form-control" placeholder="Your name">
+        </div>
+
+        <div class="flex justify-end gap-3 pt-4">
+          <button type="button" id="cancelSuggestion" class="px-4 py-2 rounded-md bg-gray-100 hover:bg-gray-200">Cancel</button>
+          <button type="submit" class="px-4 py-2 rounded-md bg-green-600 hover:bg-green-700 text-white">Submit</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<!-- End Suggestion Modal -->
+<!-- filepath: /Users/justinepenaloza/Downloads/SK_CONNECT_v8 (Stable)/templates/sk_connect_user_community.html -->
+ <!-- Scripts (separated) -->
+  <script>
+    // --- Entry ---
+document.addEventListener('DOMContentLoaded', () => {
+  initNavigation();
+  // Suggestions-only page: sub-tabs removed.
+
+  // Keep these references for parity with your existing codebase.
+  // If you already define them elsewhere, these stubs won’t hurt.
+  safeStub('initModals');
+  safeStub('initPollCreateForm');
+  safeStub('initChartsIfAny');
+
+  // Initialize page-specific modules
+  initSuggestions();
+  // Community Feedback UI removed; suggestions logic remains active.
+});
+
+/* ---------- Helpers ---------- */
+function safeStub(name){
+  if (typeof window[name] !== 'function'){
+    window[name] = function(){ /* no-op stub to prevent errors */ };
+  }
+}
+
+/* ---------- Mobile nav + user dropdown ---------- */
+function initNavigation(){
+  const btn = document.getElementById('mobile-menu-button');
+  const menu = document.getElementById('mobile-menu');
+  if(btn && menu){
+    btn.addEventListener('click', (e)=> {
+      e.stopPropagation();
+      menu.classList.toggle('hidden');
+      const icon = btn.querySelector('i');
+      icon.className = menu.classList.contains('hidden') ? 'fas fa-bars text-xl' : 'fas fa-times text-xl';
+    });
+    document.addEventListener('click', (e)=>{
+      if(!menu.contains(e.target) && !btn.contains(e.target)){
+        menu.classList.add('hidden');
+        btn.querySelector('i').className = 'fas fa-bars text-xl';
+      }
+    });
+  }
+  const userToggle = document.getElementById('userDropdownToggle');
+  const userMenu = document.getElementById('userDropdownMenu');
+  if(userToggle && userMenu){
+    userToggle.addEventListener('click', (e)=>{ e.stopPropagation(); userMenu.classList.toggle('hidden'); });
+    document.addEventListener('click', (e)=>{ if(!userMenu.contains(e.target) && !userToggle.contains(e.target)) userMenu.classList.add('hidden'); });
+  }
+}
+
+/* ---------- Tabs ---------- */
+function initTabs(){
+  const tabs = document.querySelectorAll('.sub-nav-tab');
+  const contents = document.querySelectorAll('.tab-content');
+  tabs.forEach(tab=>{
+    tab.addEventListener('click', ()=>{
+      const target = tab.getAttribute('data-tab');
+      tabs.forEach(t=>{
+        t.classList.remove('text-blue-600','border-blue-600');
+        t.classList.add('text-gray-500','border-transparent');
+      });
+      tab.classList.add('text-blue-600','border-blue-600');
+      tab.classList.remove('text-gray-500');
+      contents.forEach(c=>c.classList.add('hidden'));
+      document.getElementById(target)?.classList.remove('hidden');
+    });
+  });
+}
+
+/* ---------- Suggestions behaviors (chips, reacts, comments, modal, approve/reject) ---------- */
+function initSuggestions(){
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+
+  const profanityList = [
+    'fuck','shit','bitch','asshole','bastard','damn','crap','piss','dick','slut','whore','nigger','cunt','faggot','arse','bollocks','twat','wanker',
+    'gago','tanga','tangina','tang ina','tangina mo','tarantado','bobo','ulol','pekpek','putang ina','pakyu','pakyos','kupal','kerebol','leche','pakshet',
+    'buang','yawa','bayot','aspal','bugo','yawa ka','putangina'
+  ];
+  const wordPattern = profanityList.map(w => w.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&')).join('|');
+  const profanityRegex = new RegExp(`\\b(?:${wordPattern})\\b`, 'gi');
+
+  function containsProfanity(value){
+    return profanityRegex.test((value || '').toString().trim());
+  }
+
+  function censorProfanity(value){
+    return (value || '').toString().replace(profanityRegex, match => '*'.repeat(match.length));
+  }
+
+  function sanitizeSuggestionForm(form){
+    if (!form) return;
+    ['title','description','author'].forEach(name => {
+      const field = form.elements[name];
+      if (!field) return;
+      field.value = censorProfanity(field.value);
+    });
+  }
+
+  ['#sideSuggestForm','#suggestionModalForm'].forEach(selector => {
+    const form = document.querySelector(selector);
+    if (!form) return;
+    form.addEventListener('submit', (e) => {
+      if (containsProfanity(form.elements['title']?.value) || containsProfanity(form.elements['description']?.value) || containsProfanity(form.elements['author']?.value)){
+        sanitizeSuggestionForm(form);
+        alert('Profanity was replaced with asterisks before submitting.');
+      }
+    });
+  });
+
+  // Chips (design-only: gradients handled by CSS via .chip.active + data-category)
+  $$('.chip').forEach(ch => {
+    ch.addEventListener('click', () => {
+      $$('.chip').forEach(b => b.classList.remove('active'));
+      ch.classList.add('active');
+      const cat = ch.dataset.category;
+      $$('.suggest-card').forEach(card=>{
+        card.style.display = (!cat || cat === 'all' || card.dataset.category === cat) ? '' : 'none';
+      });
+    });
+  });
+
+  // Reactions with localStorage toggle
+  function keyReact(id, type){ return `sk-react:${id}:${type}`; }
+  function initReacts(root=document){
+    $$('.suggest-card', root).forEach(card=>{
+      const id = card.dataset.id;
+      $$('.react', card).forEach(btn=>{
+        const type = btn.dataset.type;
+        const countEl = $('.count', btn);
+        if (localStorage.getItem(keyReact(id,type))) btn.classList.add('text-green-700');
+        btn.addEventListener('click', ()=>{
+          const toggled = btn.classList.toggle('text-green-700');
+          let n = parseInt(countEl.textContent,10) || 0;
+          if (toggled){ localStorage.setItem(keyReact(id,type),'1'); n++; }
+          else { localStorage.removeItem(keyReact(id,type)); n = Math.max(0,n-1); }
+          countEl.textContent = n;
+        });
+      });
+    });
+  }
+  initReacts();
+
+  // Toggle comments + Delete
+  document.addEventListener('click', (e)=>{
+    const t = e.target;
+
+    // Toggle comments
+    if (t.closest('.toggle-comments')){
+      const btn = t.closest('.toggle-comments');
+      const sect = document.getElementById(btn.dataset.target);
+      if (!sect) return;
+      const open = sect.classList.toggle('hidden');
+      const card = btn.closest('.suggest-card');
+      const count = card ? card.querySelector('.comment-count')?.textContent : '0';
+      btn.textContent = (open ? 'View comments' : 'Hide comments') + ' (' + (count || '0') + ')';
+    }
+
+    // Delete suggestion
+    if (t.closest('.delete-suggestion')){
+      const btn = t.closest('.delete-suggestion');
+      const id = btn.dataset.id; // e.g., "s123"
+      
+      if (confirm('Are you sure you want to delete this suggestion? This action cannot be undone.')) {
+        const suggestionCard = btn.closest('.suggest-card');
+        if (suggestionCard) {
+          suggestionCard.remove();
+          // You can add actual API call here to delete from backend
+          console.log('Deleting suggestion:', id);
+        }
+      }
+    }
+  });
+
+  // Add comment
+  document.addEventListener('submit', (e)=>{
+    const form = e.target.closest('.comment-form');
+    if (!form) return;
+    e.preventDefault();
+    const txt = form.querySelector('input').value.trim();
+    if (!txt) return;
+
+    const list = form.previousElementSibling; // <ul>
+    const li = document.createElement('li');
+    li.className = 'border border-gray-200 rounded p-3';
+    li.innerHTML = `
+      <div class="text-sm text-gray-600 mb-1"><b>You</b> • just now</div>
+      <p class="text-gray-800"></p>`;
+    li.querySelector('p').textContent = txt;
+    list.appendChild(li);
+
+    const card = form.closest('.suggest-card');
+    const countEl = card.querySelector('.comment-count');
+    countEl.textContent = (parseInt(countEl.textContent,10) || 0) + 1;
+
+    form.reset();
+  });
+
+  // Suggestion modal
+  const modal = $('#suggestionModal');
+  const openBtn = $('#openSuggestionModalBtn');
+  const closeBtn = $('#closeSuggestionModal');
+  const cancelBtn = $('#cancelSuggestion');
+  function openModal(){ if(!modal) return; modal.classList.remove('hidden'); document.body.classList.add('modal-open'); }
+  function closeModal(){ if(!modal) return; modal.classList.add('hidden'); document.body.classList.remove('modal-open'); }
+  openBtn?.addEventListener('click', openModal);
+  closeBtn?.addEventListener('click', closeModal);
+  cancelBtn?.addEventListener('click', closeModal);
+  modal?.addEventListener('click', (e)=>{ if (e.target === modal) closeModal(); });
+}
+
+/* ---------- Community Feedback removed from UI ---------- */
+function initCommunityFeedback(){
+  // Intentionally kept as a safe no-op so existing page imports will not break.
+}
+
+  </script>
+</body>
+</html>

@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>SK Connect — Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+  <!-- Tailwind + Icons + Chart.js -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+
+  <!-- Poppins font -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root{ --sk-blue:#0d2a52; --sk-yellow:#FCD116; }
+    html,body{ height:100%; }
+    body{
+      font-family:"Poppins",system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial,"Noto Sans","Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol";
+      background:#fff;
+      color:#111827;
+    }
+    /* Sidebar + nav */
+    .sidebar{ background:var(--sk-blue)!important; color:#fff; }
+    .sidebar .sidebar-item{ color:#e5e7eb; }
+    .sidebar .sidebar-item:hover{ background:rgba(255,255,255,.06); transform:translateX(4px); }
+    .active-nav{
+      background:linear-gradient(90deg, rgba(252,209,22,.22), rgba(252,209,22,0))!important;
+      border-left:4px solid var(--sk-yellow);
+      color:#fff!important;
+    }
+    /* Topbar */
+    .app-topbar{
+      background:#fff!important; color:#111827;
+      border-bottom:1px solid #e5e7eb; position:sticky; top:0; z-index:30;
+    }
+    .brand-img{ width:40px; height:40px; border-radius:10px; object-fit:cover; }
+    /* Cards */
+    .kpi-card{ border:1px solid #eef2f7; border-radius:1rem; }
+    /* Dropdown & misc */
+    .dropdown-item:hover { background:#f3f4f6; }
+    .dropdown-divider { border-top:1px solid #e5e7eb; }
+  </style>
+</head>
+
+<body class="antialiased">
+  <div class="flex h-screen overflow-hidden">
+    <!-- Sidebar (same look as Dashboard) -->
+    <aside class="hidden md:flex md:flex-shrink-0 sidebar">
+      <div class="flex flex-col w-64">
+        <div class="px-4 py-6 flex items-center">
+          <img src="/static/images/SKLOGO.png" alt="SK Logo" class="brand-img mr-3">
+          <div>
+            <div class="text-white text-xl font-extrabold">SK<span class="text-yellow-300">Connect</span></div>
+            <div class="text-blue-200 text-xs">Los Baños Federation</div>
+          </div>
+        </div>
+
+     <div class="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
+          <nav class="flex-1 px-2 space-y-1">
+             <a href="{{ url_for('user_dashboard') }}" data-title="Dashboard" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-home mr-3 text-lg"></i> Dashboard
+            </a>
+            <a href="{{ url_for('user_announcements') }}" data-title="Announcements" class="sidebar-item active-nav flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-bullhorn mr-3 text-lg"></i> Announcements
+            </a>
+            <a href="{{ url_for('user_events_projects') }}" data-title="Events & Projects" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-calendar mr-3 text-lg"></i> Events & Projects
+            </a>
+            <div class="relative" id="finDropdownWrap">
+              <button id="finDropdownBtn" data-title="Financial Reports" class="sidebar-item flex items-center justify-between w-full px-4 py-3 text-sm font-medium rounded-md">
+                <span class="flex items-center">
+                  <i class="fas fa-chart-pie mr-3 text-lg"></i> Financial Reports
+                </span>
+                <i class="fas fa-chevron-down text-sm transition-transform" id="finChevron"></i>
+              </button>
+              <div id="finSubMenu" class="hidden pl-11 pr-2 py-1 space-y-1">
+                <a href="{{ url_for('user_financial_report') }}" class="block px-3 py-2 text-sm text-blue-100 hover:text-white rounded-md">
+                  <i class="fas fa-chart-bar mr-2"></i>Financial Dashboard
+                </a>
+                <a href="{{ url_for('user_all_transactions') }}" class="block px-3 py-2 text-sm text-blue-100 hover:text-white rounded-md">
+                  <i class="fas fa-receipt mr-2"></i>View Transactions
+                </a>
+                <a href="{{ url_for('user_all_projects') }}" class="block px-3 py-2 text-sm text-blue-100 hover:text-white rounded-md">
+                  <i class="fas fa-project-diagram mr-2"></i>View Projects
+                </a>
+              </div>
+            </div>
+            <a href="{{ url_for('user_feedback') }}" data-title="Surveys & Polls" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-poll mr-3 text-lg"></i> Survey & Polls
+            </a>
+            <a href="{{ url_for('user_documents') }}" data-title="Documents" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-file-alt mr-3 text-lg"></i> Documents
+            </a>
+            <a href="{{ url_for('user_volunteer') }}" data-title="Volunteer" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-hands-helping mr-3 text-lg"></i> Volunteer
+            </a>
+            <a href="{{ url_for('user_training_resources') }}" data-title="Training Resources" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-graduation-cap mr-3 text-lg"></i> Training Resources
+            </a>
+            <a href="{{ url_for('user_community') }}" data-title="Community Board" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-users mr-3 text-lg"></i> Community Board
+            </a>
+            <a href="{{ url_for('user_incidents') }}" data-title="Incident Reports" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-exclamation-triangle mr-3 text-lg"></i> Incident Reports
+            </a>
+          </nav>
+        </div>
+
+         <!-- user dropdown -->
+                  <div class="flex-shrink-0 flex border-t border-white/10 p-4 relative">
+                    <div id="userDropdownToggle" class="flex flex-col items-center cursor-pointer w-full">
+                      <div class="flex items-center justify-center w-full">
+                        <img class="h-9 w-9 rounded-full" src="{{ current_user.profile_pic if current_user and current_user.profile_pic else get_default_profile_image(current_user) }}" alt="Profile">
+                        <div class="ml-3 flex-1 min-w-0">
+                          <div class="text-base font-medium text-white truncate uppercase">{{ session['username'] if session.get('username') else 'Guest' }}</div>
+                          <div class="text-xs text-blue-100 mt-0.5 truncate">{{ session['position']|title if session.get('position') else 'User' }}</div>
+                        </div>
+                        <i class="fas fa-chevron-down ml-2 text-blue-200 flex-shrink-0"></i>
+                      </div>
+                    </div>
+                    <ul id="userDropdownMenu" class="absolute left-0 right-0 mx-auto bottom-14 z-20 w-60 bg-white rounded shadow-lg py-2 text-gray-700 hidden">
+                      <li>
+                        <a class="dropdown-item flex items-center px-4 py-2 hover:bg-gray-100" href="{{ url_for('profile') }}">
+                          <i class="fas fa-user mr-2"></i>Profile
+                        </a>
+                      </li>
+                      <li><a class="dropdown-item flex items-center px-4 py-2 hover:bg-gray-100" href="#"><i class="fas fa-cog mr-2"></i>Settings</a></li>
+            <li><hr class="dropdown-divider my-1"></li>
+            <li><a class="dropdown-item flex items-center px-4 py-2 hover:bg-gray-100" href="/logout"><i class="fas fa-sign-out-alt mr-2"></i>Logout</a></li>
+          </ul>
+        </div>
+      </div>
+
+    <!-- Mobile top bar (white like Dashboard) -->
+    <div class="md:hidden app-topbar w-full flex items-center justify-between px-4 py-3">
+      <div class="flex items-center">
+        <img src="/static/images/SKLOGO.png" class="brand-img mr-2" alt="SK"/>
+        <h1 class="text-lg font-extrabold">SK<span class="text-blue-700">Connect</span></h1>
+      </div>
+      <button id="mobile-menu-button" class="text-gray-700 focus:outline-none">
+        <i class="fas fa-bars text-xl"></i>
+      </button>
+    </div>
+
+    <!-- Mobile dropdown (blue like sidebar) -->
+    <div id="mobile-menu" class="md:hidden absolute top-14 left-0 right-0 sidebar z-10 hidden">
+      <nav class="px-2 pt-2 pb-3 space-y-1">
+        <a href="user_dashboard" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-home mr-2"></i> Dashboard</a>
+        <a href="user_announcements" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-bullhorn mr-2"></i> Announcements</a>
+        <a href="user_events_projects" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-calendar mr-2"></i> Events & Projects</a>
+        <a href="user_financial_report" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium bg-blue-800"><i class="fas fa-chart-pie mr-2"></i> Financial Reports</a>
+        <a href="user_feedback" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-poll mr-2"></i> Surveys & Polls</a>
+        <a href="user_documents" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-file-alt mr-2"></i> Documents</a>
+        <a href="user_volunteer" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-hands-helping mr-2"></i> Volunteer</a>
+        <a href="user_training_resources" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-graduation-cap mr-2"></i> Training Resources</a>
+        <a href="user_community" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-users mr-2"></i> Community Board</a>
+        <a href="user_incidents" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-exclamation-triangle mr-2"></i> Incident Reports</a>
+        <a href="user_approval" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-user-check mr-2"></i> User Approval</a>
+      </nav>
+    </div>
+
+
+    <!-- Main content -->
+    <div class="flex-1 flex flex-col overflow-hidden">
+      <!-- Top navigation (white) -->
+      <header class="app-topbar">
+        <div class="flex justify-between items-center px-4 py-4 sm:px-6 lg:px-8">
+          <h1 id="page-title" class="text-2xl font-extrabold">Dashboard</h1>
+
+          <div class="flex items-center gap-4">
+            <div class="relative">
+              <input class="top-search pl-10 pr-3 py-2 rounded-lg w-72 focus:outline-none" placeholder="Search...">
+              <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+            </div>
+
+            <div class="relative">
+              <button id="notifToggle" class="p-1 rounded-full text-gray-500 hover:text-gray-700 focus:outline-none relative" aria-haspopup="true" aria-expanded="false" aria-controls="notifPanel">
+                <i class="fas fa-bell text-xl"></i>
+                <span id="notifDot" class="absolute -top-0.5 -right-0.5 inline-block w-2 h-2 bg-red-600 rounded-full"></span>
+              </button>
+
+              <div id="notifPanel" class="notif-panel hidden absolute right-0 top-10 w-80 bg-white rounded-lg shadow-xl ring-1 ring-black/5 z-30">
+                <div class="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+                  <span class="font-semibold text-gray-800">Notifications</span>
+                  <button id="markAllRead" class="text-xs text-blue-600 hover:underline">Mark all as read</button>
+                </div>
+                <ul class="max-h-80 overflow-y-auto divide-y divide-gray-100">
+                  <li class="p-3 hover:bg-gray-50 flex items-start gap-3">
+                    <span class="unread-dot mt-2 bg-red-500"></span>
+                    <div><p class="text-sm text-gray-800">Barangay Clean-up Drive starts in 2 days.</p><p class="text-xs text-gray-500">2h ago</p></div>
+                  </li>
+                  <li class="p-3 hover:bg-gray-50 flex items-start gap-3">
+                    <span class="unread-dot mt-2 bg-red-500"></span>
+                    <div><p class="text-sm text-gray-800">New feedback received for “Youth Summit”.</p><p class="text-xs text-gray-500">1d ago</p></div>
+                  </li>
+                  <li class="p-3 hover:bg-gray-50 flex items-start gap-3">
+                    <span class="mt-2 inline-block w-2 h-2 bg-gray-300 rounded-full"></span>
+                    <div><p class="text-sm text-gray-800">Monthly financial report uploaded.</p><p class="text-xs text-gray-500">3d ago</p></div>
+                  </li>
+                </ul>
+                <a href="#" class="block text-center text-sm text-blue-600 hover:bg-gray-50 py-2 rounded-b-lg">View all</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Content area -->
+      <main class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-white">
+        <!-- QUICK ACTIONS -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+          <button class="flex items-center gap-2 justify-center px-4 py-3 rounded-xl font-bold text-white"
+                  style="background:linear-gradient(135deg,#E0142A,#CE1126); box-shadow:0 14px 26px rgba(206,17,38,.18);">
+            <i class="fas fa-bullhorn"></i><span>New Announcement</span>
+          </button>
+          <button class="flex items-center gap-2 justify-center px-4 py-3 rounded-xl font-bold border-2 border-blue-100 text-blue-700 bg-white">
+            <i class="fas fa-calendar-plus"></i><span>Create Event</span>
+          </button>
+          <button class="flex items-center gap-2 justify-center px-4 py-3 rounded-xl font-bold border-2 border-blue-100 text-blue-700 bg-white">
+            <i class="fas fa-file-upload"></i><span>Upload Report</span>
+          </button>
+          <button class="flex items-center gap-2 justify-center px-4 py-3 rounded-xl font-bold border-2 border-blue-100 text-blue-700 bg-white">
+            <i class="fas fa-user-plus"></i><span>Add Volunteer</span>
+          </button>
+        </div>
+
+        <!-- KPI CARDS -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <div class="bg-white overflow-hidden shadow rounded-lg kpi-card">
+            <div class="p-5">
+              <div class="flex items-center">
+                <div class="flex-shrink-0 bg-blue-500 rounded-md p-3"><i class="fas fa-calendar-check text-white text-xl"></i></div>
+                <div class="ml-5">
+                  <h3 class="text-lg font-medium text-gray-900">Upcoming Events</h3>
+                  <p class="text-2xl font-extrabold text-gray-800" id="eventsCount">3</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white overflow-hidden shadow rounded-lg kpi-card">
+            <div class="p-5">
+              <div class="flex items-center">
+                <div class="flex-shrink-0 bg-green-500 rounded-md p-3"><i class="fas fa-bullhorn text-white text-xl"></i></div>
+                <div class="ml-5">
+                  <h3 class="text-lg font-medium text-gray-900">Total Announcements</h3>
+<p class="text-2xl font-extrabold text-gray-800" id="kpiTotal">{{ total_announcements }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white overflow-hidden shadow rounded-lg kpi-card">
+            <div class="p-5">
+              <div class="flex items-center">
+                <div class="flex-shrink-0 bg-purple-500 rounded-md p-3"><i class="fas fa-users text-white text-xl"></i></div>
+                <div class="ml-5">
+                  <h3 class="text-lg font-medium text-gray-900">Active Volunteers</h3>
+                  <p class="text-2xl font-extrabold text-gray-800" id="volsCount">24</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white overflow-hidden shadow rounded-lg kpi-card">
+            <div class="p-5">
+              <div class="flex items-center">
+                <div class="flex-shrink-0 bg-yellow-500 rounded-md p-3"><i class="fas fa-poll text-white text-xl"></i></div>
+                <div class="ml-5">
+                  <h3 class="text-lg font-medium text-gray-900">Active Polls</h3>
+                  <p class="text-2xl font-extrabold text-gray-800" id="pollsCount">2</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Approvals & Tasks -->
+        <div class="bg-white shadow rounded-lg p-6 mb-8">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-gray-900">Approvals & Tasks</h3>
+            <a href="#" class="text-sm text-blue-600 hover:text-blue-800 font-medium">View all</a>
+          </div>
+          <ul class="divide-y divide-gray-100">
+            <li class="py-3 flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <span class="task-dot bg-blue-600"></span>
+                <span class="text-gray-800">User sign-ups pending approval</span>
+              </div>
+              <span class="count-pill bg-blue-50 text-blue-700">3</span>
+            </li>
+            <li class="py-3 flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <span class="task-dot bg-yellow-500"></span>
+                <span class="text-gray-800">Events needing attendance upload</span>
+              </div>
+              <span class="count-pill bg-yellow-50 text-yellow-700">2</span>
+            </li>
+            <li class="py-3 flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <span class="task-dot bg-red-600"></span>
+                <span class="text-gray-800">Financial reports due this week</span>
+              </div>
+              <span class="count-pill bg-red-50 text-red-700">1</span>
+            </li>
+            <li class="py-3 flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <span class="task-dot bg-green-600"></span>
+                <span class="text-gray-800">Feedback to review</span>
+              </div>
+              <span class="count-pill bg-green-50 text-green-700">5</span>
+            </li>
+          </ul>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          <!-- Recent Announcements -->
+          <div class="bg-white shadow rounded-lg p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Recent Announcements</h3>
+            <div class="space-y-4">
+              <div class="border-b pb-4">
+                <h4 class="font-medium text-gray-800">Barangay Clean-up Drive</h4>
+                <p class="text-sm text-gray-600">Join us this Saturday for the community clean-up drive at Barangay Batong Malake.</p>
+                <div class="mt-2 flex items-center text-sm text-gray-500"><i class="fas fa-clock mr-1"></i> Posted 2 days ago</div>
+              </div>
+              <div class="border-b pb-4">
+                <h4 class="font-medium text-gray-800">Youth Leadership Summit Registration</h4>
+                <p class="text-sm text-gray-600">Registration for the annual Youth Leadership Summit is now open. Limited slots available!</p>
+                <div class="mt-2 flex items-center text-sm text-gray-500"><i class="fas fa-clock mr-1"></i> Posted 1 week ago</div>
+              </div>
+              <div>
+                <h4 class="font-medium text-gray-800">SK Budget Hearing</h4>
+                <p class="text-sm text-gray-600">The SK Budget Hearing for 2025 will be held on June 5, 2025 at the Municipal Hall.</p>
+                <div class="mt-2 flex items-center text-sm text-gray-500"><i class="fas fa-clock mr-1"></i> Posted 2 weeks ago</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Upcoming Events -->
+          <div class="bg-white shadow rounded-lg p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Upcoming Events</h3>
+            <div class="space-y-4">
+              <div class="flex items-start">
+                <div class="flex-shrink-0 bg-blue-100 rounded-md p-2 text-center">
+                  <span class="block text-sm font-bold text-blue-800">MAY</span>
+                  <span class="block text-lg font-bold text-blue-800">23</span>
+                </div>
+                <div class="ml-4">
+                  <h4 class="font-medium text-gray-800">Sports Fest Opening Ceremony</h4>
+                  <p class="text-sm text-gray-600">9:00 AM at Municipal Basketball Court</p>
+                  <div class="mt-2"><a href="#" class="text-blue-600 hover:text-blue-800 text-sm font-medium">More details</a></div>
+                </div>
+              </div>
+
+              <div class="flex items-start">
+                <div class="flex-shrink-0 bg-blue-100 rounded-md p-2 text-center">
+                  <span class="block text-sm font-bold text-blue-800">MAY</span>
+                  <span class="block text-lg font-bold text-blue-800">25</span>
+                </div>
+                <div class="ml-4">
+                  <h4 class="font-medium text-gray-800">Barangay Clean-up Drive</h4>
+                  <p class="text-sm text-gray-600">7:00 AM at Barangay Batong Malake</p>
+                  <div class="mt-2"><a href="#" class="text-blue-600 hover:text-blue-800 text-sm font-medium">Register</a></div>
+                </div>
+              </div>
+
+              <div class="flex items-start">
+                <div class="flex-shrink-0 bg-blue-100 rounded-md p-2 text-center">
+                  <span class="block text-sm font-bold text-blue-800">JUN</span>
+                  <span class="block text-lg font-bold text-blue-800">05</span>
+                </div>
+                <div class="ml-4">
+                  <h4 class="font-medium text-gray-800">SK Budget Hearing</h4>
+                  <p class="text-sm text-gray-600">2:00 PM at Municipal Hall</p>
+                  <div class="mt-2"><a href="#" class="text-blue-600 hover:text-blue-800 text-sm font-medium">More details</a></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Project table -->
+        <div class="grid grid-cols-1 gap-6">
+          <div class="bg-white shadow rounded-lg p-6">
+            <div class="flex justify-between items-center mb-4">
+              <h3 class="text-lg font-semibold text-gray-900">Project Progress</h3>
+              <div>
+                <select class="text-sm border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                  <option>All Projects</option>
+                  <option>Ongoing</option>
+                  <option>Completed</option>
+                </select>
+              </div>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                  <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Project</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Budget</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Progress</th>
+                  </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                  <tr>
+                    <td class="px-6 py-4 whitespace-nowrap"><div class="text-sm font-medium text-gray-900">Youth Leadership Summit</div></td>
+                    <td class="px-6 py-4 whitespace-nowrap"><span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">Planning</span></td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">₱50,000</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="w-full bg-gray-200 rounded-full h-2"><div class="bg-yellow-500 h-2 rounded-full" style="width:25%"></div></div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="px-6 py-4 whitespace-nowrap"><div class="text-sm font-medium text-gray-900">Sports Festival</div></td>
+                    <td class="px-6 py-4 whitespace-nowrap"><span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">Ongoing</span></td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">₱75,000</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="w-full bg-gray-200 rounded-full h-2"><div class="bg-blue-500 h-2 rounded-full" style="width:60%"></div></div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="px-6 py-4 whitespace-nowrap"><div class="text-sm font-medium text-gray-900">Clean-up Drive</div></td>
+                    <td class="px-6 py-4 whitespace-nowrap"><span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Completed</span></td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">₱25,000</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="w-full bg-gray-200 rounded-full h-2"><div class="bg-green-500 h-2 rounded-full" style="width:100%"></div></div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Chart + Poll -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+          <div class="bg-white shadow rounded-lg p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Budget Allocation</h3>
+            <div class="h-64"><canvas id="budgetChart"></canvas></div>
+          </div>
+
+          <div class="bg-white shadow rounded-lg p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Active Poll</h3>
+            <div class="space-y-3">
+              <div>
+                <div class="flex items-center">
+                  <input type="radio" name="poll" id="poll1" class="mr-2">
+                  <label for="poll1" class="text-sm text-gray-700">Youth Skills Workshop</label>
+                </div>
+                <div class="mt-1 w-full bg-gray-200 rounded-full h-2">
+                  <div class="bg-blue-500 h-2 rounded-full" style="width:45%"></div>
+                </div>
+                <div class="text-xs text-gray-500 mt-1">45% (36 votes)</div>
+              </div>
+              <div>
+                <div class="flex items-center">
+                  <input type="radio" name="poll" id="poll2" class="mr-2">
+                  <label for="poll2" class="text-sm text-gray-700">Community Garden</label>
+                </div>
+                <div class="mt-1 w-full bg-gray-200 rounded-full h-2">
+                  <div class="bg-blue-500 h-2 rounded-full" style="width:30%"></div>
+                </div>
+                <div class="text-xs text-gray-500 mt-1">30% (24 votes)</div>
+              </div>
+              <div>
+                <div class="flex items-center">
+                  <input type="radio" name="poll" id="poll3" class="mr-2">
+                  <label for="poll3" class="text-sm text-gray-700">Sports Tournament</label>
+                </div>
+                <div class="mt-1 w-full bg-gray-200 rounded-full h-2">
+                  <div class="bg-blue-500 h-2 rounded-full" style="width:25%"></div>
+                </div>
+                <div class="text-xs text-gray-500 mt-1">25% (20 votes)</div>
+              </div>
+            </div>
+            <div class="mt-4">
+              <button class="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700">Vote Now</button>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script>
+    (function () {
+      // highlight the correct item based on current URL and set the topbar title
+      const links = document.querySelectorAll('.sidebar-item, .mobile-nav');
+      const here = window.location.pathname + window.location.hash;
+
+      let matched = false;
+      links.forEach(a => {
+        const href = new URL(a.getAttribute('href'), window.location.origin);
+        const key = href.pathname + href.hash;
+
+        if (here === key || here.endsWith(key)) {
+          a.classList.add('active-nav');
+          matched = true;
+          const t = a.dataset.title || a.textContent.trim();
+          const h = document.getElementById('page-title');
+          if (h) h.textContent = t;
+        } else {
+          a.classList.remove('active-nav');
+        }
+      });
+      // fallback: keep Dashboard highlighted if nothing matched yet
+      if (!matched) {
+        const first = document.querySelector('.sidebar-item');
+        first?.classList.add('active-nav');
+      }
+
+      // mobile menu toggle
+      const mobileMenuButton = document.getElementById('mobile-menu-button');
+      const mobileMenu = document.getElementById('mobile-menu');
+      mobileMenuButton?.addEventListener('click', () => mobileMenu?.classList.toggle('hidden'));
+
+      // user dropdown
+      const userDropdownToggle = document.getElementById('userDropdownToggle');
+      const userDropdownMenu = document.getElementById('userDropdownMenu');
+      userDropdownToggle?.addEventListener('click', function (e) {
+        e.stopPropagation(); userDropdownMenu?.classList.toggle('hidden');
+      });
+      document.addEventListener('click', function () { userDropdownMenu?.classList.add('hidden'); });
+
+      // notifications
+      const notifToggle  = document.getElementById('notifToggle');
+      const notifPanel   = document.getElementById('notifPanel');
+      const notifDot     = document.getElementById('notifDot');
+      const markAllRead  = document.getElementById('markAllRead');
+      function openPanel(){ notifPanel?.classList.remove('hidden'); notifToggle?.setAttribute('aria-expanded','true'); notifDot?.classList.add('hidden'); }
+      function closePanel(){ notifPanel?.classList.add('hidden'); notifToggle?.setAttribute('aria-expanded','false'); }
+      notifToggle?.addEventListener('click', (e)=>{ e.stopPropagation(); notifPanel?.classList.contains('hidden') ? openPanel() : closePanel(); });
+      document.addEventListener('click', (e)=>{ if(!notifPanel || notifPanel.classList.contains('hidden')) return; if(!notifPanel.contains(e.target) && !notifToggle.contains(e.target)) closePanel(); });
+      document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closePanel(); });
+      markAllRead?.addEventListener('click', (e)=>{ e.preventDefault(); notifPanel?.querySelectorAll('.unread-dot').forEach(d=>d.classList.add('is-read')); notifDot?.classList.add('hidden'); });
+
+      // budget chart
+      const ctx = document.getElementById('budgetChart')?.getContext('2d');
+      if(ctx && window.Chart){
+        new Chart(ctx,{
+          type:'doughnut',
+          data:{
+            labels:['Sports & Recreation','Education','Environment','Health','Cultural','Administrative'],
+            datasets:[{
+              data:[30,20,15,15,10,10],
+              backgroundColor:['rgba(54,162,235,.8)','rgba(75,192,192,.8)','rgba(52,168,83,.8)','rgba(255,99,132,.8)','rgba(153,102,255,.8)','rgba(255,159,64,.8)'],
+              borderColor:['rgba(54,162,235,1)','rgba(75,192,192,1)','rgba(52,168,83,1)','rgba(255,99,132,1)','rgba(153,102,255,1)','rgba(255,159,64,1)'],
+              borderWidth:1
+            }]
+          },
+          options:{
+            responsive:true, maintainAspectRatio:false,
+            plugins:{ legend:{ position:'right', labels:{ boxWidth:12, padding:15 } },
+              tooltip:{ callbacks:{ label:(c)=>`${c.label}: ${c.raw}%` } } }
+          }
+        });
+      }
+    })();
+  
+    /* Financial Reports dropdown toggle */
+    (function(){
+      const btn = document.getElementById('finDropdownBtn');
+      const menu = document.getElementById('finSubMenu');
+      const chevron = document.getElementById('finChevron');
+      if(btn && menu){
+        btn.addEventListener('click', function(e){
+          e.preventDefault();
+          e.stopPropagation();
+          const isHidden = menu.classList.toggle('hidden');
+          if(chevron) chevron.style.transform = isHidden ? '' : 'rotate(180deg)';
+        });
+      }
+    })();</script>
+</body>
+</html>

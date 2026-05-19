@@ -1,0 +1,1272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>SK Connect — Youth Warning Wall</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+  <!-- Tailwind + Icons -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root{ --sk-blue:#0d2a52; --sk-yellow:#FCD116; --warn-orange:#FDBA74; }
+    html,body{ height:100%; }
+    body{
+      margin:0;
+      overflow:hidden;
+      font-family:"Poppins",system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial,"Noto Sans";
+      background:#f9fafb;
+      color:#111827;
+    }
+
+    /* Sidebar */
+    .sidebar{ background:var(--sk-blue)!important; color:#fff; }
+    .sidebar .sidebar-item{ color:#e5e7eb; transition:all .15s ease; }
+    .sidebar .sidebar-item:hover{ background:rgba(255,255,255,.06); transform:translateX(4px); }
+    .active-nav{
+      background:linear-gradient(90deg, rgba(252,209,22,.22), rgba(252,209,22,0))!important;
+      border-left:4px solid var(--sk-yellow);
+      color:#fff!important;
+    }
+    .brand-img{ width:40px; height:40px; border-radius:10px; object-fit:cover; }
+
+    /* Inputs & buttons */
+    .inp{
+      width:100%;
+      border:1px solid #d1d5db;
+      border-radius:.5rem;
+      padding:.45rem .7rem;
+      font-size:.875rem;
+    }
+    .inp:focus{
+      outline:none;
+      border-color:#3b82f6;
+      box-shadow:0 0 0 3px rgba(59,130,246,.25);
+    }
+    .lbl{
+      font-size:.75rem;
+      font-weight:600;
+      color:#374151;
+      margin-bottom:.15rem;
+    }
+
+    .btn-main{
+      background:#dc2626;
+      color:#fff;
+      padding:.55rem 1rem;
+      border-radius:.9rem;
+      font-size:.875rem;
+      font-weight:600;
+      display:inline-flex;
+      align-items:center;
+      gap:.4rem;
+    }
+    .btn-main:hover{ background:#b91c1c; }
+
+    .btn-soft{
+      background:#f3f4f6;
+      color:#374151;
+      padding:.5rem .9rem;
+      border-radius:.9rem;
+      font-size:.825rem;
+      font-weight:500;
+      display:inline-flex;
+      align-items:center;
+      gap:.4rem;
+    }
+    .btn-soft:hover{ background:#e5e7eb; }
+
+    .btn-light{
+      background:#eef2ff;
+      color:#1e3a8a;
+      padding:.45rem .85rem;
+      border-radius:.9rem;
+      font-size:.75rem;
+      font-weight:500;
+    }
+    .btn-light:hover{ background:#e0e7ff; }
+
+    .btn-danger-text{
+      font-size:.75rem;
+      color:#dc2626;
+    }
+    .btn-danger-text:hover{ color:#b91c1c; }
+
+    .card{
+      border:1px solid #e5e7eb;
+      border-radius:1rem;
+      padding:1rem;
+      background:#fff;
+    }
+    .card-title{
+      font-weight:700;
+      color:#111827;
+      margin-bottom:.35rem;
+      font-size:.9rem;
+    }
+    .muted{ color:#6b7280; font-size:.8rem; }
+
+    .chip{
+      display:inline-flex;
+      align-items:center;
+      padding:.1rem .55rem;
+      border-radius:999px;
+      font-size:.7rem;
+      font-weight:600;
+      white-space:nowrap;
+    }
+    .chip-level{ background:#eff6ff; color:#1d4ed8; }
+    .status-active{ background:#dbeafe; color:#1d4ed8; }
+    .status-completed{ background:#dcfce7; color:#166534; }
+
+    .badge-pill{
+      border-radius:999px;
+      padding:.15rem .55rem;
+      font-size:.7rem;
+      font-weight:600;
+    }
+
+    .text-2xs{ font-size:0.7rem; }
+    .text-3xs{ font-size:0.6rem; }
+
+    .line-clamp-2{
+      display:-webkit-box;
+  
+      -webkit-box-orient:vertical;
+      overflow:hidden;
+    }
+
+    /* Progress bar sa parusa box */
+    .progress-outer{
+      width:100%;
+      border-radius:999px;
+      background:#e5e7eb;
+      height:3px;
+      overflow:hidden;
+    }
+    .progress-inner{
+      height:100%;
+      border-radius:999px;
+      background:#22c55e;
+    }
+
+    /* Orange info banner */
+    .info-banner{
+      border-radius:1rem;
+      padding:1rem 1.25rem;
+      background:linear-gradient(90deg,#fff7ed,#ffedd5);
+      border:1px solid #fed7aa;
+    }
+
+    /* Modal */
+    .modal-backdrop{
+      position:fixed;
+      inset:0;
+      z-index:50;
+      background:rgba(0,0,0,.45);
+      backdrop-filter:blur(2px);
+      display:none;
+      overflow-y:auto;
+    }
+    .modal-backdrop.show{ display:block; }
+    .modal-shell{
+      min-height:100%;
+      display:flex;
+      align-items:flex-start;
+      justify-content:center;
+      padding:1.5rem;
+    }
+    .modal-panel{
+      width:100%;
+      max-width:52rem;
+      background:#fff;
+      border-radius:1rem;
+      overflow:hidden;
+      box-shadow:0 15px 40px rgba(0,0,0,.25);
+      transform-origin:center;
+      animation:modal-in .18s ease-out both;
+    }
+    @keyframes modal-in{
+      from{transform:scale(.97); opacity:0;}
+      to{transform:scale(1); opacity:1;}
+    }
+    .modal-header-danger{
+      background:linear-gradient(90deg,#fca5a5,#e35959);
+      color:#fff;
+      border-bottom:1px solid rgba(255,255,255,.15);
+    }
+
+    #toast{ pointer-events:none; }
+  </style>
+</head>
+
+<body class="antialiased">
+<div class="flex h-screen overflow-hidden">
+  <!-- SIDEBAR -->
+  <aside class="hidden md:flex md:flex-shrink-0 sidebar">
+    <div class="flex flex-col w-64">
+      <div class="px-4 py-6 flex items-center">
+        <img src="/static/images/SKLOGO.png" alt="SK Logo" class="brand-img mr-3">
+        <div>
+          <div class="text-white text-xl font-extrabold">SK<span class="text-yellow-300">Connect</span></div>
+          <div class="text-blue-200 text-xs">Los Baños Federation</div>
+        </div>
+      </div>
+      <div class="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
+        <nav class="flex-1 px-2 space-y-1 text-sm">
+          <a href="/admin_dashboard" class="sidebar-item flex items-center px-4 py-3 font-medium rounded-md">
+            <i class="fas fa-home mr-3 text-lg"></i> Dashboard
+          </a>
+          <a href="/admin_announcements" class="sidebar-item flex items-center px-4 py-3 font-medium rounded-md">
+            <i class="fas fa-bullhorn mr-3 text-lg"></i> Announcements
+          </a>
+          <a href="/admin_events_projects" class="sidebar-item flex items-center px-4 py-3 font-medium rounded-md">
+            <i class="fas fa-calendar mr-3 text-lg"></i> Events & Projects
+          </a>
+          <a href="/admin_financial_report" class="sidebar-item flex items-center px-4 py-3 font-medium rounded-md">
+            <i class="fas fa-chart-pie mr-3 text-lg"></i> Financial Reports
+          </a>
+          <a href="/admin_feedback" class="sidebar-item flex items-center px-4 py-3 font-medium rounded-md">
+            <i class="fas fa-poll mr-3 text-lg"></i> Surveys & Polls
+          </a>
+          <a href="/admin_documents" class="sidebar-item flex items-center px-4 py-3 font-medium rounded-md">
+            <i class="fas fa-file-alt mr-3 text-lg"></i> Documents
+          </a>
+          <a href="/admin_volunteer" class="sidebar-item flex items-center px-4 py-3 font-medium rounded-md">
+            <i class="fas fa-hands-helping mr-3 text-lg"></i> Volunteer
+          </a>
+          <a href="/admin_training_resources" class="sidebar-item flex items-center px-4 py-3 font-medium rounded-md">
+            <i class="fas fa-graduation-cap mr-3 text-lg"></i> Training Resources
+          </a>
+          <a href="/admin_community" class="sidebar-item flex items-center px-4 py-3 font-medium rounded-md">
+            <i class="fas fa-users mr-3 text-lg"></i> Community Board
+          </a>
+          <a href="/admin_incidents" class="sidebar-item active-nav flex items-center px-4 py-3 font-medium rounded-md">
+            <i class="fas fa-exclamation-triangle mr-3 text-lg"></i> Incident Reports
+          </a>
+          <a href="/admin_user_approval" class="sidebar-item flex items-center px-4 py-3 font-medium rounded-md">
+            <i class="fas fa-user-check mr-3 text-lg"></i> User Approval
+          </a>
+        </nav>
+      </div>
+
+      <!-- user dropdown -->
+      <div class="flex-shrink-0 flex border-t border-white/10 p-4 relative">
+        <div id="userDropdownToggle" class="flex flex-col items-center cursor-pointer w-full">
+          <div class="flex items-center justify-center w-full">
+            <img class="h-9 w-9 rounded-full" src="{{ current_user.profile_pic if current_user and current_user.profile_pic else get_default_profile_image(current_user) }}" alt="Profile">
+            <div class="ml-3 flex-1 min-w-0">
+              <div class="text-base font-medium text-white truncate uppercase">
+                {{ session['username'] if session.get('username') else 'Guest' }}
+              </div>
+              <div class="text-xs text-blue-100 mt-0.5 truncate">
+                {{ session['position']|title if session.get('position') else 'User' }}
+              </div>
+            </div>
+            <i class="fas fa-chevron-down ml-2 text-blue-200 flex-shrink-0"></i>
+          </div>
+        </div>
+        <ul id="userDropdownMenu" class="absolute left-0 right-0 mx-auto bottom-14 z-20 w-60 bg-white rounded shadow-lg py-2 text-gray-700 hidden">
+          <li>
+            <a class="dropdown-item flex items-center px-4 py-2 hover:bg-gray-100" href="{{ url_for('profile') }}">
+              <i class="fas fa-user mr-2"></i>Profile
+            </a>
+          </li>
+          <li>
+            <a class="dropdown-item flex items-center px-4 py-2 hover:bg-gray-100" href="#"><i class="fas fa-cog mr-2"></i>Settings</a>
+          </li>
+          <li><hr class="dropdown-divider my-1"></li>
+          <li>
+            <a class="dropdown-item flex items-center px-4 py-2 hover:bg-gray-100" href="/logout">
+              <i class="fas fa-sign-out-alt mr-2"></i>Logout
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="flex-1 flex flex-col overflow-hidden min-h-0">
+    <header class="bg-white shadow-sm">
+      <div class="flex justify-between items-center px-4 py-4 sm:px-6 lg:px-8">
+        <div>
+          <h1 class="text-2xl font-extrabold text-gray-900 flex items-center gap-2">
+            <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-red-100 text-red-600 text-sm">
+              <i class="fa-solid fa-exclamation"></i>
+            </span>
+            Youth Warning Wall
+          </h1>
+          <p class="text-xs text-gray-500 mt-1">
+            Records of youth violations per barangay — para ma-remind at ma-guide ang kabataan ng Los Baños.
+          </p>
+        </div>
+        <div class="flex items-center gap-3">
+          <button id="btnNew" class="btn-main">
+            <i class="fa-solid fa-plus"></i><span>Add Warning</span>
+          </button>
+          <button id="btnExport" class="btn-soft">
+            <i class="fa-solid fa-file-csv"></i><span>Export CSV</span>
+          </button>
+          <button id="notifToggle" class="relative bg-white px-3 py-2 rounded-lg hover:bg-gray-100">
+            <i class="fa-solid fa-bell text-xl text-gray-600"></i>
+            <span id="notifDot" class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full"></span>
+          </button>
+        </div>
+
+        <!-- Notifications dropdown -->
+        <div id="notifPanel" class="absolute right-8 mt-2 w-72 bg-white rounded-lg shadow-lg border hidden z-50">
+          <div class="p-4 border-b font-bold text-gray-700">Notifications</div>
+          <div class="p-4 text-sm text-gray-500">No new notifications.</div>
+        </div>
+      </div>
+    </header>
+
+    <!-- CONTENT -->
+    <main class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-6">
+
+      <!-- ORANGE INFO BANNER (balik na) -->
+      <section class="info-banner flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div class="flex items-start gap-3">
+          <div class="mt-1">
+            <span class="inline-flex items-center justify-center w-9 h-9 rounded-full bg-red-100 text-red-600">
+              <i class="fa-solid fa-triangle-exclamation"></i>
+            </span>
+          </div>
+          <div>
+            <div class="font-semibold text-gray-900 text-sm mb-1">
+              What is the Youth Warning Wall?
+            </div>
+            <p class="text-xs text-gray-700 leading-relaxed">
+              Dito nire-record ng SK at barangay ang mga napag-usapang violations — hindi para ipahiya,
+              kundi para ma-track, ma-follow up, at ma-remind ang kabataan tungkol sa tamang asal sa komunidad.
+            </p>
+          </div>
+        </div>
+        <div class="flex gap-3 text-xs">
+          <div class="bg-blue-50 border border-blue-100 rounded-xl px-3 py-2 text-center">
+            <div class="font-bold text-gray-800 text-xs mb-0.5">Level 1</div>
+            <div class="text-blue-600 text-2xs font-semibold">First reminder</div>
+          </div>
+          <div class="bg-yellow-50 border border-yellow-100 rounded-xl px-3 py-2 text-center">
+            <div class="font-bold text-gray-800 text-xs mb-0.5">Level 2</div>
+            <div class="text-yellow-700 text-2xs font-semibold">Repeat offense</div>
+          </div>
+          <div class="bg-red-50 border border-red-100 rounded-xl px-3 py-2 text-center">
+            <div class="font-bold text-gray-800 text-xs mb-0.5">Level 3</div>
+            <div class="text-red-600 text-2xs font-semibold">Final warning</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- STATS -->
+      <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-white shadow rounded-xl p-4 flex items-center gap-3">
+          <div class="p-3 rounded-md bg-indigo-500 text-white">
+            <i class="fa-solid fa-clipboard-list"></i>
+          </div>
+          <div>
+            <p class="text-xs text-gray-500">Total Warnings (History)</p>
+            <p id="statTotal" class="text-2xl font-bold text-gray-800">0</p>
+          </div>
+        </div>
+        <div class="bg-white shadow rounded-xl p-4 flex items-center gap-3">
+          <div class="p-3 rounded-md bg-blue-500 text-white">
+            <i class="fa-solid fa-handcuffs"></i>
+          </div>
+          <div>
+            <p class="text-xs text-gray-500">Active Community Service</p>
+            <p id="statActive" class="text-2xl font-bold text-gray-800">0</p>
+          </div>
+        </div>
+        <div class="bg-white shadow rounded-xl p-4 flex items-center gap-3">
+          <div class="p-3 rounded-md bg-green-600 text-white">
+            <i class="fa-solid fa-circle-check"></i>
+          </div>
+          <div>
+            <p class="text-xs text-gray-500">Completed / Resolved</p>
+            <p id="statCompleted" class="text-2xl font-bold text-gray-800">0</p>
+          </div>
+        </div>
+        <div class="bg-white shadow rounded-xl p-4 flex items-center gap-3">
+          <div class="p-3 rounded-md bg-yellow-500 text-white">
+            <i class="fa-solid fa-location-dot"></i>
+          </div>
+          <div>
+            <p class="text-xs text-gray-500">Barangays Covered</p>
+            <p id="statBarangays" class="text-2xl font-bold text-gray-800">0</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- FILTERS -->
+      <section class="bg-white shadow rounded-xl p-4">
+        <div class="grid grid-cols-1 md:grid-cols-7 gap-3 items-end">
+          <div class="md:col-span-2">
+            <label class="lbl">Search</label>
+            <div class="relative">
+              <input id="q" type="text"
+                     placeholder="Search name, violation, details…"
+                     class="w-full border rounded-md px-3 py-2 pr-10 focus:ring-blue-500 focus:border-blue-500 text-sm">
+              <button id="btnSearch" type="button"
+                      class="absolute right-1.5 top-1.5 w-7 h-7 rounded-full flex items-center justify-center bg-blue-500 text-white text-xs hover:bg-blue-600">
+                <i class="fa-solid fa-magnifying-glass"></i>
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <label class="lbl">Barangay</label>
+            <select id="fBarangay" class="inp text-sm">
+              <option value="">All barangays</option>
+              <option value="Anos">Anos</option>
+              <option value="Bagong Silang">Bagong Silang</option>
+              <option value="Bambang">Bambang</option>
+              <option value="Batong Malake">Batong Malake</option>
+              <option value="Baybayin">Baybayin</option>
+              <option value="Bayog">Bayog</option>
+              <option value="Lalakay">Lalakay</option>
+              <option value="Maahas">Maahas</option>
+              <option value="Malinta">Malinta</option>
+              <option value="Mayondon">Mayondon</option>
+              <option value="Putho-Tuntungin">Putho-Tuntungin</option>
+              <option value="San Antonio">San Antonio</option>
+              <option value="Tadlac">Tadlac</option>
+              <option value="Timugan">Timugan</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="lbl">Violation type</label>
+            <input id="fType" type="text" class="inp text-sm" placeholder="e.g. Vandalism">
+          </div>
+
+          <div>
+            <label class="lbl">Warning level</label>
+            <select id="fLevel" class="inp text-sm">
+              <option value="">All levels</option>
+              <option value="Level 1">Level 1</option>
+              <option value="Level 2">Level 2</option>
+              <option value="Level 3">Level 3</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="lbl">Status</label>
+            <select id="fStatus" class="inp text-sm">
+              <option value="">All (history)</option>
+              <option value="active">Active community service</option>
+              <option value="completed">Completed / Resolved</option>
+            </select>
+          </div>
+
+          <div class="md:col-span-1 flex gap-2 justify-end md:justify-center">
+            <button id="viewGrid" class="btn-soft text-xs px-3 py-2">
+              <i class="fa-solid fa-border-all"></i><span class="hidden sm:inline">Grid</span>
+            </button>
+            <button id="viewList" class="btn-soft text-xs px-3 py-2">
+              <i class="fa-solid fa-list"></i><span class="hidden sm:inline">List</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- LIST / GRID SECTION -->
+      <section class="bg-white shadow rounded-xl p-4">
+        <div id="gridContainer" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4"></div>
+
+        <div id="listContainer" class="hidden overflow-x-auto mt-1">
+          <table class="min-w-full divide-y divide-gray-200 whitespace-nowrap text-sm">
+            <thead class="bg-gray-50">
+            <tr>
+              <th class="px-4 py-2 text-left text-xs font-semibold text-gray-500 uppercase">Name</th>
+              <th class="px-4 py-2 text-left text-xs font-semibold text-gray-500 uppercase">Violation</th>
+              <th class="px-4 py-2 text-left text-xs font-semibold text-gray-500 uppercase">Barangay</th>
+              <th class="px-4 py-2 text-left text-xs font-semibold text-gray-500 uppercase">Level</th>
+              <th class="px-4 py-2 text-left text-xs font-semibold text-gray-500 uppercase">Parusa</th>
+              <th class="px-4 py-2 text-left text-xs font-semibold text-gray-500 uppercase">Status</th>
+              <th class="px-4 py-2"></th>
+            </tr>
+            </thead>
+            <tbody id="tbodyList" class="divide-y divide-gray-200 text-sm"></tbody>
+          </table>
+        </div>
+
+        <div id="emptyState" class="hidden py-10 text-center text-sm text-gray-500">
+          Walang nakitang warning sa filters mo.
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<!-- NEW WARNING MODAL -->
+<div id="newModal" class="modal-backdrop">
+  <div class="modal-shell">
+    <div class="modal-panel">
+      <div class="modal-header-danger px-6 py-4 flex items-center justify-between">
+        <h3 class="text-lg font-extrabold">Log Youth Warning</h3>
+        <button id="newClose" class="text-white/90 hover:text-white">
+          <i class="fa-solid fa-xmark text-xl"></i>
+        </button>
+      </div>
+      <form id="newForm" class="p-6 grid grid-cols-1 lg:grid-cols-2 gap-5 text-sm">
+        <!-- LEFT -->
+        <div class="space-y-3">
+          <div>
+            <label class="lbl">Name of youth</label>
+            <input id="nwName" type="text" class="inp" required placeholder="Full name">
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="lbl">Barangay</label>
+              <select id="nwBarangay" class="inp" required>
+                <option value="">Select barangay</option>
+                <option value="Anos">Anos</option>
+                <option value="Bagong Silang">Bagong Silang</option>
+                <option value="Bambang">Bambang</option>
+                <option value="Batong Malake">Batong Malake</option>
+                <option value="Baybayin">Baybayin</option>
+                <option value="Bayog">Bayog</option>
+                <option value="Lalakay">Lalakay</option>
+                <option value="Maahas">Maahas</option>
+                <option value="Malinta">Malinta</option>
+                <option value="Mayondon">Mayondon</option>
+                <option value="Putho-Tuntungin">Putho-Tuntungin</option>
+                <option value="San Antonio">San Antonio</option>
+                <option value="Tadlac">Tadlac</option>
+                <option value="Timugan">Timugan</option>
+              </select>
+            </div>
+            <div>
+              <label class="lbl">Date &amp; time of violation</label>
+              <input id="nwOccurred" type="datetime-local" class="inp" required>
+            </div>
+          </div>
+
+          <!-- VIOLATION TYPE with suggestions + Other -->
+          <div>
+            <label class="lbl">Violation type</label>
+            <select id="nwTypeSelect" class="inp" required>
+              <option value="">Select violation type</option>
+              <option value="Curfew violation">Curfew violation</option>
+              <option value="Vandalism">Vandalism</option>
+              <option value="Public disturbance">Public disturbance</option>
+              <option value="Bullying / Harassment">Bullying / Harassment</option>
+              <option value="Littering">Littering</option>
+              <option value="Smoking / Vaping">Smoking / Vaping</option>
+              <option value="Alcohol-related">Alcohol-related</option>
+              <option value="Other">Other (specify)</option>
+            </select>
+            <input id="nwTypeOther" type="text"
+                   class="inp text-xs mt-2 hidden"
+                   placeholder="Specify violation (only if Other)">
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="lbl">Warning level</label>
+              <select id="nwLevel" class="inp" required>
+                <option value="">Select level</option>
+                <option value="Level 1">Level 1 (First warning)</option>
+                <option value="Level 2">Level 2</option>
+                <option value="Level 3">Level 3 (Final warning)</option>
+              </select>
+            </div>
+            <div>
+              <label class="lbl">Logged by</label>
+              <input id="nwLoggedBy" type="text" class="inp"
+                     placeholder="Officer / SK member" value="{{ full_name or '' }}">
+            </div>
+          </div>
+
+          <div>
+            <label class="lbl">Details / What happened</label>
+            <textarea id="nwDetails" rows="3" class="inp" placeholder="Maikling kwento ng nangyari"></textarea>
+          </div>
+          <div>
+            <label class="lbl">Immediate action / Warning given</label>
+            <textarea id="nwAction" rows="2" class="inp" placeholder="Pinagsabihan, nakausap ang magulang, etc."></textarea>
+          </div>
+        </div>
+
+        <!-- RIGHT -->
+        <div class="space-y-3">
+          <div class="card">
+            <div class="card-title">Parusa / Disposition</div>
+            <div class="space-y-2">
+              <div>
+                <label class="lbl">Type</label>
+                <select id="nwConsequence" class="inp">
+                  <option value="Community Service">Community Service</option>
+                  <option value="Private Matter / Counseling">Private Matter / Counseling</option>
+                  <option value="Resolved on the spot">Resolved on the spot</option>
+                  <option value="Reminder only">Reminder only</option>
+                </select>
+              </div>
+              <div id="nwServiceWrapper">
+                <label class="lbl">Community service days required</label>
+                <input id="nwDaysRequired" type="number" min="0" step="1" class="inp" placeholder="e.g. 3">
+              </div>
+              <div>
+                <label class="lbl text-xs">Link to user account (optional)</label>
+                <input id="nwLinkedUser" type="text" class="inp text-xs" placeholder="User ID / username (optional)">
+              </div>
+            </div>
+          </div>
+
+          <div class="flex justify-end gap-2 pt-2 border-t mt-3">
+            <button type="button" id="newCancel" class="btn-soft">Cancel</button>
+            <button type="submit" class="btn-main">
+              <i class="fa-solid fa-paper-plane"></i><span>Save warning</span>
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- VIEW / EDIT MODAL (same as before, small tweaks) -->
+<div id="viewModal" class="modal-backdrop">
+  <div class="modal-shell">
+    <div class="modal-panel" style="max-width:58rem">
+      <div class="modal-header-danger px-6 py-4 flex items-start justify-between">
+        <div>
+          <h3 id="vTitle" class="text-lg font-extrabold">Warning details</h3>
+          <p id="vMeta" class="text-sm text-white/80 mt-0.5">—</p>
+        </div>
+        <button id="viewClose" class="text-white/90 hover:text-white">
+          <i class="fa-solid fa-xmark text-xl"></i>
+        </button>
+      </div>
+      <div class="p-6 grid grid-cols-12 gap-4 text-sm">
+        <!-- LEFT -->
+        <div class="col-span-12 xl:col-span-7 space-y-4">
+          <div class="flex flex-wrap items-center gap-2">
+            <span id="vStatus" class="badge-pill status-active">Active</span>
+            <span id="vLevel" class="badge-pill bg-slate-100 text-slate-700">Level 1</span>
+          </div>
+
+          <div class="card">
+            <h4 class="card-title">Youth &amp; violation</h4>
+            <div id="vSummary" class="space-y-1 text-sm"></div>
+          </div>
+
+          <div class="card">
+            <h4 class="card-title">Details</h4>
+            <div class="space-y-2">
+              <div>
+                <div class="lbl">What happened</div>
+                <textarea id="vDetails" rows="3" class="inp"></textarea>
+              </div>
+              <div>
+                <div class="lbl">Immediate action / warning given</div>
+                <textarea id="vAction" rows="2" class="inp"></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT -->
+        <div class="col-span-12 xl:col-span-5 space-y-4">
+          <div class="card">
+            <div class="flex items-center justify-between mb-2">
+              <h4 class="card-title">Parusa &amp; progress</h4>
+            </div>
+            <div class="space-y-2">
+              <div>
+                <label class="lbl">Type</label>
+                <select id="vConsequence" class="inp text-sm">
+                  <option value="Community Service">Community Service</option>
+                  <option value="Private Matter / Counseling">Private Matter / Counseling</option>
+                  <option value="Resolved on the spot">Resolved on the spot</option>
+                  <option value="Reminder only">Reminder only</option>
+                </select>
+              </div>
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="lbl">Days required</label>
+                  <input id="vDaysRequired" type="number" min="0" step="1" class="inp text-sm">
+                </div>
+                <div>
+                  <label class="lbl">Days completed</label>
+                  <input id="vDaysCompleted" type="number" min="0" step="1" class="inp text-sm">
+                </div>
+              </div>
+
+              <div id="vProgressWrap" class="mt-1">
+                <div class="flex items-center justify-between text-3xs text-gray-500 mb-1">
+                  <span>Progress</span>
+                  <span id="vProgressLabel">0%</span>
+                </div>
+                <div class="progress-outer">
+                  <div id="vProgressBar" class="progress-inner" style="width:0%;"></div>
+                </div>
+              </div>
+
+              <p class="text-3xs text-gray-500 mt-2">
+                Note: Kahit matapos na ang parusa, mananatili ang record na ito sa admin history.
+              </p>
+            </div>
+
+            <div class="mt-3 flex justify-between items-center">
+              <button id="vDelete" class="btn-danger-text flex items-center gap-1">
+                <i class="fa-solid fa-trash-can text-xs"></i> Remove record
+              </button>
+              <button id="vSave" class="btn-light flex items-center gap-1">
+                <i class="fa-solid fa-floppy-disk text-xs"></i> Save changes
+              </button>
+            </div>
+          </div>
+        </div>
+      </div> <!-- /content -->
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast" class="hidden fixed top-5 right-5 bg-gray-900 text-white text-sm px-4 py-2 rounded-lg shadow-lg z-50"></div>
+
+<script>
+  /* ---------- Helpers ---------- */
+  const $  = sel => document.querySelector(sel);
+  const $$ = sel => Array.from(document.querySelectorAll(sel));
+
+  let WARNINGS = [];
+  let CURRENT  = null;
+  let VIEW_MODE = 'grid';
+
+  const showToast = msg => {
+    const t = $('#toast');
+    t.textContent = msg;
+    t.classList.remove('hidden');
+    setTimeout(() => t.classList.add('hidden'), 1800);
+  };
+
+  const fmtDT = v => {
+    if (!v) return '—';
+    const d = new Date(v);
+    if (isNaN(d.getTime())) return v;
+    return d.toLocaleString();
+  };
+
+  const computeStatus = w => {
+    const cons = (w.consequence_type || '').toLowerCase();
+    const req  = Number(w.service_days_required || 0);
+    const done = Number(w.service_days_completed || 0);
+    if (cons === 'community service' && req > 0) {
+      return done >= req ? 'completed' : 'active';
+    }
+    return 'completed';
+  };
+
+  const computeProgress = w => {
+    const req = Number(w.service_days_required || 0);
+    const done = Number(w.service_days_completed || 0);
+    if (!req || req <= 0) return 0;
+    return Math.min(100, Math.round((done / req) * 100));
+  };
+
+  /* ---------- Filters & Stats ---------- */
+  function matchFilters(w) {
+    const q        = ($('#q').value || '').toLowerCase().trim();
+    const barangay = $('#fBarangay').value || '';
+    const vtype    = ($('#fType').value || '').toLowerCase().trim();
+    const level    = $('#fLevel').value || '';
+    const fStatus  = $('#fStatus').value || '';
+
+    if (barangay && w.barangay !== barangay) return false;
+    if (level && (w.warning_level || '') !== level) return false;
+
+    if (vtype) {
+      const t = (w.violation_type || '').toLowerCase();
+      if (!t.includes(vtype)) return false;
+    }
+
+    if (q) {
+      const hay = [
+        w.youth_name, w.violation_type, w.barangay,
+        w.details, w.action_taken, w.logged_by
+      ].join(' ').toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+
+    if (fStatus) {
+      const s = computeStatus(w);
+      if (s !== fStatus) return false;
+    }
+    return true;
+  }
+
+  function renderStats() {
+    const total = WARNINGS.length;
+    const active = WARNINGS.filter(w => computeStatus(w) === 'active').length;
+    const completed = total - active;
+    const brSet = new Set();
+    WARNINGS.forEach(w => { if (w.barangay) brSet.add(w.barangay); });
+
+    $('#statTotal').textContent      = total;
+    $('#statActive').textContent     = active;
+    $('#statCompleted').textContent  = completed;
+    $('#statBarangays').textContent  = brSet.size;
+  }
+
+  /* ---------- Render GRID & LIST (balik design) ---------- */
+  function render() {
+    const filtered = WARNINGS.filter(matchFilters);
+    const grid  = $('#gridContainer');
+    const tbody = $('#tbodyList');
+    const empty = $('#emptyState');
+
+    grid.innerHTML = '';
+    tbody.innerHTML = '';
+
+    if (!filtered.length) empty.classList.remove('hidden');
+    else empty.classList.add('hidden');
+
+    filtered.forEach(w => {
+      const status   = computeStatus(w);
+      const progress = computeProgress(w);
+      const cons     = w.consequence_type || 'Community Service';
+      const done     = Number(w.service_days_completed || 0);
+      const req      = Number(w.service_days_required || 0);
+      const level    = w.warning_level || '—';
+
+      const card = document.createElement('div');
+      card.className = 'bg-white border rounded-2xl p-4 shadow-sm flex flex-col gap-3 hover:shadow-md transition';
+
+      card.innerHTML = `
+        <div class="flex items-start justify-between">
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2">
+              <h3 class="font-bold text-gray-900 text-sm truncate">${w.youth_name || '—'}</h3>
+              <span class="chip chip-level">${level}</span>
+            </div>
+            <div class="mt-0.5 text-2xs text-gray-500">
+              <span class="font-semibold">${w.violation_type || '—'}</span>
+              &nbsp;•&nbsp;
+              ${(w.barangay || '—')}
+              &nbsp;•&nbsp;
+              ${fmtDT(w.occurred_at)}
+            </div>
+          </div>
+          <span class="badge-pill ${status === 'active' ? 'status-active' : 'status-completed'}">
+            ${status === 'active' ? 'Active' : 'Completed'}
+          </span>
+        </div>
+
+        <div class="flex gap-3 items-stretch">
+          <div class="flex-1 min-w-0">
+            <div class="text-3xs font-semibold text-gray-500 uppercase mb-1 tracking-wide">
+              Violation
+            </div>
+            <div class="text-xs text-gray-800 line-clamp-2">
+              ${(w.details && w.details.trim()) || w.violation_type || '—'}
+            </div>
+            <div class="mt-1 text-3xs text-gray-500">
+              Logged by: <span class="font-semibold">${w.logged_by || '—'}</span>
+            </div>
+          </div>
+
+          <!-- PARUSA BOX (malaki, bold) -->
+          <div class="w-24 sm:w-28 bg-slate-50 border border-slate-200 rounded-2xl px-2.5 py-2 flex flex-col justify-between">
+            <div>
+              <div class="text-3xs font-semibold text-slate-500 uppercase tracking-wide mb-0.5">
+                PARUSA
+              </div>
+              <div class="text-2xs font-extrabold text-slate-900 leading-snug">
+                ${cons}
+              </div>
+              ${
+                cons === 'Community Service'
+                  ? `
+                    <div class="mt-1 text-3xs text-slate-700 font-medium">
+                      ${done}/${req || 0} day(s)
+                    </div>
+                    <div class="mt-1 progress-outer">
+                      <div class="progress-inner" style="width:${progress}%;"></div>
+                    </div>
+                  `
+                  : ''
+              }
+            </div>
+            <button data-view="${w.id}"
+                    class="mt-1 text-3xs font-semibold text-blue-600 hover:text-blue-800 text-center">
+              View
+            </button>
+          </div>
+        </div>
+
+        <div class="mt-2 flex justify-end gap-3">
+          <button data-view="${w.id}"
+                  class="btn-light px-3 py-1 text-2xs flex items-center gap-1">
+            <i class="fa-solid fa-circle-info text-[10px]"></i> Details
+          </button>
+          <button data-delete="${w.id}"
+                  class="btn-danger-text flex items-center gap-1 text-2xs">
+            <i class="fa-solid fa-trash-can text-[10px]"></i> Remove
+          </button>
+        </div>
+      `;
+
+      card.querySelectorAll('[data-view]').forEach(btn => {
+        btn.addEventListener('click', () => openView(w.id));
+      });
+      const delBtn = card.querySelector('[data-delete]');
+      if (delBtn) delBtn.addEventListener('click', () => handleDelete(w.id));
+
+      grid.appendChild(card);
+    });
+
+    // LIST view
+    filtered.forEach(w => {
+      const status   = computeStatus(w);
+      const progress = computeProgress(w);
+      const cons     = w.consequence_type || 'Community Service';
+      const done     = Number(w.service_days_completed || 0);
+      const req      = Number(w.service_days_required || 0);
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="px-4 py-3 text-gray-900 text-sm font-medium">
+          ${w.youth_name || '—'}
+          <div class="text-3xs text-gray-500">
+            ${fmtDT(w.occurred_at)}
+          </div>
+        </td>
+        <td class="px-4 py-3 text-gray-700 text-sm">
+          <span class="font-semibold">${w.violation_type || '—'}</span>
+        </td>
+        <td class="px-4 py-3 text-gray-700 text-sm">
+          ${w.barangay || '—'}
+        </td>
+        <td class="px-4 py-3 text-gray-700 text-sm">
+          <span class="chip chip-level">${w.warning_level || '—'}</span>
+        </td>
+        <td class="px-4 py-3 text-gray-700 text-sm">
+          <div class="text-2xs font-semibold text-gray-700">${cons}</div>
+          ${
+            cons === 'Community Service'
+              ? `<div class="text-3xs text-gray-500">${done}/${req || 0} day(s) • ${progress}%</div>`
+              : ''
+          }
+        </td>
+        <td class="px-4 py-3">
+          <span class="chip ${status === 'active' ? 'status-active' : 'status-completed'}">
+            ${status === 'active' ? 'Active' : 'Completed'}
+          </span>
+        </td>
+        <td class="px-4 py-3 text-right">
+          <button data-view="${w.id}" class="text-blue-600 hover:text-blue-800 text-xs mr-3">View</button>
+          <button data-delete="${w.id}" class="text-red-600 hover:text-red-800 text-xs">Remove</button>
+        </td>
+      `;
+      tr.querySelectorAll('[data-view]').forEach(btn => btn.addEventListener('click', () => openView(w.id)));
+      const delBtn = tr.querySelector('[data-delete]');
+      if (delBtn) delBtn.addEventListener('click', () => handleDelete(w.id));
+      tbody.appendChild(tr);
+    });
+
+    renderStats();
+    applyViewMode();
+  }
+
+  function applyViewMode() {
+    if (VIEW_MODE === 'grid') {
+      $('#gridContainer').classList.remove('hidden');
+      $('#listContainer').classList.add('hidden');
+    } else {
+      $('#gridContainer').classList.add('hidden');
+      $('#listContainer').classList.remove('hidden');
+    }
+  }
+
+  /* ---------- API helpers ---------- */
+  async function loadWarnings() {
+    try {
+      const res = await fetch('/api/youth-warnings');
+      if (!res.ok) {
+        showToast('Failed to load warnings');
+        return;
+      }
+      WARNINGS = await res.json();
+      render();
+    } catch (e) {
+      console.error(e);
+      showToast('Error loading warnings');
+    }
+  }
+
+  async function createWarning(payload) {
+    try {
+      const res = await fetch('/api/youth-warnings', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify(payload)
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        showToast(err.error || 'Failed to create');
+        return;
+      }
+      const created = await res.json();
+      WARNINGS.unshift(created);
+      render();
+      showToast('Warning logged');
+    } catch (e) {
+      console.error(e);
+      showToast('Error creating warning');
+    }
+  }
+
+  async function updateWarning(id, patch) {
+    try {
+      const res = await fetch(`/api/youth-warnings/${id}`, {
+        method:'PATCH',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify(patch)
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        showToast(err.error || 'Update failed');
+        return;
+      }
+      const updated = await res.json();
+      WARNINGS = WARNINGS.map(w => w.id === id ? updated : w);
+      render();
+      showToast('Updated');
+      if (CURRENT && CURRENT.id === id) {
+        CURRENT = updated;
+        fillViewModal(updated);
+      }
+    } catch (e) {
+      console.error(e);
+      showToast('Error updating');
+    }
+  }
+
+  async function handleDelete(id) {
+    if (!confirm('Remove this warning record?')) return;
+    try {
+      const res = await fetch(`/api/youth-warnings/${id}`, { method:'DELETE' });
+      if (!res.ok) {
+        showToast('Delete failed');
+        return;
+      }
+      WARNINGS = WARNINGS.filter(w => w.id !== id);
+      render();
+      showToast('Deleted');
+    } catch (e) {
+      console.error(e);
+      showToast('Error deleting');
+    }
+  }
+
+  /* ---------- New Warning modal logic ---------- */
+  const newModal = $('#newModal');
+  const openNewModal  = () => { newModal.classList.add('show'); document.body.style.overflow='hidden'; };
+  const closeNewModal = () => { newModal.classList.remove('show'); document.body.style.overflow=''; };
+
+  $('#btnNew')?.addEventListener('click', openNewModal);
+  $('#newClose')?.addEventListener('click', closeNewModal);
+  $('#newCancel')?.addEventListener('click', closeNewModal);
+  newModal?.addEventListener('click', e => { if (e.target === newModal) closeNewModal(); });
+
+  // show/hide "Other" text box for violation type
+  $('#nwTypeSelect')?.addEventListener('change', e => {
+    const val = e.target.value;
+    const other = $('#nwTypeOther');
+    if (val === 'Other') {
+      other.classList.remove('hidden');
+      other.focus();
+    } else {
+      other.classList.add('hidden');
+      other.value = '';
+    }
+  });
+
+  $('#newForm')?.addEventListener('submit', e => {
+    e.preventDefault();
+
+    const typeSelectVal = $('#nwTypeSelect').value;
+    const typeOtherVal  = $('#nwTypeOther').value.trim();
+    const violationType = typeSelectVal === 'Other' ? typeOtherVal : typeSelectVal;
+
+    const payload = {
+      youth_name: $('#nwName').value.trim(),
+      barangay: $('#nwBarangay').value,
+      occurred_at: $('#nwOccurred').value,
+      violation_type: violationType,
+      warning_level: $('#nwLevel').value,
+      logged_by: $('#nwLoggedBy').value.trim(),
+      details: $('#nwDetails').value,
+      action_taken: $('#nwAction').value,
+      consequence_type: $('#nwConsequence').value,
+      service_days_required: Number($('#nwDaysRequired').value || 0),
+      service_days_completed: 0,
+      linked_user_id: $('#nwLinkedUser').value.trim() || null
+    };
+
+    if (!payload.youth_name || !payload.barangay || !payload.occurred_at ||
+        !payload.violation_type || !payload.warning_level || !payload.logged_by) {
+      showToast('Please fill out required fields.');
+      return;
+    }
+
+    closeNewModal();
+    createWarning(payload);
+    e.target.reset();
+    $('#nwTypeOther').classList.add('hidden');
+  });
+
+  /* ---------- View modal logic ---------- */
+  const viewModal = $('#viewModal');
+  const openViewModal  = () => { viewModal.classList.add('show'); document.body.style.overflow='hidden'; };
+  const closeViewModal = () => { viewModal.classList.remove('show'); document.body.style.overflow=''; CURRENT=null; };
+
+  $('#viewClose')?.addEventListener('click', closeViewModal);
+  viewModal?.addEventListener('click', e => { if (e.target === viewModal) closeViewModal(); });
+
+  function fillViewModal(w) {
+    $('#vTitle').textContent = w.youth_name || 'Warning details';
+    $('#vMeta').textContent  = `${w.violation_type || '—'} • ${w.barangay || '—'} • ${fmtDT(w.occurred_at)}`;
+
+    const status = computeStatus(w);
+    const statusChip = $('#vStatus');
+    statusChip.textContent = status === 'active' ? 'Active community service' : 'Completed / Resolved';
+    statusChip.className = 'badge-pill ' + (status === 'active' ? 'status-active' : 'status-completed');
+
+    $('#vLevel').textContent = w.warning_level || '—';
+
+    $('#vSummary').innerHTML = `
+      <div><span class="muted">Name:</span> <span class="font-semibold">${w.youth_name || '—'}</span></div>
+      <div><span class="muted">Barangay:</span> <span class="font-semibold">${w.barangay || '—'}</span></div>
+      <div><span class="muted">Violation:</span> <span class="font-semibold">${w.violation_type || '—'}</span></div>
+      <div><span class="muted">Logged by:</span> <span class="font-semibold">${w.logged_by || '—'}</span></div>
+      <div><span class="muted">Date &amp; time:</span> <span class="font-semibold">${fmtDT(w.occurred_at)}</span></div>
+    `;
+
+    $('#vDetails').value = w.details || '';
+    $('#vAction').value  = w.action_taken || '';
+    $('#vConsequence').value = w.consequence_type || 'Community Service';
+    $('#vDaysRequired').value = w.service_days_required || 0;
+    $('#vDaysCompleted').value = w.service_days_completed || 0;
+
+    const progress = computeProgress(w);
+    $('#vProgressBar').style.width   = progress + '%';
+    $('#vProgressLabel').textContent = progress + '%';
+  }
+
+  function openView(id) {
+    const w = WARNINGS.find(x => x.id === id);
+    if (!w) return;
+    CURRENT = w;
+    fillViewModal(w);
+    openViewModal();
+  }
+
+  $('#vSave')?.addEventListener('click', () => {
+    if (!CURRENT) return;
+    const patch = {
+      details: $('#vDetails').value,
+      action_taken: $('#vAction').value,
+      consequence_type: $('#vConsequence').value,
+      service_days_required: Number($('#vDaysRequired').value || 0),
+      service_days_completed: Number($('#vDaysCompleted').value || 0)
+    };
+    updateWarning(CURRENT.id, patch);
+  });
+
+  $('#vDelete')?.addEventListener('click', () => {
+    if (!CURRENT) return;
+    handleDelete(CURRENT.id);
+    closeViewModal();
+  });
+
+  ['vDaysRequired','vDaysCompleted'].forEach(id => {
+    $('#' + id)?.addEventListener('input', () => {
+      if (!CURRENT) return;
+      const tmp = Object.assign({}, CURRENT, {
+        service_days_required: Number($('#vDaysRequired').value || 0),
+        service_days_completed: Number($('#vDaysCompleted').value || 0)
+      });
+      const p = computeProgress(tmp);
+      $('#vProgressBar').style.width   = p + '%';
+      $('#vProgressLabel').textContent = p + '%';
+    });
+  });
+
+  /* ---------- Filters / Search / View toggle / Export ---------- */
+  $$('#fBarangay,#fType,#fLevel,#fStatus').forEach(el => el.addEventListener('input', render));
+
+  // live search on input + explicit button (para sure)
+  $('#q')?.addEventListener('input', render);
+  $('#q')?.addEventListener('keyup', e => { if (e.key === 'Enter') render(); });
+  $('#btnSearch')?.addEventListener('click', render);
+
+  $('#viewGrid')?.addEventListener('click', () => { VIEW_MODE='grid'; applyViewMode(); });
+  $('#viewList')?.addEventListener('click', () => { VIEW_MODE='list'; applyViewMode(); });
+
+  $('#btnExport')?.addEventListener('click', () => {
+    const head = [
+      'youth_name','barangay','violation_type','warning_level',
+      'occurred_at','logged_by','consequence_type',
+      'service_days_required','service_days_completed','details','action_taken'
+    ];
+    const rows = WARNINGS.map(w => head.map(k => {
+      const val = (w[k] ?? '').toString().replace(/"/g,'""');
+      return `"${val}"`;
+    }).join(','));
+    const csv = head.join(',') + '\n' + rows.join('\n');
+    const blob = new Blob([csv], {type:'text/csv'});
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url;
+    a.download = 'youth_warnings.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+
+  /* ---------- Notifications & User dropdown ---------- */
+  const notifToggle = document.getElementById('notifToggle');
+  const notifPanel  = document.getElementById('notifPanel');
+  const notifDot    = document.getElementById('notifDot');
+
+  function openPanel(){
+    notifPanel?.classList.remove('hidden');
+    notifToggle?.setAttribute('aria-expanded','true');
+    notifDot?.classList.add('hidden');
+  }
+  function closePanel(){
+    notifPanel?.classList.add('hidden');
+    notifToggle?.setAttribute('aria-expanded','false');
+  }
+  notifToggle?.addEventListener('click', (e)=>{
+    e.stopPropagation();
+    notifPanel?.classList.contains('hidden') ? openPanel() : closePanel();
+  });
+  document.addEventListener('click', (e)=>{
+    if (!notifPanel || !notifToggle) return;
+    if (!notifPanel.contains(e.target) && e.target !== notifToggle) closePanel();
+  });
+
+  const userDropdownToggle = document.getElementById('userDropdownToggle');
+  const userDropdownMenu   = document.getElementById('userDropdownMenu');
+  userDropdownToggle?.addEventListener('click', function (e) {
+    e.stopPropagation();
+    userDropdownMenu?.classList.toggle('hidden');
+  });
+  document.addEventListener('click', function () {
+    userDropdownMenu?.classList.add('hidden');
+  });
+
+  /* ---------- INIT ---------- */
+  document.addEventListener('DOMContentLoaded', () => {
+    loadWarnings();
+  });
+</script>
+</body>
+</html>

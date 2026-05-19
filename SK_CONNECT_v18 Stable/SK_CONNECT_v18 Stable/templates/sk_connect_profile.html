@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>SK Connect — Executive Profile & Digital ID</title>
+
+  <!-- Tailwind + Icons + QRCode + html2canvas -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+  <!-- Premium Fonts -->
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&family=Poppins:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet">
+
+  <style>
+    :root {
+      --sk-blue: #0d2a52;
+      --sk-yellow: #FCD116;
+      --sk-orange: #F97316;
+      --sk-white: #FFFFFF;
+      --sk-dark-blue: #0a2540;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', 'Poppins', system-ui, -apple-system, sans-serif;
+      background: linear-gradient(135deg, #f8fafc 0%, #f0f4f9 100%);
+      color: #1e2a3e;
+    }
+
+    /* Sidebar + nav */
+    .sidebar {
+      background: var(--sk-blue) !important;
+      color: #fff;
+    }
+
+    .sidebar .sidebar-item {
+      color: #e5e7eb;
+      transition: all 0.2s;
+    }
+
+    .sidebar .sidebar-item:hover {
+      background: rgba(255, 255, 255, .06);
+      transform: translateX(4px);
+    }
+
+    .active-nav {
+      background: linear-gradient(90deg, rgba(252, 209, 22, .22), rgba(252, 209, 22, 0)) !important;
+      border-left: 4px solid var(--sk-yellow);
+      color: #fff !important;
+    }
+
+    .app-topbar {
+      background: rgba(255, 255, 255, 0.98) !important;
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid #eef2f8;
+    }
+
+    .brand-img {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      object-fit: cover;
+    }
+
+    /* premium cards */
+    .premium-card {
+      background: #ffffff;
+      border-radius: 32px;
+      box-shadow: 0 12px 32px -12px rgba(0, 0, 0, 0.08);
+      transition: all 0.3s ease;
+      border: 1px solid rgba(252, 209, 22, 0.15);
+    }
+
+    .premium-card:hover {
+      box-shadow: 0 20px 35px -12px rgba(13, 42, 82, 0.12);
+      transform: translateY(-2px);
+    }
+
+    .badge-gold {
+      background: linear-gradient(135deg, #FCD11620, #FCD11608);
+      border: 1px solid #FCD11640;
+      color: #7a6300;
+      border-radius: 40px;
+      padding: 6px 14px;
+      font-size: 0.7rem;
+      font-weight: 600;
+    }
+
+    .info-row-elegant {
+      display: flex;
+      align-items: center;
+      padding: 14px 0;
+      border-bottom: 1px solid #f0f4f9;
+    }
+
+    .info-label-elegant {
+      width: 120px;
+      font-weight: 600;
+      color: #2c3e50;
+      font-size: 0.8rem;
+    }
+
+    .info-value-elegant {
+      flex: 1;
+      color: #0f2b3d;
+      font-weight: 500;
+      font-size: 0.9rem;
+    }
+
+    .input-premium {
+      background: #f9fbfe;
+      border: 1px solid #e2edf2;
+      border-radius: 20px;
+      transition: all 0.2s;
+      padding: 10px 16px;
+    }
+
+    .input-premium:focus-within {
+      border-color: var(--sk-yellow);
+      box-shadow: 0 0 0 3px rgba(252, 209, 22, 0.2);
+      background: white;
+    }
+
+    .btn-primary {
+      background: #0d2a52;
+      transition: all 0.2s;
+      border-radius: 40px;
+      font-weight: 600;
+    }
+
+    .btn-primary:hover {
+      background: #1a3f6e;
+      transform: translateY(-1px);
+      box-shadow: 0 8px 18px rgba(13, 42, 82, 0.2);
+    }
+
+    .avatar-frame {
+      background: linear-gradient(145deg, #FCD116, #e6b422);
+      padding: 3px;
+      border-radius: 50%;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Button styling - yellow theme */
+    .btn-professional {
+      background: linear-gradient(135deg, #FCD116 0%, #e6b422 100%);
+      color: #0d2a52;
+      font-weight: 700;
+      transition: all 0.25s ease;
+      box-shadow: 0 4px 12px rgba(252, 209, 22, 0.3);
+    }
+
+    .btn-professional:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 24px -8px rgba(252, 209, 22, 0.4);
+      background: linear-gradient(135deg, #e6b422 0%, #FCD116 100%);
+    }
+
+    .modal-fade {
+      transition: opacity 0.2s, visibility 0.2s;
+    }
+
+    ::-webkit-scrollbar {
+      width: 5px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #eef2f5;
+      border-radius: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 10px;
+    }
+
+    /* Aesthetic refinements */
+    .gradient-text {
+      background: linear-gradient(135deg, #0d2a52 0%, #1a4a7a 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .profile-header-gradient {
+      background: linear-gradient(115deg, #0a2540 0%, #123a5e 50%, #1a4a7a 100%);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .profile-header-gradient::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -20%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(252, 209, 22, 0.08) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .hover-lift {
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .hover-lift:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 20px 30px -12px rgba(0, 0, 0, 0.15);
+    }
+
+    /* ID Card Styles */
+    #sk-id-card {
+      width: 920px;
+      min-height: 580px;
+      background: linear-gradient(135deg, #0a2a3e 0%, #0c2d42 100%);
+      border-radius: 28px;
+      box-shadow: 0 25px 45px -12px rgba(0, 0, 0, 0.4);
+      font-family: 'Inter', 'Poppins', sans-serif;
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(252, 209, 22, 0.25);
+    }
+
+    #temp-id-container {
+      position: absolute;
+      top: -9999px;
+      left: -9999px;
+      z-index: -1;
+    }
+  </style>
+</head>
+
+<body class="antialiased">
+  <div class="flex h-screen overflow-hidden">
+    <!-- SIDEBAR -->
+    <aside class="hidden md:flex md:flex-shrink-0 sidebar">
+      <div class="flex flex-col w-64">
+        <div class="px-4 py-6 flex items-center">
+          <img src="/static/images/SKLOGO.png" alt="SK Logo" class="brand-img mr-3">
+          <div>
+            <div class="text-white text-2xl font-black">SK<span class="text-yellow-300">Connect</span></div>
+            <div class="text-blue-200/80 text-[11px]">Los Baños Federation</div>
+          </div>
+        </div>
+        <div class="flex-1 flex flex-col pt-4 pb-4 overflow-y-auto">
+          <nav class="flex-1 px-2 space-y-1">
+            {% set is_admin = session.get('position','') | lower in
+            ['chairperson','sadmin','secretary','treasurer','councilor','committee head'] %}
+            {% if is_admin %}
+            <a href="{{ url_for('admin_dashboard') }}" data-title="Executive Dashboard"
+              class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md"><i
+                class="fas fa-home mr-3 text-lg w-5"></i> Dashboard</a>
+            <a href="{{ url_for('admin_announcements') }}" data-title="Announcements"
+              class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md"><i
+                class="fas fa-bullhorn mr-3 text-lg w-5"></i> Announcements</a>
+            <a href="{{ url_for('admin_events_projects') }}" data-title="Events & Projects"
+              class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md"><i
+                class="fas fa-calendar mr-3 text-lg w-5"></i> Events & Projects</a>
+            <a href="{{ url_for('admin_financial_report') }}" data-title="Financial Reports"
+              class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md"><i
+                class="fas fa-chart-pie mr-3 text-lg w-5"></i> Financial Reports</a>
+            <a href="{{ url_for('admin_feedback') }}" data-title="Surveys & Polls"
+              class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md"><i
+                class="fas fa-poll mr-3 text-lg w-5"></i> Surveys & Polls</a>
+            <a href="{{ url_for('admin_documents') }}" data-title="Documents"
+              class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md"><i
+                class="fas fa-file-alt mr-3 text-lg w-5"></i> Documents</a>
+            <a href="{{ url_for('admin_volunteer') }}" data-title="Volunteer"
+              class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md"><i
+                class="fas fa-hands-helping mr-3 text-lg w-5"></i> Volunteer</a>
+            <a href="{{ url_for('admin_training_resources') }}" data-title="Training Resources"
+              class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md"><i
+                class="fas fa-graduation-cap mr-3 text-lg w-5"></i> Training Resources</a>
+            <a href="{{ url_for('admin_community') }}" data-title="Community Board"
+              class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md"><i
+                class="fas fa-users mr-3 text-lg w-5"></i> Community Board</a>
+            <a href="{{ url_for('admin_incidents') }}" data-title="Incident Reports"
+              class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md"><i
+                class="fas fa-exclamation-triangle mr-3 text-lg w-5"></i> Incident Reports</a>
+            <a href="{{ url_for('admin_user_approval') }}" data-title="User Approval"
+              class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md"><i
+                class="fas fa-user-check mr-3 text-lg w-5"></i> User Approval</a>
+            {% else %}
+            <a href="{{ url_for('user_dashboard') }}" data-title="Dashboard"
+              class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md"><i
+                class="fas fa-home mr-3 text-lg w-5"></i> Dashboard</a>
+            <a href="{{ url_for('user_announcements') }}" data-title="Announcements"
+              class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md"><i
+                class="fas fa-bullhorn mr-3 text-lg w-5"></i> Announcements</a>
+            <a href="{{ url_for('user_events_projects') }}" data-title="Events & Projects"
+              class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md"><i
+                class="fas fa-calendar mr-3 text-lg w-5"></i> Events & Projects</a>
+            <div class="relative" id="finDropdownWrap">
+              <button id="finDropdownBtn" data-title="Financial Reports"
+                class="sidebar-item flex items-center justify-between w-full px-4 py-3 text-sm font-medium rounded-xl">
+                <span class="flex items-center"><i class="fas fa-chart-pie mr-3 text-lg w-5"></i> Financial
+                  Reports</span>
+                <i class="fas fa-chevron-down text-sm transition-transform" id="finChevron"></i>
+              </button>
+              <div id="finSubMenu" class="hidden pl-11 pr-2 py-1 space-y-1">
+                <a href="{{ url_for('user_financial_report') }}"
+                  class="block px-3 py-2 text-sm text-blue-100 hover:text-white rounded-md"><i
+                    class="fas fa-chart-bar mr-2"></i>Financial Dashboard</a>
+                <a href="{{ url_for('user_all_transactions') }}"
+                  class="block px-3 py-2 text-sm text-blue-100 hover:text-white rounded-md"><i
+                    class="fas fa-receipt mr-2"></i>View Transactions</a>
+                <a href="{{ url_for('user_all_projects') }}"
+                  class="block px-3 py-2 text-sm text-blue-100 hover:text-white rounded-md"><i
+                    class="fas fa-project-diagram mr-2"></i>View Projects</a>
+              </div>
+            </div>
+            <a href="{{ url_for('user_feedback') }}" data-title="Surveys & Polls"
+              class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md"><i
+                class="fas fa-poll mr-3 text-lg w-5"></i> Surveys & Polls</a>
+            <a href="{{ url_for('user_documents') }}" data-title="Documents"
+              class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md"><i
+                class="fas fa-file-alt mr-3 text-lg w-5"></i> Documents</a>
+            <a href="{{ url_for('user_volunteer') }}" data-title="Volunteer"
+              class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md"><i
+                class="fas fa-hands-helping mr-3 text-lg w-5"></i> Volunteer</a>
+            <a href="{{ url_for('user_training_resources') }}" data-title="Training Resources"
+              class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md"><i
+                class="fas fa-graduation-cap mr-3 text-lg w-5"></i> Training Resources</a>
+            <a href="{{ url_for('user_community') }}" data-title="Community Board"
+              class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md"><i
+                class="fas fa-users mr-3 text-lg w-5"></i> Community Board</a>
+            <a href="{{ url_for('user_incidents') }}" data-title="Incident Reports"
+              class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md"><i
+                class="fas fa-exclamation-triangle mr-3 text-lg w-5"></i> Incident Reports</a>
+            {% endif %}
+          </nav>
+        </div>
+        <div class="flex-shrink-0 flex border-t border-white/10 p-4 relative">
+          <div id="userDropdownToggle" class="flex flex-col items-center cursor-pointer w-full">
+            <div class="flex items-center justify-center w-full gap-2">
+              <img class="h-9 w-9 rounded-full border border-yellow-300/40 object-cover"
+                src="{{ user.profile_pic if user and user.profile_pic else '/static/images/SKLOGO.png' }}"
+                alt="Profile">
+              <div class="flex-1 min-w-0">
+                <div class="text-sm font-semibold text-white truncate uppercase">{{ session['username'] if
+                  session.get('username') else 'Guest' }}</div>
+                <div class="text-xs text-blue-100 truncate">{{ session['position']|title if session.get('position') else
+                  'User' }}</div>
+              </div>
+              <i class="fas fa-chevron-down ml-1 text-blue-200 text-xs"></i>
+            </div>
+          </div>
+          <ul id="userDropdownMenu"
+            class="absolute left-3 right-3 bottom-14 z-20 bg-white rounded-lg shadow-lg py-1 text-gray-700 hidden">
+            <li><a class="dropdown-item flex items-center px-4 py-2 hover:bg-gray-100"
+                href="{{ url_for('profile') }}"><i class="fas fa-user mr-3 w-4"></i>Profile</a></li>
+            <li><a class="dropdown-item flex items-center px-4 py-2 hover:bg-gray-100" href="#"><i
+                  class="fas fa-cog mr-3 w-4"></i>Settings</a></li>
+            <li>
+              <hr class="dropdown-divider my-1">
+            </li>
+            <li><a class="dropdown-item flex items-center px-4 py-2 hover:bg-gray-100 text-red-600" href="/logout"><i
+                  class="fas fa-sign-out-alt mr-3 w-4"></i>Logout</a></li>
+          </ul>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Mobile top bar -->
+    <div class="md:hidden app-topbar w-full flex items-center justify-between px-5 py-3">
+      <div class="flex items-center gap-2"><img src="/static/images/SKLOGO.png" class="brand-img w-9 h-9" alt="SK">
+        <h1 class="text-xl font-black">SK<span class="text-blue-800">Connect</span></h1>
+      </div>
+      <button id="mobile-menu-button" class="text-gray-700"><i class="fas fa-bars text-2xl"></i></button>
+    </div>
+    <div id="mobile-menu" class="md:hidden absolute top-14 left-0 right-0 sidebar z-10 hidden">
+      <nav class="px-4 pt-3 pb-5 space-y-1">
+        {% if is_admin %}
+        <a href="{{ url_for('admin_dashboard') }}" class="mobile-nav block px-3 py-2 rounded-xl"><i
+            class="fas fa-home mr-2"></i> Dashboard</a>
+        <a href="{{ url_for('admin_announcements') }}" class="mobile-nav block px-3 py-2 rounded-xl"><i
+            class="fas fa-bullhorn mr-2"></i> Announcements</a>
+        <a href="{{ url_for('admin_events_projects') }}" class="mobile-nav block px-3 py-2 rounded-xl"><i
+            class="fas fa-calendar mr-2"></i> Events</a>
+        <a href="{{ url_for('admin_financial_report') }}" class="mobile-nav block px-3 py-2 rounded-xl"><i
+            class="fas fa-chart-pie mr-2"></i> Financial Reports</a>
+        <a href="{{ url_for('admin_feedback') }}" class="mobile-nav block px-3 py-2 rounded-xl"><i
+            class="fas fa-poll mr-2"></i> Surveys & Polls</a>
+        <a href="{{ url_for('admin_documents') }}" class="mobile-nav block px-3 py-2 rounded-xl"><i
+            class="fas fa-file-alt mr-2"></i> Documents</a>
+        <a href="{{ url_for('admin_volunteer') }}" class="mobile-nav block px-3 py-2 rounded-xl"><i
+            class="fas fa-hands-helping mr-2"></i> Volunteer</a>
+        <a href="{{ url_for('admin_training_resources') }}" class="mobile-nav block px-3 py-2 rounded-xl"><i
+            class="fas fa-graduation-cap mr-2"></i> Training</a>
+        <a href="{{ url_for('admin_community') }}" class="mobile-nav block px-3 py-2 rounded-xl"><i
+            class="fas fa-users mr-2"></i> Community</a>
+        <a href="{{ url_for('admin_incidents') }}" class="mobile-nav block px-3 py-2 rounded-xl"><i
+            class="fas fa-exclamation-triangle mr-2"></i> Incidents</a>
+        <a href="{{ url_for('admin_user_approval') }}" class="mobile-nav block px-3 py-2 rounded-xl"><i
+            class="fas fa-user-check mr-2"></i> User Approval</a>
+        {% else %}
+        <a href="{{ url_for('user_dashboard') }}" class="mobile-nav block px-3 py-2 rounded-xl"><i
+            class="fas fa-home mr-2"></i> Dashboard</a>
+        <a href="{{ url_for('user_announcements') }}" class="mobile-nav block px-3 py-2 rounded-xl"><i
+            class="fas fa-bullhorn mr-2"></i> Announcements</a>
+        <a href="{{ url_for('user_events_projects') }}" class="mobile-nav block px-3 py-2 rounded-xl"><i
+            class="fas fa-calendar mr-2"></i> Events</a>
+        <a href="{{ url_for('user_financial_report') }}" class="mobile-nav block px-3 py-2 rounded-xl"><i
+            class="fas fa-chart-pie mr-2"></i> Financial Reports</a>
+        <a href="{{ url_for('user_feedback') }}" class="mobile-nav block px-3 py-2 rounded-xl"><i
+            class="fas fa-poll mr-2"></i> Surveys & Polls</a>
+        <a href="{{ url_for('user_documents') }}" class="mobile-nav block px-3 py-2 rounded-xl"><i
+            class="fas fa-file-alt mr-2"></i> Documents</a>
+        <a href="{{ url_for('user_volunteer') }}" class="mobile-nav block px-3 py-2 rounded-xl"><i
+            class="fas fa-hands-helping mr-2"></i> Volunteer</a>
+        <a href="{{ url_for('user_training_resources') }}" class="mobile-nav block px-3 py-2 rounded-xl"><i
+            class="fas fa-graduation-cap mr-2"></i> Training</a>
+        <a href="{{ url_for('user_community') }}" class="mobile-nav block px-3 py-2 rounded-xl"><i
+            class="fas fa-users mr-2"></i> Community</a>
+        <a href="{{ url_for('user_incidents') }}" class="mobile-nav block px-3 py-2 rounded-xl"><i
+            class="fas fa-exclamation-triangle mr-2"></i> Incidents</a>
+        {% endif %}
+      </nav>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="flex-1 flex flex-col overflow-hidden">
+      <header class="app-topbar">
+        <div class="flex justify-between items-center px-6 py-4 lg:px-10">
+          <h1 id="page-title" class="text-2xl font-extrabold tracking-tight gradient-text">Profile & Digital Credentials
+          </h1>
+          <div class="relative"><button id="notifToggle"
+              class="p-2 rounded-full text-gray-500 hover:bg-gray-100 transition-colors"><i
+                class="fas fa-bell text-xl"></i><span id="notifDot"
+                class="absolute top-0.5 right-0.5 w-2.5 h-2.5 bg-red-500 rounded-full ring-2 ring-white"></span></button>
+            <div id="notifPanel" class="hidden absolute right-0 top-12 w-80 bg-white rounded-2xl shadow-xl">
+              <div class="px-5 py-3 border-b flex justify-between"><span
+                  class="font-semibold">Notifications</span><button id="markAllRead" class="text-xs text-blue-600">Mark
+                  all read</button></div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <main class="flex-1 overflow-y-auto p-5 lg:p-8">
+        <div class="max-w-5xl mx-auto space-y-7">
+          <!-- Profile Card -->
+          <div class="premium-card hover-lift overflow-hidden">
+            <div class="profile-header-gradient px-8 py-8 text-white">
+              <div class="flex flex-col md:flex-row gap-8 items-center md:items-start">
+                <div class="relative">
+                  <div class="avatar-frame inline-block">
+                    <img src="{{ user.profile_pic if user and user.profile_pic else '/static/images/SKLOGO.png' }}"
+                      alt="Profile" class="w-32 h-32 rounded-full object-cover border-4 border-white shadow-xl">
+                  </div>
+                  <label for="profilePic"
+                    class="absolute bottom-1 right-1 cursor-pointer bg-yellow-400 rounded-full p-2 shadow-lg hover:bg-yellow-500 transition-colors">
+                    <i class="fas fa-camera text-blue-900 text-xs"></i>
+                  </label>
+                  <input type="file" id="profilePic" name="profile_pic" accept="image/*" class="hidden">
+                </div>
+                <div class="flex-1 text-center md:text-left">
+                  <h2 class="text-3xl font-extrabold mb-2">{{ user.full_name or user.username or 'SK Official' }}</h2>
+                  <div class="flex flex-wrap gap-3 justify-center md:justify-start mb-4">
+                    <span
+                      class="inline-flex items-center gap-2 bg-yellow-400/20 backdrop-blur-sm text-yellow-300 text-sm font-semibold px-4 py-1.5 rounded-full"><i
+                        class="fas fa-id-badge"></i> {{ user.position or 'Youth Leader' }}</span>
+                    <span
+                      class="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm text-blue-100 text-sm px-4 py-1.5 rounded-full"><i
+                        class="fas fa-map-marker-alt"></i> {{ user.barangay or 'Los Baños' }}</span>
+                    <span
+                      class="inline-flex items-center gap-2 bg-green-400/20 backdrop-blur-sm text-green-300 text-sm px-4 py-1.5 rounded-full"><i
+                        class="fas fa-shield-alt"></i> Verified Member</span>
+                  </div>
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-blue-100">
+                    <div class="flex items-center gap-2 justify-center md:justify-start"><i
+                        class="fas fa-envelope w-4 text-yellow-300"></i><span>{{ user.email or 'official@skconnect.ph'
+                        }}</span></div>
+                    <div class="flex items-center gap-2 justify-center md:justify-start"><i
+                        class="fas fa-phone-alt w-4 text-yellow-300"></i><span>{{ user.phone or user.contact or
+                        user.mobile or '+63 912 345 6789' }}</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="p-8">
+              <div class="flex items-center gap-3 mb-6 pb-3 border-b border-gray-100">
+                <div class="bg-yellow-100 p-2 rounded-xl"><i class="fas fa-user-circle text-2xl text-blue-800"></i>
+                </div>
+                <h3 class="text-xl font-bold text-gray-800">Official Information</h3>
+                <div class="ml-auto text-xs text-gray-400 bg-gray-50 px-3 py-1 rounded-full"><i class="far fa-edit"></i>
+                  Read-only profile</div>
+              </div>
+
+              <form method="POST" action="/update_profile" enctype="multipart/form-data">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-0">
+                  <div class="info-row-elegant">
+                    <div class="info-label-elegant">Full name</div>
+                    <div class="info-value-elegant">{{ user.full_name }}</div>
+                  </div>
+                  <div class="info-row-elegant">
+                    <div class="info-label-elegant">Username</div>
+                    <div class="info-value-elegant">{{ user.username }}</div>
+                  </div>
+                  <div class="info-row-elegant">
+                    <div class="info-label-elegant">Email</div>
+                    <div class="info-value-elegant">{{ user.email }}</div>
+                  </div>
+                  <div class="info-row-elegant">
+                    <div class="info-label-elegant">Barangay</div>
+                    <div class="info-value-elegant">{{ user.barangay }}</div>
+                  </div>
+                  <div class="info-row-elegant">
+                    <div class="info-label-elegant">Position</div>
+                    <div class="info-value-elegant">{{ user.position }}</div>
+                  </div>
+                  <div class="info-row-elegant">
+                    <div class="info-label-elegant">Gender</div>
+                    <div class="info-value-elegant capitalize">{{ user.gender or '—' }}</div>
+                  </div>
+                  <div class="info-row-elegant">
+                    <div class="info-label-elegant">Birthday</div>
+                    <div class="info-value-elegant">{{ user.birthday or '—' }}</div>
+                  </div>
+                  <div class="info-row-elegant">
+                    <div class="info-label-elegant">Age</div>
+                    <div class="info-value-elegant">{% if user.birthday %}{{ ((now().date() - user.birthday).days //
+                      365) if user.birthday else '—' }}{% else %}—{% endif %}</div>
+                  </div>
+                </div>
+
+                <div class="mt-8 pt-5 border-t border-gray-100">
+                  <div class="flex gap-3 mb-5 items-center">
+                    <div class="bg-amber-100 p-2 rounded-xl"><i class="fas fa-lock text-amber-600 text-lg"></i></div>
+                    <h4 class="font-bold text-gray-800 text-lg">Security & Access</h4>
+                  </div>
+                  <div class="space-y-5">
+                    <div><label class="block text-sm font-semibold mb-1.5 text-gray-700">Current password</label>
+                      <div class="input-premium flex items-center"><i class="fas fa-key text-gray-400 mr-2"></i><input
+                          type="password" id="old_password" name="old_password"
+                          class="w-full outline-none bg-transparent text-sm" placeholder="Enter current password"
+                          required></div>
+                      <div id="oldPasswordIndicator" class="text-xs mt-1"></div>
+                    </div>
+                    <div class="grid md:grid-cols-2 gap-5">
+                      <div><label class="block text-sm font-semibold mb-1.5 text-gray-700">New password</label>
+                        <div class="input-premium flex"><i class="fas fa-pen-alt text-gray-400 mr-2"></i><input
+                            type="password" id="password" name="password"
+                            class="w-full outline-none bg-transparent text-sm" placeholder="Enter new password"></div>
+                      </div>
+                      <div><label class="block text-sm font-semibold mb-1.5 text-gray-700">Confirm password</label>
+                        <div class="input-premium flex"><i class="fas fa-check-circle text-gray-400 mr-2"></i><input
+                            type="password" id="confirm_password" name="confirm_password"
+                            class="w-full outline-none bg-transparent text-sm" placeholder="Confirm password"></div>
+                        <div id="pwMatchIndicator" class="text-xs mt-1"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {% with messages = get_flashed_messages(with_categories=true) %}{% if messages %}{% for category,
+                message in messages %}<div
+                  class="mt-5 text-center text-sm font-semibold p-3 rounded-xl {% if category=='success' %}bg-green-50 text-green-700{% else %}bg-red-50 text-red-600{% endif %}">
+                  {{ message }}</div>{% endfor %}{% else %}<div id="profileUpdateNotif"
+                  class="mt-5 text-center text-sm"></div>{% endif %}{% endwith %}
+
+                <div class="mt-7 flex justify-end"><button type="submit"
+                    class="btn-primary px-8 py-3 text-white shadow-md flex gap-2 items-center transition-all hover:shadow-lg"><i
+                      class="fas fa-save"></i> Update Password</button></div>
+              </form>
+            </div>
+          </div>
+
+          <!-- QR ID Generation Section - Frontend HTML/CSS Generator -->
+          <div class="premium-card hover-lift overflow-hidden">
+            <div
+              class="bg-gradient-to-r from-blue-900 via-blue-800 to-blue-900 px-7 py-5 flex justify-between items-center">
+              <div class="flex items-center gap-3">
+                <div class="bg-yellow-400 p-2 rounded-xl shadow-lg">
+                  <i class="fas fa-id-card text-blue-900 text-xl"></i>
+                </div>
+                <div>
+                  <h2 class="text-white font-bold text-xl">SK Digital Credential</h2>
+                  <p class="text-blue-200 text-xs mt-0.5">Official Government-Issued Digital ID</p>
+                </div>
+                <span
+                  class="bg-yellow-400/20 text-yellow-300 border border-yellow-500/30 rounded-full px-3 py-1 text-xs font-bold ml-2"><i
+                    class="fas fa-check-circle mr-1"></i> VERIFIED</span>
+              </div>
+              <i class="fas fa-qrcode text-yellow-400 text-2xl"></i>
+            </div>
+            <div class="p-7 md:p-8">
+              <div class="flex items-start gap-4 mb-6 p-4 bg-blue-50/50 rounded-2xl border border-blue-100">
+                <i class="fas fa-info-circle text-blue-600 text-lg mt-0.5"></i>
+                <p class="text-gray-700 text-sm flex-1">Generate your official digital ID card with a scannable QR code.
+                  Perfect for event attendance and verification.</p>
+              </div>
+
+              <div class="flex flex-wrap gap-5 items-center justify-between mb-6">
+                <button id="btnGenerateIdCard"
+                  class="btn-professional font-bold px-8 py-3.5 rounded-xl shadow-md flex items-center gap-3 transition-all transform hover:scale-105">
+                  <i class="fas fa-id-card text-xl"></i>
+                  <span>Generate My Official ID Card</span>
+                  <i class="fas fa-arrow-right text-sm"></i>
+                </button>
+                <div class="flex gap-2 items-center text-xs text-gray-500 bg-gray-50 px-4 py-2 rounded-full">
+                  <i class="fas fa-image text-yellow-500"></i>
+                  <span>High-res 1920×1080 ready</span>
+                  <i class="fas fa-download text-gray-400 ml-1"></i>
+                </div>
+              </div>
+
+              <div class="mt-4 text-center text-sm text-gray-500 border-t border-gray-100 pt-5">
+                <i class="fas fa-magic text-yellow-500 mr-2"></i>
+                Click generate → preview your ID card → Download as PNG or JPG
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- MODAL: ID Card Preview -->
+  <div id="idPreviewModal"
+    class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 hidden transition-all modal-fade"
+    aria-modal="true" role="dialog">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-5xl mx-4 overflow-hidden max-h-[90vh] flex flex-col">
+      <div class="flex justify-between items-center p-5 border-b bg-gradient-to-r from-gray-50 to-white">
+        <div>
+          <h3 class="text-2xl font-extrabold text-gray-800"><i class="fas fa-id-card text-yellow-600 mr-2"></i> SK
+            Connect Official ID Card</h3>
+          <p class="text-sm text-gray-500 mt-1">Government-style credential · High-resolution preview</p>
+        </div>
+        <button id="closeModalBtn" class="text-gray-400 hover:text-gray-700 text-3xl transition-colors">&times;</button>
+      </div>
+      <div class="p-6 overflow-auto flex justify-center bg-gradient-to-br from-slate-100 to-gray-100">
+        <div id="modalPreviewContainer" class="relative shadow-2xl rounded-2xl inline-block">
+          <div id="idCardPreview"></div>
+        </div>
+      </div>
+      <div class="p-5 bg-gray-50 flex flex-wrap gap-4 justify-between items-center border-t">
+        <div class="flex gap-3">
+          <button id="downloadPngBtn"
+            class="bg-blue-700 hover:bg-blue-800 text-white font-semibold px-6 py-2.5 rounded-xl shadow-md flex items-center gap-2 transition-all"><i
+              class="fas fa-download"></i> Download PNG</button>
+          <button id="downloadJpgBtn"
+            class="bg-gray-800 hover:bg-gray-900 text-white font-semibold px-6 py-2.5 rounded-xl shadow-md flex items-center gap-2 transition-all"><i
+              class="fas fa-file-image"></i> Download JPG</button>
+        </div>
+        <button id="copyContactBtn"
+          class="border-2 border-yellow-400 bg-white text-blue-800 hover:bg-yellow-50 px-5 py-2.5 rounded-xl font-medium flex gap-2 transition-all"><i
+            class="fas fa-copy"></i> Copy Contact Number</button>
+      </div>
+    </div>
+  </div>
+  <div id="temp-id-container"></div>
+
+  <script>
+    // User data from Flask template
+    const userData = {
+      id: "{{ user.id or 'SK001' }}",
+      username: "{{ user.username or 'sk_official' }}",
+      full_name: "{{ user.full_name or user.username or 'Maria R. Santos' }}",
+      email: "{{ user.email or 'official@skconnect.ph' }}",
+      phone: "{{ user.phone or user.contact or user.mobile or '+63 912 345 6789' }}",
+      position: "{{ user.position or 'SK Chairperson' }}",
+      barangay: "{{ user.barangay or 'Brgy. Batong Malake' }}",
+      gender: "{{ user.gender or 'Female' }}",
+      birthday: "{{ user.birthday or '1995-06-15' }}"
+    };
+
+    let currentIdElement = null;
+
+    function formatNameLastFirst(fullName) {
+      if (!fullName) return 'UNKNOWN';
+      const parts = fullName.trim().split(/\s+/);
+      if (parts.length === 1) return parts[0].toUpperCase();
+      const lastName = parts[parts.length - 1].toUpperCase();
+      const firstNames = parts.slice(0, -1).map(n => n.charAt(0).toUpperCase() + n.slice(1).toLowerCase()).join(' ');
+      return `${lastName}, ${firstNames}`;
+    }
+
+    function formatDate(dateStr) {
+      if (!dateStr || dateStr === '—') return 'NOT SPECIFIED';
+      try {
+        const date = new Date(dateStr);
+        return date.toLocaleDateString('en-PH', { year: 'numeric', month: 'long', day: 'numeric' });
+      } catch { return dateStr; }
+    }
+
+    function generateQRData() {
+      return `https://skconnect.gov.ph/verify?id=${userData.id}`;
+    }
+
+
+    function generateIDCardHTML() {
+      const formattedName = formatNameLastFirst(userData.full_name);
+      const birthday = formatDate(userData.birthday);
+      const userId = userData.id || Math.floor(Math.random() * 900000 + 100000);
+      const currentDate = new Date().toLocaleDateString('en-PH', { year: 'numeric', month: 'long', day: 'numeric' });
+      const position = (userData.position || 'SK MEMBER').toUpperCase();
+      const barangay = (userData.barangay || 'NOT SPECIFIED').toUpperCase();
+      const phone = userData.phone || 'NOT SPECIFIED';
+      const email = userData.email || 'NOT SPECIFIED';
+      const gender = (userData.gender || 'NOT SPECIFIED').toUpperCase();
+      const initials = (userData.full_name || 'SK').split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+      const qrData = generateQRData();
+
+      return `
+        <div id="sk-id-card" style="width: 920px; min-height: 580px; background: linear-gradient(135deg, #0A2A3C 0%, #0C2D42 100%); border-radius: 28px; box-shadow: 0 25px 45px -12px rgba(0,0,0,0.4); font-family: 'Inter', 'Poppins', 'Arial', sans-serif; position: relative; overflow: hidden; border: 1px solid rgba(252,209,22,0.25);">
+          <div style="position: absolute; inset: 0; background-image: radial-gradient(circle at 20% 40%, rgba(252,209,22,0.03) 1px, transparent 1px); background-size: 30px 30px; pointer-events: none;"></div>
+          <div style="height: 8px; background: linear-gradient(90deg, #0038A8 0%, #0038A8 33%, #FCD116 33%, #FCD116 66%, #CE1126 66%, #CE1126 100%);"></div>
+          <div style="padding: 24px 32px 16px 32px; text-align: center; border-bottom: 2px solid rgba(252,209,22,0.3);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+              <div style="background: rgba(252,209,22,0.15); border-radius: 40px; padding: 4px 16px;"><span style="font-size: 11px; color: #FCD116; font-weight: 600;">GOVERNMENT ISSUED</span></div>
+              <div style="background: white; border-radius: 50%; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center;"><i class="fas fa-users" style="font-size: 22px; color: #0d2a52;"></i></div>
+              <div style="width: 80px;"></div>
+            </div>
+            <div style="font-size: 13px; color: #9ab3cf; letter-spacing: 2px;">REPUBLIKA NG PILIPINAS</div>
+            <div style="font-size: 11px; color: #FCD116; letter-spacing: 1px;">LALAWIGAN NG LAGUNA | BAYAN NG LOS BAÑOS</div>
+            <div style="font-size: 24px; font-weight: 800; color: #FCD116; margin-top: 8px;">SANGGUNIANG KABATAAN</div>
+          </div>
+          <div style="padding: 24px 32px; display: flex; gap: 32px;">
+            <div style="width: 260px; text-align: center;">
+              <div id="qr-placeholder" style="background: white; border-radius: 20px; padding: 15px; box-shadow: 0 8px 20px rgba(0,0,0,0.25); border: 2px solid #FCD116;"></div>
+              <div style="margin-top: 12px;"><span style="background: rgba(252,209,22,0.15); color: #FCD116; font-size: 10px; padding: 4px 12px; border-radius: 20px;"><i class="fas fa-qrcode"></i> SCAN TO VERIFY</span></div>
+              <div style="margin-top: 15px; background: rgba(255,255,255,0.05); border-radius: 12px; padding: 8px; border: 1px solid rgba(252,209,22,0.2);">
+                <div style="font-size: 9px; color: #9ab3cf;">UNIQUE IDENTIFIER</div>
+                <div style="font-size: 14px; font-weight: 700; color: white; font-family: monospace;">SK-${userId}-${new Date().getFullYear()}</div>
+              </div>
+            </div>
+            <div style="flex: 1;">
+              <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 20px;">
+                <div style="background: linear-gradient(135deg, #FCD116, #e6b422); border-radius: 50%; width: 65px; height: 65px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.2);"><span style="font-size: 28px; font-weight: 800; color: #0d2a52;">${initials}</span></div>
+                <div><div style="font-size: 11px; color: #FCD116; letter-spacing: 1px;">CARDHOLDER NAME</div><div style="font-size: 24px; font-weight: 800; color: white; line-height: 1.2;">${formattedName}</div></div>
+              </div>
+              <div style="background: rgba(252,209,22,0.2); border-radius: 30px; padding: 8px 20px; display: inline-block; margin-bottom: 20px; border: 1px solid rgba(252,209,22,0.4);"><i class="fas fa-briefcase" style="color: #FCD116; margin-right: 8px;"></i><span style="color: #FCD116; font-weight: 600; font-size: 14px;">${position}</span></div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px 24px;">
+                <div><div style="font-size: 9px; color: #9ab3cf; text-transform: uppercase; letter-spacing: 1px;">BARANGAY</div><div style="font-size: 14px; font-weight: 600; color: white; border-bottom: 1px dashed rgba(252,209,22,0.25); padding-bottom: 4px;">${barangay}</div></div>
+                <div><div style="font-size: 9px; color: #9ab3cf; text-transform: uppercase; letter-spacing: 1px;">GENDER</div><div style="font-size: 14px; font-weight: 600; color: white; border-bottom: 1px dashed rgba(252,209,22,0.25); padding-bottom: 4px;">${gender}</div></div>
+                <div><div style="font-size: 9px; color: #9ab3cf; text-transform: uppercase; letter-spacing: 1px;">CONTACT</div><div style="font-size: 13px; font-weight: 600; color: white; border-bottom: 1px dashed rgba(252,209,22,0.25); padding-bottom: 4px;">${phone}</div></div>
+                <div><div style="font-size: 9px; color: #9ab3cf; text-transform: uppercase; letter-spacing: 1px;">BIRTHDAY</div><div style="font-size: 13px; font-weight: 600; color: white; border-bottom: 1px dashed rgba(252,209,22,0.25); padding-bottom: 4px;">${birthday}</div></div>
+                <div style="grid-column: span 2;"><div style="font-size: 9px; color: #9ab3cf; text-transform: uppercase; letter-spacing: 1px;">EMAIL</div><div style="font-size: 12px; font-weight: 600; color: white; border-bottom: 1px dashed rgba(252,209,22,0.25); padding-bottom: 4px; word-break: break-all;">${email}</div></div>
+              </div>
+              <div style="display: flex; gap: 16px; margin-top: 20px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.1);">
+                <div style="display: flex; align-items: center; gap: 6px;"><i class="fas fa-check-circle" style="color: #FCD116; font-size: 12px;"></i><span style="font-size: 9px; color: #9ab3cf;">BIOMETRIC READY</span></div>
+                <div style="display: flex; align-items: center; gap: 6px;"><i class="fas fa-fingerprint" style="color: #FCD116; font-size: 12px;"></i><span style="font-size: 9px; color: #9ab3cf;">QR SECURED</span></div>
+                <div style="display: flex; align-items: center; gap: 6px;"><i class="fas fa-shield-alt" style="color: #FCD116; font-size: 12px;"></i><span style="font-size: 9px; color: #9ab3cf;">GOVERNMENT ISSUED</span></div>
+              </div>
+            </div>
+          </div>
+          <div style="margin: 16px 32px 20px 32px; display: flex; justify-content: space-between; align-items: center; padding-top: 12px; border-top: 1px solid rgba(252,209,22,0.25);">
+            <div style="font-size: 9px; color: #8aa9cc;"><i class="fas fa-id-card"></i> ISSUED: ${currentDate}</div>
+            <div style="font-size: 9px; color: #FCD116;">skconnect.gov.ph/verify</div>
+          </div>
+        </div>
+      `;
+    }
+
+    function generateAndShowID() {
+      const previewContainer = document.getElementById('idCardPreview');
+      const modal = document.getElementById('idPreviewModal');
+      const generateBtn = document.getElementById('btnGenerateIdCard');
+
+      console.log('=== ID Generation Started ===');
+      console.log('QRCode library available?', typeof window.QRCode);
+
+      generateBtn.disabled = true;
+      generateBtn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Generating ID Card...';
+
+      // Show modal first
+      modal.classList.remove('hidden');
+      previewContainer.innerHTML = generateIDCardHTML();
+
+      console.log('✓ ID Card HTML inserted into DOM');
+
+      currentIdElement = document.getElementById('sk-id-card');
+
+      // Generate QR with increased timeout to ensure DOM is ready
+      setTimeout(() => {
+        console.log('--- Attempting QR Generation ---');
+        console.log('Window.QRCode available:', typeof window.QRCode !== 'undefined');
+
+        const qrPlaceholder = document.getElementById('qr-placeholder');
+        console.log('QR Placeholder found:', !!qrPlaceholder);
+
+        if (!qrPlaceholder) {
+          console.error('ERROR: QR Placeholder element not found in DOM!');
+          generateBtn.disabled = false;
+          generateBtn.innerHTML = '<i class="fas fa-id-card text-xl"></i> Generate My Official ID Card';
+          return;
+        }
+
+        try {
+          // Clear placeholder
+          qrPlaceholder.innerHTML = '';
+          const qrData = generateQRData();
+          console.log('QR Data to encode:', qrData);
+
+          // Check if QRCode is available
+          if (typeof window.QRCode === 'undefined') {
+            console.error('ERROR: QRCode library not loaded! CDN may be blocked.');
+            qrPlaceholder.innerHTML = '<div style="padding: 20px; text-align: center; color: red; font-size: 12px;">QR Library Not Loaded</div>';
+          } else {
+            // Use the global QRCode
+            console.log('Creating QRCode with library version:', QRCode);
+
+            new QRCode(qrPlaceholder, {
+              text: qrData,
+              width: 180,
+              height: 180,
+              colorDark: '#0d2a52',
+              colorLight: '#ffffff',
+              correctLevel: QRCode.CorrectLevel.M
+            });
+
+            console.log('✓ QRCode constructor called');
+            console.log('QR Placeholder children:', qrPlaceholder.children.length);
+            console.log('QR Placeholder HTML:', qrPlaceholder.innerHTML.substring(0, 200));
+          }
+        } catch (e) {
+          console.error('✗ Exception during QR generation:', e.message);
+          console.error('Stack:', e.stack);
+          qrPlaceholder.innerHTML = '<div style="padding: 20px; text-align: center; color: red; font-size: 12px;">Error: ' + e.message + '</div>';
+        }
+
+        generateBtn.disabled = false;
+        generateBtn.innerHTML = '<i class="fas fa-id-card text-xl"></i> Generate My Official ID Card';
+      }, 500);
+    }
+
+    async function downloadID(format = 'png') {
+      if (!currentIdElement) {
+        alert('Please generate an ID card first');
+        return;
+      }
+
+      const canvas = await html2canvas(currentIdElement, {
+        scale: 2.5,
+        backgroundColor: null,
+        useCORS: true,
+        logging: false
+      });
+
+      const link = document.createElement('a');
+      const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+      link.download = `sk_digital_id_${userData.username}_${timestamp}.${format}`;
+      link.href = canvas.toDataURL(format === 'png' ? 'image/png' : 'image/jpeg', 0.95);
+      link.click();
+    }
+
+    // Event Listeners
+    document.getElementById('btnGenerateIdCard')?.addEventListener('click', generateAndShowID);
+    document.getElementById('closeModalBtn')?.addEventListener('click', () => {
+      document.getElementById('idPreviewModal').classList.add('hidden');
+      currentIdElement = null;
+    });
+    document.getElementById('downloadPngBtn')?.addEventListener('click', () => downloadID('png'));
+    document.getElementById('downloadJpgBtn')?.addEventListener('click', () => downloadID('jpg'));
+    document.getElementById('copyContactBtn')?.addEventListener('click', () => {
+      if (userData.phone) {
+        navigator.clipboard.writeText(userData.phone).then(() => alert('Contact number copied!'));
+      } else {
+        alert('No contact number available');
+      }
+    });
+    document.getElementById('idPreviewModal')?.addEventListener('click', (e) => {
+      if (e.target === document.getElementById('idPreviewModal')) {
+        document.getElementById('idPreviewModal').classList.add('hidden');
+        currentIdElement = null;
+      }
+    });
+
+    // Sidebar and dropdown handlers
+    document.querySelectorAll('.sidebar-item, .mobile-nav').forEach(a => {
+      if (window.location.pathname.includes(a.getAttribute('href')?.replace(/^\./, ''))) {
+        a.classList.add('active-nav');
+      }
+    });
+    document.getElementById('mobile-menu-button')?.addEventListener('click', () => {
+      document.getElementById('mobile-menu')?.classList.toggle('hidden');
+    });
+    document.getElementById('userDropdownToggle')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      document.getElementById('userDropdownMenu')?.classList.toggle('hidden');
+    });
+    document.addEventListener('click', () => {
+      document.getElementById('userDropdownMenu')?.classList.add('hidden');
+    });
+
+    /* Financial Reports dropdown toggle (user sidebar) */
+    (function () {
+      const btn = document.getElementById('finDropdownBtn');
+      const menu = document.getElementById('finSubMenu');
+      const chevron = document.getElementById('finChevron');
+      if (btn && menu) {
+        btn.addEventListener('click', function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+          const isHidden = menu.classList.toggle('hidden');
+          if (chevron) chevron.style.transform = isHidden ? '' : 'rotate(180deg)';
+        });
+      }
+    })();
+  </script>
+</body>
+
+</html>

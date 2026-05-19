@@ -1,0 +1,1061 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>SK Connect — Training (Admin)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+  <!-- Tailwind + Icons -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --sk-blue:#0d2a52;
+      --sk-yellow:#FCD116;
+    }
+
+    html,body{ height:100%; }
+    body{
+      margin:0;
+      overflow:hidden;
+      font-family:"Poppins",system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial,"Noto Sans","Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol";
+      background:#fff;
+      color:#111827;
+    }
+
+    .sidebar{ background:var(--sk-blue)!important; color:#fff; }
+    .sidebar .sidebar-item{ color:#e5e7eb; }
+    .sidebar .sidebar-item:hover{ background:rgba(255,255,255,.06); transform:translateX(4px); }
+    .active-nav{
+      background:linear-gradient(90deg, rgba(252,209,22,.22), rgba(252,209,22,0))!important;
+      border-left:4px solid var(--sk-yellow);
+      color:#fff!important;
+    }
+    .app-topbar{
+      background:#fff!important;
+      color:#111827;
+      border-bottom:1px solid #e5e7eb;
+      position:sticky;
+      top:0;
+      z-index:30;
+    }
+    .brand-img{ width:40px; height:40px; border-radius:10px; object-fit:cover; }
+    .dropdown-item:hover { background:#f3f4f6; }
+    .dropdown-divider { border-top:1px solid #e5e7eb; }
+
+    .tabs-wrap{ display:flex; flex-wrap:wrap; gap:.75rem }
+    .tab-btn{
+      padding:.45rem .9rem; border-radius:9999px;
+      font-size:.875rem; font-weight:600;
+      background:#fff; color:#374151; border:1px solid #e5e7eb;
+      transition:.15s ease;
+    }
+    .tab-btn:hover{ background:#f9fafb; transform:translateY(-1px); }
+    .tab-btn.is-active{ border-width:2px; transform:none; }
+    .tab-btn.is-active[data-color="gray"]     { background:#111827; color:#fff; border-color:#111827; }
+    .tab-btn.is-active[data-color="blue"]     { background:#DBEAFE; color:#1E40AF; border-color:#93C5FD; }
+    .tab-btn.is-active[data-color="red"]      { background:#FEE2E2; color:#991B1B; border-color:#FCA5A5; }
+    .tab-btn.is-active[data-color="purple"]   { background:#EDE9FE; color:#5B21B6; border-color:#C4B5FD; }
+    .tab-btn.is-active[data-color="emerald"]  { background:#D1FAE5; color:#065F46; border-color:#A7F3D0; }
+    .tab-btn.is-active[data-color="indigo"]   { background:#E0E7FF; color:#3730A3; border-color:#C7D2FE; }
+    .tab-btn.is-active[data-color="yellow"]   { background:#FEF3C7; color:#92400E; border-color:#FDE68A; }
+    .tab-btn.is-active[data-color="pink"]     { background:#FCE7F3; color:#9D174D; border-color:#F9A8D4; }
+
+    .pill{font-size:.7rem;padding:.125rem .4rem;border-radius:.375rem}
+
+    /* Modal blur */
+    .modal-backdrop{
+      background: rgba(17,24,39,.45);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+    }
+    .modal-panel{
+      transform: scale(.98);
+      opacity:0;
+      transition: transform .18s ease, opacity .18s ease;
+    }
+    .modal-open .modal-panel{
+      transform: scale(1);
+      opacity:1;
+    }
+
+    /* FULLSCREEN behaviour (same as user side) */
+    .modal-panel-full{
+      max-width:100%;
+      width:100%;
+      height:calc(100vh - 2rem);
+      border-radius:0.75rem;
+      display:flex;
+      flex-direction:column;
+    }
+    .modal-panel-full .modal-body{
+      flex:1;
+      display:flex;
+      flex-direction:column;
+      min-height:0;
+    }
+    .modal-panel-full #pvBody{
+      flex:1;
+      height:auto;
+      min-height:0;
+    }
+
+    /* default preview height for normal view */
+    #pvBody{
+      height:26rem;
+    }
+
+    /* archive pill */
+    .bulk-archive-pill{
+      width:1.25rem;
+      height:1.25rem;
+      border-radius:9999px;
+      border:1px solid #d1d5db;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      font-size:0.7rem;
+      background:#fff;
+      color:transparent;
+      cursor:pointer;
+      transition:.15s ease;
+    }
+    .bulk-archive-pill:hover{
+      border-color:#9ca3af;
+    }
+    .bulk-archive-pill.is-on{
+      background:#fee2e2;
+      border-color:#ef4444;
+      color:#ef4444;
+    }
+    .bulk-archive-pill.hidden{
+      display:none;
+    }
+  </style>
+</head>
+
+<body class="antialiased">
+  <div class="flex h-screen overflow-hidden">
+    <!-- Sidebar -->
+    <aside class="hidden md:flex md:flex-shrink-0 sidebar">
+      <div class="flex flex-col w-64">
+        <div class="px-4 py-6 flex items-center">
+          <img src="/static/images/SKLOGO.png" alt="SK Logo" class="brand-img mr-3">
+          <div>
+            <div class="text-white text-xl font-extrabold">SK<span class="text-yellow-300">Connect</span></div>
+            <div class="text-blue-200 text-xs">Los Baños Federation</div>
+          </div>
+        </div>
+
+        <div class="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
+          <nav class="flex-1 px-2 space-y-1">
+            <a href="{{ url_for('admin_dashboard') }}" data-title="Dashboard" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-home mr-3 text-lg"></i> Dashboard
+            </a>
+            <a href="{{ url_for('admin_announcements') }}" data-title="Announcements" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-bullhorn mr-3 text-lg"></i> Announcements
+            </a>
+            <a href="{{ url_for('admin_events_projects') }}" data-title="Events & Projects" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-calendar mr-3 text-lg"></i> Events & Projects
+            </a>
+            <a href="{{ url_for('admin_financial_report') }}" data-title="Financial Reports" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-chart-pie mr-3 text-lg"></i> Financial Reports
+            </a>
+            <a href="{{ url_for('admin_feedback') }}" data-title="Surveys & Polls" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-poll mr-3 text-lg"></i> Surveys & Polls
+            </a>
+            <a href="{{ url_for('admin_documents') }}" data-title="Documents" class="sidebar-item  flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-file-alt mr-3 text-lg"></i> Documents
+            </a>
+            <a href="{{ url_for('admin_volunteer') }}" data-title="Volunteer" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-hands-helping mr-3 text-lg"></i> Volunteer
+            </a>
+            <a href="{{ url_for('admin_training_resources') }}" data-title="Training Resources" class="sidebar-item active-nav flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-graduation-cap mr-3 text-lg"></i> Training Resources
+            </a>
+            <a href="{{ url_for('admin_community') }}" data-title="Community Board" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-users mr-3 text-lg"></i> Community Board
+            </a>
+            <a href="{{ url_for('admin_incidents') }}" data-title="Incident Reports" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-exclamation-triangle mr-3 text-lg"></i> Incident Reports
+            </a>
+            <a href="{{ url_for('admin_user_approval') }}" data-title="User Approval" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-user-check mr-3 text-lg"></i> User Approval
+            </a>
+          </nav>
+        </div>
+
+        <!-- user dropdown -->
+        <div class="flex-shrink-0 flex border-t border-white/10 p-4 relative">
+          <div id="userDropdownToggle" class="flex flex-col items-center cursor-pointer w-full">
+            <div class="flex items-center justify-center w-full">
+              <img class="h-9 w-9 rounded-full" src="{{ current_user.profile_pic if current_user and current_user.profile_pic else get_default_profile_image(current_user) }}" alt="Profile">
+              <div class="ml-3 flex-1 min-w-0">
+                <div class="text-base font-medium text-white truncate uppercase">{{ session['username'] if session.get('username') else 'Guest' }}</div>
+                <div class="text-xs text-blue-100 mt-0.5 truncate">{{ session['position']|title if session.get('position') else 'User' }}</div>
+              </div>
+              <i class="fas fa-chevron-down ml-2 text-blue-200 flex-shrink-0"></i>
+            </div>
+          </div>
+          <ul id="userDropdownMenu" class="absolute left-0 right-0 mx-auto bottom-14 z-20 w-60 bg-white rounded shadow-lg py-2 text-gray-700 hidden">
+            <li>
+              <a class="dropdown-item flex items-center px-4 py-2 hover:bg-gray-100" href="{{ url_for('profile') }}">
+                <i class="fas fa-user mr-2"></i>Profile
+              </a>
+            </li>
+            <li><a class="dropdown-item flex items-center px-4 py-2 hover:bg-gray-100" href="#"><i class="fas fa-cog mr-2"></i>Settings</a></li>
+            <li><hr class="dropdown-divider my-1"></li>
+            <li><a class="dropdown-item flex items-center px-4 py-2 hover:bg-gray-100" href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt mr-2"></i>Logout</a></li>
+          </ul>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Mobile top bar -->
+    <div class="md:hidden app-topbar w-full flex items-center justify-between px-4 py-3">
+      <div class="flex items-center">
+        <img src="/static/images/SKLOGO.png" class="brand-img mr-2" alt="SK"/>
+        <h1 class="text-lg font-extrabold">SK<span class="text-blue-700">Connect</span></h1>
+      </div>
+      <button id="mobile-menu-button" class="text-gray-700 focus:outline-none"><i class="fas fa-bars text-xl"></i></button>
+    </div>
+
+    <!-- Mobile dropdown -->
+    <div id="mobile-menu" class="md:hidden absolute top-14 left-0 right-0 sidebar z-10 hidden">
+      <nav class="px-2 pt-2 pb-3 space-y-1">
+        <a href="{{ url_for('admin_dashboard') }}" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-home mr-2"></i> Dashboard</a>
+        <a href="{{ url_for('admin_announcements') }}" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-bullhorn mr-2"></i> Announcements</a>
+        <a href="{{ url_for('admin_events_projects') }}" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-calendar mr-2"></i> Events & Projects</a>
+        <a href="{{ url_for('admin_financial_report') }}" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-chart-pie mr-2"></i> Financial Reports</a>
+        <a href="{{ url_for('admin_feedback') }}" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-poll mr-2"></i> Surveys & Polls</a>
+        <a href="{{ url_for('admin_documents') }}" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-file-alt mr-2"></i> Documents</a>
+        <a href="{{ url_for('admin_volunteer') }}" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-hands-helping mr-2"></i> Volunteer</a>
+        <a href="{{ url_for('admin_training_resources') }}" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-graduation-cap mr-2"></i> Training Resources</a>
+        <a href="{{ url_for('admin_community') }}" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-users mr-2"></i> Community Board</a>
+        <a href="{{ url_for('admin_incidents') }}" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-exclamation-triangle mr-2"></i> Incident Reports</a>
+      </nav>
+    </div>
+
+    <!-- Main -->
+    <div class="flex-1 flex flex-col overflow-hidden min-h-0">
+      <header class="bg-white shadow">
+        <div class="flex justify-between items-center px-4 py-4 sm:px-6 lg:px-8">
+          <h1 class="text-2xl font-bold text-gray-900">Training Resources</h1>
+          <div class="flex items-center space-x-3">
+            <button id="btnUpload" type="button" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+              <i class="fa-solid fa-arrow-up-from-bracket mr-2"></i>Upload New
+            </button>
+
+            <button id="btnExport" type="button" class="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200">
+              <i class="fa-solid fa-file-arrow-down mr-2"></i>Export List
+            </button>
+
+            <!-- Archive bulk toggle/apply -->
+            <button id="archiveToggle" type="button"
+                    class="border border-gray-300 text-gray-700 px-3 py-2 rounded-lg text-sm flex items-center gap-1 hover:bg-gray-50">
+              <i class="fa-solid fa-box-archive text-xs"></i>
+              <span>Archive</span>
+            </button>
+
+            <!-- View Active / Archived / All -->
+            <select id="archivedFilter" class="border border-gray-300 text-gray-700 text-sm px-2 py-2 rounded-md">
+              <option value="active">Active</option>
+              <option value="archived">Archived</option>
+              <option value="all">All</option>
+            </select>
+
+            <!-- Notifications -->
+            <div class="relative">
+              <button id="notifBell" type="button" class="relative p-2 rounded-full text-gray-400 hover:text-gray-600" aria-expanded="false">
+                <i class="fas fa-bell text-xl"></i>
+                <span id="notifDot" class="absolute -top-0.5 -right-0.5 inline-block w-2 h-2 bg-red-600 rounded-full"></span>
+              </button>
+              <div id="notifMenu" class="hidden absolute right-0 mt-2 w-80 bg-white shadow-xl rounded-lg ring-1 ring-black ring-opacity-5 z-50">
+                <div class="px-4 py-3 border-b flex items-center justify-between">
+                  <p class="font-semibold text-gray-900">Notifications</p>
+                  <button id="notifMarkRead" type="button" class="text-xs text-blue-600 hover:text-blue-800">Mark all as read</button>
+                </div>
+                <ul class="max-h-80 overflow-y-auto divide-y">
+                  <li class="px-4 py-3 hover:bg-gray-50 flex">
+                    <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center mr-3">
+                      <i class="fas fa-file-circle-plus text-blue-600"></i>
+                    </div>
+                    <div class="text-sm">
+                      <p class="text-gray-800"><span class="font-medium">2 new files</span> uploaded to <span class="font-medium">Safety & Protocols</span>.</p>
+                      <p class="text-xs text-gray-500">5m ago</p>
+                    </div>
+                  </li>
+                  <li class="px-4 py-3 hover:bg-gray-50 flex">
+                    <div class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center mr-3">
+                      <i class="fas fa-check-circle text-green-600"></i>
+                    </div>
+                    <div class="text-sm">
+                      <p class="text-gray-800">Maria Santos completed <span class="font-medium">Onboarding</span>.</p>
+                      <p class="text-xs text-gray-500">1h ago</p>
+                    </div>
+                  </li>
+                </ul>
+                <div class="px-4 py-2 border-t">
+                  <a href="#" class="block text-center text-sm text-blue-600 hover:text-blue-800">View all</a>
+                </div>
+              </div>
+            </div>
+            <!-- /Notifications -->
+          </div>
+        </div>
+      </header>
+
+      <main class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+        <!-- Library overview (counts only) -->
+        <section class="bg-white shadow rounded-lg p-5 mb-6">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div>
+              <p class="text-sm text-gray-600">Library overview</p>
+              <h2 class="text-xl font-semibold text-gray-900">
+                <span id="resCount">0</span> resources in library
+              </h2>
+              <p class="text-xs text-gray-500 mt-1">
+                Active: <span id="resActive">0</span> • Archived: <span id="resArchived">0</span>
+              </p>
+            </div>
+            <div class="w-full sm:w-1/2">
+              <div class="w-full bg-gray-100 rounded-full h-3">
+                <div id="progressBar" class="bg-blue-600 h-3 rounded-full" style="width:0%"></div>
+              </div>
+              <p class="text-xs text-gray-500 mt-1 text-right">Blue bar = % active vs total</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Tabs + Filters + View toggle -->
+        <section class="bg-white shadow rounded-lg p-5 mb-6">
+          <div class="flex items-center justify-between gap-3 mb-4">
+            <div class="tabs-wrap">
+              <button class="tab-btn is-active" data-module="All" data-color="gray"><i class="fa-solid fa-layer-group mr-2"></i>All</button>
+              <button class="tab-btn" data-module="Onboarding" data-color="indigo"><i class="fa-solid fa-person-walking-arrow-right mr-2"></i>Onboarding</button>
+              <button class="tab-btn" data-module="Safety & Protocols" data-color="red"><i class="fa-solid fa-shield-heart mr-2"></i>Safety & Protocols</button>
+              <button class="tab-btn" data-module="Role Guides" data-color="purple"><i class="fa-solid fa-user-gear mr-2"></i>Role Guides</button>
+              <button class="tab-btn" data-module="Event Operations" data-color="emerald"><i class="fa-solid fa-clipboard-check mr-2"></i>Event Operations</button>
+              <button class="tab-btn" data-module="Policies & Forms" data-color="blue"><i class="fa-solid fa-scale-balanced mr-2"></i>Policies & Forms</button>
+              <button class="tab-btn" data-module="Downloads" data-color="yellow"><i class="fa-solid fa-download mr-2"></i>Downloads</button>
+              <button class="tab-btn" data-module="Assessments & Certification" data-color="pink"><i class="fa-solid fa-certificate mr-2"></i>Assessments</button>
+            </div>
+
+            <div class="hidden md:flex items-center">
+              <div class="inline-flex rounded-md border border-gray-200 overflow-hidden">
+                <button id="btnGrid" type="button" class="px-3 py-2 text-sm font-medium bg-blue-600 text-white"><i class="fa-solid fa-border-all"></i></button>
+                <button id="btnList" type="button" class="px-3 py-2 text-sm font-medium bg-white text-gray-700"><i class="fa-solid fa-list"></i></button>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+            <div class="relative md:col-span-2">
+              <input id="searchBox" type="text" placeholder="Search title, tags, audience…" class="w-full border rounded-md px-3 py-2 pr-9 focus:ring-blue-500 focus:border-blue-500">
+              <i class="fa-solid fa-magnifying-glass absolute right-3 top-2.5 text-gray-400"></i>
+            </div>
+            <select id="filterType" class="border rounded-md px-3 py-2">
+              <option value="">All types</option>
+              <option value="pdf">PDF</option>
+              <option value="slides">Slides</option>
+              <option value="video">Video</option>
+              <option value="doc">Doc</option>
+              <option value="sheet">Sheet</option>
+              <option value="quiz">Quiz</option>
+            </select>
+            <select id="filterRole" class="border rounded-md px-3 py-2">
+              <option value="">All audiences</option>
+              <option>All</option>
+              <option>Logistics</option>
+              <option>Registration</option>
+              <option>Marshalling</option>
+              <option>First Aid</option>
+              <option>Secretariat</option>
+              <option>Youth Leaders</option>
+              <option>In-school Youth</option>
+              <option>Out-of-school Youth</option>
+              <option>SK Council</option>
+            </select>
+          </div>
+        </section>
+
+        <!-- Resources Grid -->
+        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" id="resGrid"></section>
+
+        <!-- Resources List -->
+        <section id="resList" class="hidden">
+          <div class="bg-white rounded-lg shadow overflow-hidden">
+            <table class="min-w-full divide-y divide-gray-200">
+              <thead class="bg-gray-50">
+                <tr>
+                  <!-- archive checkbox column sa unahan -->
+                  <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase w-10"></th>
+                  <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Title</th>
+                  <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Module</th>
+                  <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Type</th>
+                  <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Audience</th>
+                  <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Updated</th>
+                  <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="resListBody" class="bg-white divide-y divide-gray-200"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Orientation Kit callout -->
+        <section class="mt-8 bg-white shadow rounded-lg p-6">
+          <div class="flex items-start gap-4">
+            <div class="p-3 rounded-md bg-blue-100 text-blue-700"><i class="fa-solid fa-book"></i></div>
+            <div class="flex-1">
+              <h3 class="font-semibold text-gray-900">Orientation Kit (Compiled)</h3>
+              <p class="text-sm text-gray-600">All onboarding essentials in one PDF: code of conduct, safety brief, data privacy notice, and check-in/out guide.</p>
+            </div>
+            <button class="text-blue-600 hover:text-blue-800 text-sm">
+              <i class="fa-regular fa-file-pdf mr-2"></i>Download PDF
+            </button>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <!-- Preview Modal (ADMIN) -->
+  <div id="previewModal" class="modal-backdrop fixed inset-0 hidden z-40 items-center justify-center p-4" role="dialog" aria-modal="true">
+    <div class="modal-panel bg-white w-full max-w-4xl rounded-xl shadow-xl overflow-hidden flex flex-col">
+      <div class="flex items-center justify-between px-6 py-4 border-b">
+        <div>
+          <h3 id="pvTitle" class="text-lg font-semibold text-gray-900">Preview</h3>
+          <p id="pvMeta" class="text-sm text-gray-600 mt-0.5">—</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <button id="pvFullscreen" type="button" class="text-gray-400 hover:text-gray-600" title="Toggle fullscreen">
+            <i class="fa-solid fa-expand"></i>
+          </button>
+          <button id="pvClose" type="button" class="text-gray-500 hover:text-gray-700">
+            <i class="fa-solid fa-xmark text-xl"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- wrapper para sa body, para gumana yung fullscreen flex -->
+      <div class="p-6 modal-body">
+        <div id="pvBody" class="w-full bg-gray-50 border rounded-lg flex items-center justify-center text-gray-500">
+          (Preview not wired – demo)
+        </div>
+      </div>
+
+      <div class="px-6 py-4 border-t flex justify-end gap-2">
+        <a id="pvDownload" href="#" class="px-4 py-2 rounded-lg bg-gray-100 text-gray-800 hover:bg-gray-200">Download</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Upload Resource Modal -->
+  <div id="uploadModal" class="modal-backdrop fixed inset-0 hidden z-40 items-center justify-center p-4" role="dialog" aria-modal="true">
+    <div class="modal-panel bg-white w-full max-w-2xl rounded-xl shadow-xl overflow-hidden">
+      <div class="flex items-center justify-between px-6 py-4 border-b">
+        <h3 class="text-lg font-semibold text-gray-900">Upload New Resource</h3>
+        <button id="upClose" type="button" class="text-gray-500 hover:text-gray-700">
+          <i class="fa-solid fa-xmark text-xl"></i>
+        </button>
+      </div>
+
+      <form id="uploadForm"
+            action="{{ url_for('upload_training_resource') }}"
+            method="POST"
+            enctype="multipart/form-data"
+            class="p-6 space-y-4">
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Title</label>
+            <input id="upTitle" name="title" type="text" class="w-full border rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500" required>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Module</label>
+            <select id="upModule" name="module" class="w-full border rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500" required>
+              <option>Onboarding</option>
+              <option>Safety & Protocols</option>
+              <option>Role Guides</option>
+              <option>Event Operations</option>
+              <option>Policies & Forms</option>
+              <option>Downloads</option>
+              <option>Assessments & Certification</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Type</label>
+            <select id="upType" name="type" class="w-full border rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500" required>
+              <option value="pdf">PDF</option>
+              <option value="slides">Slides</option>
+              <option value="video">Video</option>
+              <option value="doc">Doc</option>
+              <option value="sheet">Sheet</option>
+              <option value="quiz">Quiz</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Audience</label>
+            <select id="upAudience" name="audience" class="w-full border rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500" required>
+              <option>All</option>
+              <option>Logistics</option>
+              <option>Registration</option>
+              <option>Marshalling</option>
+              <option>First Aid</option>
+              <option>Secretariat</option>
+              <option>Youth Leaders</option>
+              <option>In-school Youth</option>
+              <option>Out-of-school Youth</option>
+              <option>SK Council</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="md:col-span-3">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Tags (comma-separated)</label>
+            <input id="upTags" name="tags" type="text" placeholder="privacy, checklist, ops" class="w-full border rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">File</label>
+          <div class="border-2 border-dashed border-gray-300 rounded-md px-4 py-6 text-center">
+            <i class="fa-solid fa-cloud-arrow-up text-2xl text-gray-400"></i>
+            <p class="text-sm text-gray-500 mt-2">Drag & drop or click to upload</p>
+            <input id="upFile" name="file" type="file" class="sr-only" required>
+            <label for="upFile" class="mt-3 inline-block px-3 py-2 rounded-md bg-blue-600 text-white text-sm cursor-pointer">Choose file</label>
+            <div id="upFileName" class="mt-2 text-xs text-gray-600"></div>
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-2 border-t">
+          <button type="button" id="upCancel" class="px-4 py-2 rounded-lg bg-white border text-gray-700 hover:bg-gray-50">Cancel</button>
+          <button type="submit" class="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700">Save Resource</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="hidden fixed bottom-5 right-5 bg-gray-900 text-white text-sm px-4 py-2 rounded-lg shadow-lg z-50"></div>
+
+  <!-- DATA from backend -->
+  <script>
+    const RESOURCES = {{ (resources | default([])) | tojson | safe }} || [];
+  </script>
+
+  <!-- Main JS -->
+  <script>
+    const $  = s => document.querySelector(s);
+    const $$ = s => Array.from(document.querySelectorAll(s));
+
+    const ICONS = {
+      pdf:'fa-regular fa-file-pdf text-red-600',
+      slides:'fa-regular fa-file-powerpoint text-orange-500',
+      video:'fa-solid fa-circle-play text-blue-600',
+      doc:'fa-regular fa-file-lines text-gray-700',
+      sheet:'fa-regular fa-file-excel text-green-600',
+      quiz:'fa-solid fa-square-poll-vertical text-purple-600'
+    };
+
+    const toast = (msg)=>{
+      const t=$('#toast');
+      t.textContent=msg;
+      t.classList.remove('hidden');
+      setTimeout(()=>t.classList.add('hidden'),1600);
+    };
+
+    function normalizeTags(item){
+      if (Array.isArray(item.tags)) return item.tags;
+      if (!item.tags) return [];
+      return String(item.tags).split(',')
+        .map(t=>t.trim())
+        .filter(Boolean);
+    }
+
+    /* Notifications */
+    const notifBell = $('#notifBell'),
+          notifMenu = $('#notifMenu'),
+          notifDot  = $('#notifDot'),
+          markRead  = $('#notifMarkRead');
+
+    const openNotif = ()=>{ notifMenu.classList.remove('hidden'); notifBell.setAttribute('aria-expanded','true'); };
+    const closeNotif = ()=>{ notifMenu.classList.add('hidden'); notifBell.setAttribute('aria-expanded','false'); };
+    notifBell?.addEventListener('click', e=>{
+      e.stopPropagation();
+      notifMenu.classList.contains('hidden') ? openNotif() : closeNotif();
+    });
+    document.addEventListener('click', ()=> closeNotif());
+    document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeNotif(); });
+    markRead?.addEventListener('click', e=>{
+      e.preventDefault();
+      notifDot?.classList.add('hidden');
+    });
+
+    /* Library overview (counts only) */
+    function updateProgress(){
+      const total       = RESOURCES.length;
+      const activeCnt   = RESOURCES.filter(r=>!r.archived).length;
+      const archivedCnt = total - activeCnt;
+
+      $('#resCount').textContent    = total;
+      $('#resActive').textContent   = activeCnt;
+      $('#resArchived').textContent = archivedCnt;
+
+      const pct = total ? Math.round((activeCnt/total)*100) : 0;
+      $('#progressBar').style.width = pct + '%';
+    }
+
+    /* Filters + state */
+    let currentModule    = 'All';
+    let viewMode         = 'grid';
+    let archiveMode      = false;
+    const archiveSelected = new Set();
+
+    const archivedFilterSel = $('#archivedFilter');
+    function getArchivedFilter(){
+      return archivedFilterSel ? archivedFilterSel.value || 'active' : 'active';
+    }
+
+    function matchFilters(item){
+      const archFilter = getArchivedFilter();
+      if (archFilter === 'active'   && item.archived)  return false;
+      if (archFilter === 'archived' && !item.archived) return false;
+      // "all" = show both
+
+      const q  = ($('#searchBox').value||'').toLowerCase().trim();
+      const ft = $('#filterType').value || '';
+      const fr = $('#filterRole').value || '';
+
+      const tags = normalizeTags(item);
+
+      const moduleOk = (currentModule === 'All' || item.module === currentModule);
+      const typeOk   = (!ft || item.type === ft);
+      const roleOk   = (!fr || fr === 'All' || item.audience === fr || item.audience === 'All');
+
+      const text = [
+        item.title || '',
+        item.audience || '',
+        item.module || '',
+        ...tags
+      ].join(' ').toLowerCase();
+
+      const textOk = (!q || text.includes(q));
+      return moduleOk && typeOk && roleOk && textOk;
+    }
+
+    function icon(type){
+      const i=document.createElement('i');
+      i.className = ICONS[type] || 'fa-regular fa-file';
+      return i;
+    }
+
+    function toggleArchiveSelection(id, pillEl){
+      const key = String(id);
+      if (archiveSelected.has(key)){
+        archiveSelected.delete(key);
+      }else{
+        archiveSelected.add(key);
+      }
+      if(pillEl){
+        pillEl.classList.toggle('is-on', archiveSelected.has(key));
+      }
+      updateArchiveButton();
+    }
+
+    /* GRID CARD */
+    function gridCard(item){
+      const tags = normalizeTags(item);
+      const el = document.createElement('div');
+      el.className = 'bg-white border rounded-lg p-4 hover:shadow-sm flex flex-col';
+
+      el.innerHTML = `
+        <div class="flex items-start justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center"></div>
+            <div>
+              <h4 class="font-semibold text-gray-900">${item.title || ''}</h4>
+              <p class="text-xs text-gray-500">${item.module || ''} • ${item.audience || ''}</p>
+            </div>
+          </div>
+          ${item.archived ? '<span class="pill bg-red-100 text-red-700 text-xs">Archived</span>' : ''}
+        </div>
+        <div class="mt-3 flex-1">
+          <div class="flex flex-wrap gap-2 text-xs text-gray-600">
+            <span class="pill bg-gray-100 text-gray-700 capitalize">${item.type || ''}</span>
+            ${tags.slice(0,3).map(t=>`<span class="pill bg-blue-100 text-blue-700">${t}</span>`).join('')}
+            <span class="pill bg-gray-100 text-gray-600">Updated ${item.updated || ''}</span>
+          </div>
+        </div>
+        <div class="mt-4 flex items-center justify-between">
+          <div class="flex gap-2">
+            <button class="btn-preview text-blue-600 hover:text-blue-800 text-sm">
+              <i class="fa-regular fa-eye mr-1"></i>Preview
+            </button>
+            <a class="btn-download text-gray-700 hover:text-gray-900 text-sm" href="${item.url || '#'}" target="_blank">
+              <i class="fa-solid fa-download mr-1"></i>Download
+            </a>
+          </div>
+          <button
+            type="button"
+            class="bulk-archive-pill ${archiveMode ? '' : 'hidden'} ${archiveSelected.has(String(item.id)) ? 'is-on' : ''}"
+            data-id="${item.id}">
+            <i class="fa-solid fa-check"></i>
+          </button>
+        </div>`;
+
+      el.querySelector('.w-10').appendChild(icon(item.type));
+
+      el.querySelector('.btn-preview').addEventListener('click', e=>{
+        e.preventDefault();
+        openPreview(item);
+      });
+
+      const pill = el.querySelector('.bulk-archive-pill');
+      pill.addEventListener('click', ()=>{
+        toggleArchiveSelection(item.id, pill);
+      });
+
+      return el;
+    }
+
+    /* LIST ROW */
+    function listRow(item){
+      const tags = normalizeTags(item);
+      const tr = document.createElement('tr');
+      const selected = archiveSelected.has(String(item.id));
+
+      tr.innerHTML = `
+        <td class="px-4 py-3 text-center">
+          <button
+            type="button"
+            class="bulk-archive-pill ${archiveMode ? '' : 'hidden'} ${selected ? 'is-on' : ''}"
+            data-id="${item.id}">
+            <i class="fa-solid fa-check"></i>
+          </button>
+        </td>
+
+        <td class="px-4 py-3 whitespace-nowrap">
+          <div class="flex items-center">
+            <div class="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center mr-3">
+              <i class="${ICONS[item.type] || 'fa-regular fa-file'}"></i>
+            </div>
+            <div>
+              <div class="text-sm font-medium text-gray-900">
+                ${item.title || ''}
+                ${item.archived ? '<span class="ml-2 text-[10px] uppercase tracking-wide text-red-500">ARCHIVED</span>' : ''}
+              </div>
+              <div class="text-xs text-gray-500">
+                ${tags.slice(0,3).join(' • ')}
+              </div>
+            </div>
+          </div>
+        </td>
+
+        <td class="px-4 py-3 text-sm text-gray-700">${item.module || ''}</td>
+        <td class="px-4 py-3 text-sm text-gray-700 capitalize">${item.type || ''}</td>
+        <td class="px-4 py-3 text-sm text-gray-700">${item.audience || ''}</td>
+        <td class="px-4 py-3 text-sm text-gray-700">${item.updated || ''}</td>
+
+        <td class="px-4 py-3 text-sm text-center">
+          <button class="mr-3 text-blue-600 hover:text-blue-800 btn-preview">
+            <i class="fa-regular fa-eye mr-1"></i>Preview
+          </button>
+          <a class="text-gray-700 hover:text-gray-900 btn-download" href="${item.url || '#'}" target="_blank">
+            <i class="fa-solid fa-download mr-1"></i>Download
+          </a>
+        </td>
+      `;
+
+      tr.querySelector('.btn-preview').addEventListener('click', e=>{
+        e.preventDefault();
+        openPreview(item);
+      });
+
+      const pill = tr.querySelector('.bulk-archive-pill');
+      pill.addEventListener('click', ()=>{
+        toggleArchiveSelection(item.id, pill);
+      });
+
+      return tr;
+    }
+
+    /* Render */
+    function render(){
+      const items = RESOURCES.filter(matchFilters);
+
+      const grid = $('#resGrid');
+      grid.innerHTML = '';
+      items.forEach(i => grid.appendChild(gridCard(i)));
+
+      const listBody = $('#resListBody');
+      listBody.innerHTML = '';
+      items.forEach(i => listBody.appendChild(listRow(i)));
+
+      updateProgress();
+    }
+
+    /* Tabs */
+    function activateTab(btn){
+      $$('.tab-btn').forEach(b=> b.classList.remove('is-active'));
+      btn.classList.add('is-active');
+      currentModule = btn.dataset.module;
+      render();
+    }
+    $$('.tab-btn').forEach(b=> b.addEventListener('click',()=> activateTab(b)));
+
+    /* Filters */
+    $('#searchBox').addEventListener('input', render);
+    $('#filterType').addEventListener('change', render);
+    $('#filterRole').addEventListener('change', render);
+    archivedFilterSel?.addEventListener('change', ()=>{
+      archiveMode = false;
+      archiveSelected.clear();
+      updateArchiveButton();
+      render();
+    });
+
+    /* View toggle */
+    const btnGrid = $('#btnGrid'),
+          btnList = $('#btnList');
+
+    function setView(mode){
+      viewMode = mode;
+      if(mode==='grid'){
+        btnGrid.classList.add('bg-blue-600','text-white');
+        btnGrid.classList.remove('bg-white','text-gray-700');
+        btnList.classList.add('bg-white','text-gray-700');
+        btnList.classList.remove('bg-blue-600','text-white');
+        $('#resGrid').classList.remove('hidden');
+        $('#resList').classList.add('hidden');
+      }else{
+        btnList.classList.add('bg-blue-600','text-white');
+        btnList.classList.remove('bg-white','text-gray-700');
+        btnGrid.classList.add('bg-white','text-gray-700');
+        btnGrid.classList.remove('bg-blue-600','text-white');
+        $('#resGrid').classList.add('hidden');
+        $('#resList').classList.remove('hidden');
+      }
+    }
+    btnGrid.addEventListener('click', ()=> setView('grid'));
+    btnList.addEventListener('click', ()=> setView('list'));
+
+    /* Preview modal + fullscreen */
+    const pvModal         = $('#previewModal');
+    const pvPanel         = pvModal.querySelector('.modal-panel');
+    const pvFullscreenBtn = $('#pvFullscreen');
+    let previewItem       = null;
+    let pvFull            = false;
+
+    const showModal = ()=>{
+      pvModal.classList.remove('hidden');
+      pvModal.classList.add('flex','modal-open');
+    };
+    const hideModal = ()=>{
+      pvModal.classList.remove('modal-open');
+      setTimeout(()=>{
+        pvModal.classList.add('hidden');
+        pvModal.classList.remove('flex');
+        pvFull = false;
+        pvPanel.classList.remove('modal-panel-full');
+        pvFullscreenBtn.innerHTML = '<i class="fa-solid fa-expand"></i>';
+      },180);
+    };
+
+    $('#pvClose').addEventListener('click', hideModal);
+    pvModal.addEventListener('click', e=>{ if(e.target===pvModal) hideModal(); });
+    document.addEventListener('keydown', e=>{ if(e.key==='Escape') hideModal(); });
+
+    pvFullscreenBtn.addEventListener('click', ()=>{
+      pvFull = !pvFull;
+      pvPanel.classList.toggle('modal-panel-full', pvFull);
+      pvFullscreenBtn.innerHTML = pvFull
+        ? '<i class="fa-solid fa-compress"></i>'
+        : '<i class="fa-solid fa-expand"></i>';
+    });
+
+    /* ⬇️ IMPORTANT: UPDATED PREVIEW FUNCTION (video, ppt, doc, sheet, pdf) */
+    function openPreview(item){
+      previewItem = item;
+      $('#pvTitle').textContent = item.title || 'Preview';
+      $('#pvMeta').textContent  = `${item.module || ''} • ${item.audience || ''}`;
+      $('#pvDownload').setAttribute('href', item.url || '#');
+
+      const body = $('#pvBody');
+      body.innerHTML = '';
+
+      const url = item.url || '#';
+      const encodedUrl = encodeURIComponent(url);
+
+      // VIDEO PREVIEW
+      if (item.type === 'video') {
+        body.innerHTML = `
+          <video controls class="w-full h-full rounded-md max-h-full">
+            <source src="${url}" type="video/mp4">
+            Your browser does not support the video tag.
+          </video>
+        `;
+
+      // SLIDES, DOC, SHEET via Office Online viewer
+      } else if (item.type === 'slides' || item.type === 'doc' || item.type === 'sheet') {
+        body.innerHTML = `
+          <iframe
+            src="https://view.officeapps.live.com/op/embed.aspx?src=${encodedUrl}"
+            class="w-full h-full rounded-md border"
+            frameborder="0"
+          ></iframe>
+        `;
+
+      // PDF direct preview
+      } else if (item.type === 'pdf') {
+        body.innerHTML = `
+          <iframe
+            src="${url}"
+            class="w-full h-full rounded-md border"
+          ></iframe>
+        `;
+
+      } else if (item.type === 'quiz') {
+        body.innerHTML = '<div class="text-center text-gray-700"><div class="mb-2 font-medium">Quiz preview (demo)</div></div>';
+      } else {
+        body.textContent = 'Preview not available';
+      }
+
+      showModal();
+    }
+
+    /* Upload modal */
+    const uploadModal = $('#uploadModal');
+    const upOpen  = ()=> { uploadModal.classList.remove('hidden'); uploadModal.classList.add('flex','modal-open'); };
+    const upClose = ()=> {
+      uploadModal.classList.remove('modal-open');
+      setTimeout(()=>{ uploadModal.classList.add('hidden'); uploadModal.classList.remove('flex'); },180);
+    };
+
+    $('#btnUpload')?.addEventListener('click', upOpen);
+    $('#upClose')  ?.addEventListener('click', upClose);
+    $('#upCancel') ?.addEventListener('click', upClose);
+    uploadModal?.addEventListener('click', (e)=>{ if(e.target===uploadModal) upClose(); });
+
+    $('#upFile')?.addEventListener('change', (e)=>{
+      const f = e.target.files[0];
+      $('#upFileName').textContent = f ? f.name : '';
+    });
+
+    /* Export CSV (may column Archived) */
+    $('#btnExport')?.addEventListener('click', () => {
+      const rows = [
+        ['Title', 'Module', 'Type', 'Audience', 'Updated', 'Archived'],
+        ...RESOURCES.map(r => [
+          r.title || '',
+          r.module || '',
+          r.type || '',
+          r.audience || '',
+          r.updated || '',
+          r.archived ? 'Yes' : 'No'
+        ])
+      ];
+      const csv  = rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url  = URL.createObjectURL(blob);
+
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'training_resources.csv';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      toast('Exported training_resources.csv');
+    });
+
+    /* Archive / Restore button logic */
+    const archiveToggle = $('#archiveToggle');
+
+    function updateArchiveButton(){
+      const archFilter  = getArchivedFilter();
+      const actionLabel = (archFilter === 'archived') ? 'Restore' : 'Archive';
+
+      if(!archiveMode){
+        archiveToggle.classList.remove('bg-red-50','text-red-600','border-red-300');
+        archiveToggle.classList.add('border-gray-300','text-gray-700');
+        archiveToggle.querySelector('span').textContent = actionLabel;
+      }else{
+        archiveToggle.classList.add('bg-red-50','text-red-600','border-red-300');
+        archiveToggle.classList.remove('border-gray-300','text-gray-700');
+        const count = archiveSelected.size;
+        archiveToggle.querySelector('span').textContent =
+          `${actionLabel}${count ? ` (${count})` : ' (0)'}`;
+      }
+    }
+
+    archiveToggle?.addEventListener('click', async ()=>{
+      const archFilter  = getArchivedFilter();
+      const actionLabel = (archFilter === 'archived') ? 'Restore' : 'Archive';
+
+      if(!archiveMode){
+        archiveMode = true;
+        archiveSelected.clear();
+        updateArchiveButton();
+        render();
+        return;
+      }
+
+      const count = archiveSelected.size;
+      if(!count){
+        archiveMode = false;
+        archiveSelected.clear();
+        updateArchiveButton();
+        render();
+        return;
+      }
+
+      if(!confirm(`${actionLabel} ${count} resource(s)?`)){ return; }
+
+      const ids    = Array.from(archiveSelected);
+      const action = (archFilter === 'archived') ? 'unarchive' : 'archive';
+
+      try{
+        const resp = await fetch("{{ url_for('archive_training_resources') }}", {
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ids, action})
+        });
+        const data = await resp.json();
+        if(data.success){
+          toast(`${actionLabel}d selected resources`);
+          window.location.reload();
+        }else{
+          toast(data.error || `${actionLabel} failed`);
+        }
+      }catch(err){
+        console.error(err);
+        toast(`${actionLabel} request error`);
+      }
+    });
+
+    /* Misc UI */
+    (document.getElementById('mobile-menu-button')||{}).addEventListener?.('click',()=> $('#mobile-menu').classList.toggle('hidden'));
+    const userDropdownToggle = document.getElementById('userDropdownToggle');
+    const userDropdownMenu   = document.getElementById('userDropdownMenu');
+    userDropdownToggle?.addEventListener('click', e=>{
+      e.stopPropagation();
+      userDropdownMenu.classList.toggle('hidden');
+    });
+    document.addEventListener('click', ()=> userDropdownMenu?.classList.add('hidden'));
+
+    document.addEventListener('DOMContentLoaded', ()=>{
+      setView('grid');
+      updateArchiveButton();
+      render();
+    });
+  </script>
+</body>
+</html>

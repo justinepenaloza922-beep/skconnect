@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>SK Connect — Events (User)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+  <!-- Tailwind + Icons -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root{ --sk-blue:#0d2a52; --sk-yellow:#FCD116; }
+    html, body { height:100%; margin:0; overflow:hidden; }
+    body{ font-family:"Poppins",system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial,"Noto Sans"; background:#fff; color:#111827; }
+    main { overflow:auto; -webkit-overflow-scrolling:touch; }
+    body.modal-open { overflow:hidden; }
+
+    /* Sidebar + nav */
+    .sidebar{ background:var(--sk-blue)!important; color:#fff; }
+    .sidebar .sidebar-item{ color:#e5e7eb; }
+    .sidebar .sidebar-item:hover{ background:rgba(255,255,255,.06); transform:translateX(4px); }
+    .active-nav{
+      background:linear-gradient(90deg, rgba(252,209,22,.22), rgba(252,209,22,0))!important;
+      border-left:4px solid var(--sk-yellow);
+      color:#fff!important;
+    }
+    .brand-img{ width:40px; height:40px; border-radius:10px; object-fit:cover; }
+
+    /* Topbar */
+    .app-topbar{ background:#fff!important; color:#111827; border-bottom:1px solid #e5e7eb; position:sticky; top:0; z-index:50!important; }
+    #page-title{ font-weight:800; }
+
+    /* KPI cards */
+    .kpi-card{ border:1px solid #eef2f7; border-radius:1rem; }
+
+    /* Segmented (grid/list) */
+    .seg { border:1px solid #e5e7eb; border-radius:14px; overflow:hidden; background:#fff; }
+    .seg button{ padding:.55rem .9rem; font-weight:600; font-size:.95rem; display:flex; align-items:center; gap:.5rem; }
+    .seg .on{ background:#2f6df6; color:#fff; }
+
+    /* Tiles */
+    .tile{ background:#fff; border:1px solid #e5e7eb; border-radius:16px; overflow:hidden; transition:box-shadow .15s ease, transform .05s ease; }
+    .tile:hover{ box-shadow:0 6px 16px rgba(16,24,40,.08); }
+    .tile-head{ height:96px; background:#e5e7eb; }
+    .tile-body{ padding:1rem 1rem .75rem; }
+    .tile-footer{ padding:0 1rem 1rem; }
+    .pill{ padding:.125rem .5rem; border-radius:.5rem; font-size:.75rem; font-weight:600; }
+
+    /* Category-based header colors */
+    .hdr-community_service { 
+      background: #10b981 !important; /* Fallback */
+      background: linear-gradient(135deg, #10b981, #059669) !important; 
+    }
+    .hdr-sports { 
+      background: #3b82f6 !important; /* Fallback */
+      background: linear-gradient(135deg, #3b82f6, #1d4ed8) !important; 
+    }
+    .hdr-education { 
+       background: #f59e0b !important; /* Fallback */
+      background: linear-gradient(135deg, #f59e0b, #d97706) !important; 
+    }
+    .hdr-health { 
+      background: #ec4899 !important; /* Fallback */
+      background: linear-gradient(135deg, #ec4899, #be185d) !important; 
+    }
+    .hdr-leadership { 
+      background: #8b5cf6 !important; /* Fallback */
+      background: linear-gradient(135deg, #8b5cf6, #7c3aed) !important; 
+    }
+    .hdr-default { 
+      background: #6b7280 !important; /* Fallback */
+      background: linear-gradient(135deg, #6b7280, #4b5563) !important; 
+    }
+
+    /* Placeholder header colors per type */
+    .hdr-community_service{ background:linear-gradient(135deg,#34d399,#10b981); }
+    .hdr-sports{ background:linear-gradient(135deg,#60a5fa,#2563eb); }
+    .hdr-education{ background:linear-gradient(135deg,#fbbf24,#f59e0b); }
+    .hdr-environment{ background:linear-gradient(135deg,#2dd4bf,#14b8a6); }
+    .hdr-health{ background:linear-gradient(135deg,#fb7185,#ec4899); }
+    .hdr-leadership{ background:linear-gradient(135deg,#a78bfa,#8b5cf6); }
+    .hdr-default{ background:linear-gradient(135deg,#cbd5e1,#94a3b8); }
+
+    /* Modals */
+    .modal-overlay{
+      position:fixed; inset:0; display:flex; align-items:center; justify-content:center;
+      padding:2rem 1rem; background:rgba(17,24,39,.75);
+      backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+      z-index:100!important; overflow-y:auto;
+    }
+    .modal-overlay.hidden{ display:none!important; }
+    .modal-panel{
+      width:100%; max-width:56rem; max-height:90vh; background:#fff; border-radius:.75rem;
+      box-shadow:0 20px 45px rgba(0,0,0,.18); overflow:hidden; display:flex; flex-direction:column;
+    }
+    .modal-header{ position:sticky; top:0; background:var(--sk-blue); border-bottom:1px solid #e5e7eb; padding:1rem 1.5rem; z-index:1; }
+    .modal-title{ font-weight:800; }
+    .modal-body{ padding:1rem 1.5rem; overflow:auto; max-height:calc(90vh - 64px); }
+
+    /* Toast */
+    #toast{ transition:opacity .2s ease; }
+
+    .et-icon{
+  width: 42px; height: 42px; border-radius: 12px;
+  display:flex; align-items:center; justify-content:center;
+   }
+
+   /* Category filter chips */
+   .category-chip {
+     padding: 0.5rem 1rem;
+     border-radius: 9999px;
+     font-size: 0.875rem;
+     font-weight: 500;
+     cursor: pointer;
+     transition: all 0.15s ease;
+     border: 2px solid transparent;
+   }
+   .category-chip:hover {
+     transform: translateY(-1px);
+     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+   }
+   .category-chip.active {
+     border-color: rgba(255,255,255,0.3);
+     box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+   }
+   
+   /* Category-specific colors */
+   .chip-all { background: linear-gradient(135deg, #6366f1, #4f46e5); color: white; }
+   .chip-community_service { background: linear-gradient(135deg, #10b981, #059669); color: white; }
+   .chip-sports { background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white; }
+   .chip-education { background: linear-gradient(135deg, #f59e0b, #d97706); color: white; }
+   .chip-environment { background: linear-gradient(135deg, #14b8a6, #0d9488); color: white; }
+   .chip-health { background: linear-gradient(135deg, #ec4899, #be185d); color: white; }
+   .chip-leadership { background: linear-gradient(135deg, #8b5cf6, #7c3aed); color: white; }
+   
+   /* Inactive state */
+   .category-chip:not(.active) {
+     background: #f3f4f6;
+     color: #6b7280;
+   }
+   .category-chip:not(.active):hover {
+     background: #e5e7eb;
+     color: #374151;
+   }
+   
+   /* Category pills for event cards */
+   .pill-community_service { background: #dcfce7; color: #166534; }
+   .pill-sports { background: #dbeafe; color: #1e40af; }
+   .pill-education { background: #fef3c7; color: #92400e; }
+   .pill-environment { background: #f0fdfa; color: #0f766e; }
+   .pill-health { background: #fce7f3; color: #be185d; }
+   .pill-leadership { background: #f3e8ff; color: #7c3aed; }
+   .pill-default { background: #f3f4f6; color: #6b7280; }
+
+  </style>
+</head>
+
+
+
+
+<body class="antialiased">
+<div class="flex h-screen overflow-hidden">
+  <!-- Sidebar -->
+  <aside class="hidden md:flex md:flex-shrink-0 sidebar">
+    <div class="flex flex-col w-64">
+      <div class="px-4 py-6 flex items-center">
+        <img src="/static/images/SKLOGO.png" alt="SK Logo" class="brand-img mr-3">
+        <div>
+          <div class="text-white text-xl font-extrabold">SK<span class="text-yellow-300">Connect</span></div>
+          <div class="text-blue-200 text-xs">Los Baños Federation</div>
+        </div>
+      </div>
+
+      <div class="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
+        <nav class="flex-1 px-2 space-y-1">
+           <a href="{{ url_for('user_dashboard') }}" data-title="Dashboard" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-home mr-3 text-lg"></i> Dashboard
+            </a>
+            <a href="{{ url_for('user_announcements') }}" data-title="Announcements" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-bullhorn mr-3 text-lg"></i> Announcements
+            </a>
+            <a href="{{ url_for('user_events_projects') }}" data-title="Events & Projects" class="sidebar-item active-nav flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-calendar mr-3 text-lg"></i> Events & Projects
+            </a>
+            <div class="relative" id="finDropdownWrap">
+              <button id="finDropdownBtn" data-title="Financial Reports" class="sidebar-item flex items-center justify-between w-full px-4 py-3 text-sm font-medium rounded-md">
+                <span class="flex items-center">
+                  <i class="fas fa-chart-pie mr-3 text-lg"></i> Financial Reports
+                </span>
+                <i class="fas fa-chevron-down text-sm transition-transform" id="finChevron"></i>
+              </button>
+              <div id="finSubMenu" class="hidden pl-11 pr-2 py-1 space-y-1">
+                <a href="{{ url_for('user_financial_report') }}" class="block px-3 py-2 text-sm text-blue-100 hover:text-white rounded-md">
+                  <i class="fas fa-chart-bar mr-2"></i>Financial Dashboard
+                </a>
+                <a href="{{ url_for('user_all_transactions') }}" class="block px-3 py-2 text-sm text-blue-100 hover:text-white rounded-md">
+                  <i class="fas fa-receipt mr-2"></i>View Transactions
+                </a>
+                <a href="{{ url_for('user_all_projects') }}" class="block px-3 py-2 text-sm text-blue-100 hover:text-white rounded-md">
+                  <i class="fas fa-project-diagram mr-2"></i>View Projects
+                </a>
+              </div>
+            </div>
+            <a href="{{ url_for('user_feedback') }}" data-title="Surveys & Polls" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-poll mr-3 text-lg"></i> Survey & Polls
+            </a>
+            <a href="{{ url_for('user_documents') }}" data-title="Documents" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-file-alt mr-3 text-lg"></i> Documents
+            </a>
+            <a href="{{ url_for('user_volunteer') }}" data-title="Volunteer" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-hands-helping mr-3 text-lg"></i> Volunteer
+            </a>
+            <a href="{{ url_for('user_training_resources') }}" data-title="Training Resources" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-graduation-cap mr-3 text-lg"></i> Training Resources
+            </a>
+            <a href="{{ url_for('user_community') }}" data-title="Community Board" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-users mr-3 text-lg"></i> Community Board
+            </a>
+            <a href="{{ url_for('user_incidents') }}" data-title="Incident Reports" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-exclamation-triangle mr-3 text-lg"></i> Incident Reports
+            </a>
+        </nav>
+      </div>
+
+      <!-- user dropdown -->
+      <div class="flex-shrink-0 flex border-t border-white/10 p-4 relative">
+        <div id="userDropdownToggle" class="flex flex-col items-center cursor-pointer w-full">
+          <div class="flex items-center justify-center w-full">
+            <img class="h-9 w-9 rounded-full" src="{{ current_user.profile_pic if current_user and current_user.profile_pic else get_default_profile_image(current_user) }}" alt="Profile">
+            <div class="ml-3 flex-1 min-w-0">
+              <div class="text-base font-medium text-white truncate uppercase">{{ session['username'] }}</div>
+              <div class="text-xs text-blue-100 mt-0.5 truncate">{{ session['position']|title }}</div>
+            </div>
+            <i class="fas fa-chevron-down ml-2 text-blue-200 flex-shrink-0"></i>
+          </div>
+        </div>
+        <ul id="userDropdownMenu" class="absolute left-0 right-0 mx-auto bottom-14 z-20 w-60 bg-white rounded shadow-lg py-2 text-gray-700 hidden">
+          <li><a class="dropdown-item flex items-center px-4 py-2 hover:bg-gray-100" href="{{ url_for('profile') }}"><i class="fas fa-user mr-2"></i>Profile</a></li>
+          <li><a class="dropdown-item flex items-center px-4 py-2 hover:bg-gray-100" href="#"><i class="fas fa-cog mr-2"></i>Settings</a></li>
+          <li><hr class="dropdown-divider my-1"></li>
+          <li><a class="dropdown-item flex items-center px-4 py-2 hover:bg-gray-100" href="/logout"><i class="fas fa-sign-out-alt mr-2"></i>Logout</a></li>
+        </ul>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Mobile top bar -->
+  <div class="md:hidden app-topbar w-full flex items-center justify-between px-4 py-3">
+    <div class="flex items-center">
+      <img src="/static/images/SKLOGO.png" class="brand-img mr-2" alt="SK"/>
+      <h1 class="text-lg font-extrabold">SK<span class="text-blue-700">Connect</span></h1>
+    </div>
+    <button id="mobile-menu-button" class="text-gray-700 focus:outline-none"><i class="fas fa-bars text-xl"></i></button>
+  </div>
+
+  <!-- Mobile dropdown -->
+  <div id="mobile-menu" class="md:hidden absolute top-14 left-0 right-0 sidebar z-10 hidden">
+    <nav class="px-2 pt-2 pb-3 space-y-1">
+      <a href="user_dashboard" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-home mr-2"></i> Dashboard</a>
+      <a href="user_events_projects" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium bg-blue-800"><i class="fas fa-calendar mr-2"></i> Events & Projects</a>
+      <!-- ... -->
+    </nav>
+  </div>
+
+  <!-- Main -->
+  <div class="flex-1 flex flex-col overflow-hidden">
+    <!-- Topbar -->
+    <header class="app-topbar hidden md:block">
+      <div class="flex justify-between items-center px-4 py-4 sm:px-6 lg:px-8">
+        <h1 id="page-title" class="text-2xl text-gray-900">Events & Projects</h1>
+        <div class="text-sm text-gray-500">.</div>
+      </div>
+    </header>
+
+    <!-- Content -->
+    <main class="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 pb-8 pt-4 md:pt-6">
+      <!-- Intro (moved above KPIs) -->
+      <div class="mt-2 md:mt-4 mb-6">
+        <h2 class="text-xl sm:text-2xl font-semibold">Join events happening in your community</h2>
+        <p class="text-gray-600 mt-1">Browse upcoming activities, view details, and register.</p>
+      </div>
+
+      <!-- KPIs -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div class="bg-white overflow-hidden shadow rounded-lg kpi-card">
+          <div class="p-5">
+            <div class="flex items-center">
+              <div class="flex-shrink-0 bg-blue-500 rounded-md p-3"><i class="fas fa-calendar-check text-white text-xl"></i></div>
+              <div class="ml-5">
+                <h3 class="text-lg font-medium text-gray-900">Upcoming Events</h3>
+                <p class="text-2xl font-extrabold text-gray-800">{{ events|length if events else 0 }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Events / Controls -->
+      <div class="bg-white shadow rounded-lg overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+          <div class="flex flex-col gap-4">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+              <h4 class="text-lg font-extrabold text-gray-900">Upcoming & Recent Events</h4>
+              
+              <div class="flex items-center gap-2 md:ml-auto">
+                <select id="filterStatus" class="text-sm border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                  <option value="all">All Events</option>
+                  <option value="upcoming">Upcoming</option>
+                  <option value="ongoing">Ongoing</option>
+                  <option value="completed">Completed</option>
+                </select>
+                <input id="searchInput" type="text" placeholder="Search events..." class="text-sm border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500" />
+                <!-- Toggle at the end -->
+                <div class="seg inline-flex rounded-xl ml-2">
+                  <button id="viewGridBtn" class="on" title="Grid view"><i class="fa-solid fa-table-cells-large"></i></button>
+                  <button id="viewListBtn" title="List view"><i class="fa-solid fa-list-ul"></i></button>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Category Filter Chips -->
+            <div class="flex flex-wrap gap-2">
+              <button class="category-chip chip-all active" data-category="all">
+                <i class="fas fa-layer-group mr-1"></i>All Categories
+              </button>
+              <button class="category-chip chip-community_service" data-category="community_service">
+                <i class="fas fa-leaf mr-1"></i>Community Service
+              </button>
+              <button class="category-chip chip-sports" data-category="sports">
+                <i class="fas fa-futbol mr-1"></i>Sports
+              </button>
+              <button class="category-chip chip-education" data-category="education">
+                <i class="fas fa-book mr-1"></i>Education
+              </button>
+              <button class="category-chip chip-environment" data-category="environment">
+                <i class="fas fa-tree mr-1"></i>Environment
+              </button>
+              <button class="category-chip chip-health" data-category="health">
+                <i class="fas fa-heartbeat mr-1"></i>Health
+              </button>
+              <button class="category-chip chip-leadership" data-category="leadership">
+                <i class="fas fa-chess-king mr-1"></i>Leadership
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- LIST VIEW -->
+        <div id="listView" class="hidden overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Event</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200" id="eventsTbody">
+              {% for event in events %}
+              {% set event_date = event.date %}
+              <tr class="event-row"
+                  data-name="{{ event.name|e }}"
+                  data-type="{{ event.type|e }}"
+                  data-date="{{ event.date }}"
+                  data-status="{% if event_date < today|string %}completed{% elif event_date == today|string %}ongoing{% else %}upcoming{% endif %}">
+
+
+                <td class="px-6 py-4">
+                    <div class="flex items-center">
+                      <div class="et-icon
+                        {% if event.type == 'community_service' %}bg-green-100
+                        {% elif event.type == 'sports' %}bg-blue-100
+                        {% elif event.type == 'education' %}bg-yellow-100
+                        {% elif event.type == 'environment' %}bg-teal-100
+                        {% elif event.type == 'health' %}bg-pink-100
+                        {% elif event.type == 'leadership' %}bg-purple-100
+                        {% else %}bg-gray-100{% endif %}">
+                        <i class="fas
+                          {% if event.type == 'community_service' %}fa-leaf text-green-600
+                          {% elif event.type == 'sports' %}fa-futbol text-blue-600
+                          {% elif event.type == 'education' %}fa-book text-yellow-600
+                          {% elif event.type == 'environment' %}fa-tree text-teal-600
+                          {% elif event.type == 'health' %}fa-heartbeat text-pink-600
+                          {% elif event.type == 'leadership' %}fa-chess-king text-purple-600
+                          {% else %}fa-calendar text-gray-600{% endif %}"></i>
+                      </div>
+
+                      <div class="ml-3">
+                        <div class="text-sm font-medium text-gray-900">{{ event.name }}</div>
+                        <div class="text-xs text-gray-500">{{ event.type|replace('_',' ')|title }}</div>
+                      </div>
+                    </div>
+                  </td>
+
+                <td class="px-6 py-4">
+                  <div class="text-sm text-gray-900 list-date" data-date="{{ event.date }}">{{ event.date }}</div>
+                  <div class="text-sm text-gray-500 list-time" data-start="{{ event.start_time }}" data-end="{{ event.end_time }}">{{ event.start_time }} — {{ event.end_time }}</div>
+                </td>
+                <td class="px-6 py-4 text-sm text-gray-900">{{ event.location }}</td>
+                <td class="px-6 py-4">
+                  {% if event_date < today|string %}
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Completed</span>
+                  {% elif event_date == today|string %}
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">Ongoing</span>
+                  {% else %}
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">Upcoming</span>
+                  {% endif %}
+                </td>
+                <td class="px-6 py-4 text-center text-sm">
+                  <div class="inline-flex gap-3 items-center justify-center">
+                    <button class="text-green-600 hover:text-green-800 view-details-btn inline-flex items-center gap-1"
+                            title="View"
+                            data-event='{{ event | tojson | safe }}'>
+                      <i class="fa-regular fa-eye"></i><span>View</span>
+                    </button>
+                    {% if event_date >= today|string %}
+                      {% set registration_closed = event.registration_deadline and event.registration_deadline < today|string %}
+                      {% if not registration_closed %}
+                      <button class="register-btn bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs"
+                              title="Register"
+                              data-event='{{ event | tojson | safe }}'>
+                        <i class="fas fa-user-plus mr-1"></i> Register
+                      </button>
+                      {% else %}
+                      <span class="text-xs bg-gray-200 text-gray-500 px-2 py-1 rounded">Closed</span>
+                      {% endif %}
+                    {% endif %}
+                  </div>
+                </td>
+              </tr>
+              {% else %}
+              <tr><td colspan="5" class="px-6 py-4 text-center text-gray-500">No events found.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        <!-- GRID VIEW (Tiles) -->
+        <div id="gridView" class="p-6">
+          <div class="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3" id="gridContainer">
+            {% for event in events %}
+            {% set event_date = event.date %}
+            {% set hdr_class = 
+              'hdr-' ~ (event.type if event.type in ['community_service','sports','education','environment','health','leadership'] else 'default')
+            %}
+            <article class="tile event-card"
+                     data-name="{{ event.name|e }}"
+                     data-type="{{ event.type|e }}"
+                     data-status="{% if event_date < today|string %}completed{% elif event_date == today|string %}ongoing{% else %}upcoming{% endif %}">
+              {% if event.cover_image_url and event.cover_image_url.strip() %}
+                <div class="tile-head">
+                  <img src="{{ event.cover_image_url }}" class="w-full h-full object-cover" alt="">
+                </div>
+              {% else %}
+                <div class="tile-head {{ hdr_class }}"></div>
+              {% endif %}
+
+             <div class="tile-body">
+              <div class="flex items-start">
+                <div class="et-icon mr-3
+                  {% if event.type == 'community_service' %}bg-green-100
+                  {% elif event.type == 'sports' %}bg-blue-100
+                  {% elif event.type == 'education' %}bg-yellow-100
+                  {% elif event.type == 'environment' %}bg-teal-100
+                  {% elif event.type == 'health' %}bg-pink-100
+                  {% elif event.type == 'leadership' %}bg-purple-100
+                  {% else %}bg-gray-100{% endif %}">
+                  <i class="fas
+                    {% if event.type == 'community_service' %}fa-leaf text-green-600
+                    {% elif event.type == 'sports' %}fa-futbol text-blue-600
+                    {% elif event.type == 'education' %}fa-book text-yellow-600
+                    {% elif event.type == 'environment' %}fa-tree text-teal-600
+                    {% elif event.type == 'health' %}fa-heartbeat text-pink-600
+                    {% elif event.type == 'leadership' %}fa-chess-king text-purple-600
+                    {% else %}fa-calendar text-gray-600{% endif %}"></i>
+                </div>
+
+                <div class="flex-1">
+                  <div class="font-semibold text-gray-900 text-base">{{ event.name }}</div>
+                  <div class="text-xs text-gray-500">{{ event.type|replace('_',' ')|title }}</div>
+                </div>
+
+                <span class="px-2 py-1 text-xs rounded font-medium
+                  {% if event.type == 'community_service' %}pill-community_service
+                  {% elif event.type == 'sports' %}pill-sports
+                  {% elif event.type == 'education' %}pill-education
+                  {% elif event.type == 'environment' %}pill-environment
+                  {% elif event.type == 'health' %}pill-health
+                  {% elif event.type == 'leadership' %}pill-leadership
+                  {% else %}pill-default{% endif %}">
+                  {{ event.type|replace('_',' ')|title }}
+                </span>
+              </div>
+
+
+                <div class="mt-3 space-y-2 text-sm">
+                  <div class="text-gray-900"><i class="fa-regular fa-calendar mr-2"></i><span class="grid-date" data-date="{{ event.date }}">{{ event.date }}</span></div>
+                  <div class="text-gray-700"><i class="fa-regular fa-clock mr-2"></i><span class="grid-time" data-start="{{ event.start_time }}" data-end="{{ event.end_time }}">{{ event.start_time }} — {{ event.end_time }}</span></div>
+                  <div class="text-gray-700"><i class="fa-solid fa-location-dot mr-2"></i>{{ event.location }}</div>
+                </div>
+              </div>
+
+              <div class="tile-footer">
+                <div class="mt-4 flex items-center justify-between">
+                  <button class="text-green-600 hover:text-green-800 view-details-btn inline-flex items-center gap-1"
+                          title="View"
+                          data-event='{{ event | tojson | safe }}'>
+                    <i class="fa-regular fa-eye"></i><span>View</span>
+                  </button>
+
+                  {% if event_date >= today|string %}
+                    {% set registration_closed = event.registration_deadline and event.registration_deadline < today|string %}
+                    {% if not registration_closed %}
+                    <button class="register-btn bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs"
+                            title="Register"
+                            data-event='{{ event | tojson | safe }}'>
+                      <i class="fas fa-user-plus mr-1"></i> Register
+                    </button>
+                    {% else %}
+                    <span class="text-xs bg-gray-200 text-gray-500 px-2 py-1 rounded">Closed</span>
+                    {% endif %}
+                  {% endif %}
+                </div>
+              </div>
+            </article>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <!-- EVENT DETAILS MODAL -->
+      <div id="eventDetailModal" class="modal-overlay hidden">
+        <div class="modal-panel w-full max-w-5xl">
+          <div class="relative">
+            <div class="h-48 bg-blue-600 rounded-t-lg flex items-end">
+              <div class="absolute top-4 right-4">
+                <button id="closeDetailModalBtn" class="text-white hover:text-gray-200 bg-black bg-opacity-20 rounded-full p-2">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+              <div class="p-6 text-white">
+                <h3 class="text-2xl font-extrabold" id="modalEventName"></h3>
+                <p class="text-blue-100" id="modalEventType"></p>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-body">
+            <div class="flex flex-wrap -mx-4 mb-6">
+              <div class="w-full md:w-1/2 px-4 mb-4 md:mb-0">
+                <div class="border rounded-lg p-4 h-full">
+                  <h4 class="font-medium text-gray-800 mb-3">Event Details</h4>
+                  <div class="space-y-3">
+                    <div class="flex items-start">
+                      <div class="flex-shrink-0 text-gray-500 w-6"><i class="fas fa-calendar"></i></div>
+                      <div class="ml-3">
+                        <p class="text-sm font-medium text-gray-900" id="modalEventDate"></p>
+                        <p class="text-sm text-gray-500" id="modalEventTime"></p>
+                      </div>
+                    </div>
+                    <div class="flex items-start">
+                      <div class="flex-shrink-0 text-gray-500 w-6"><i class="fas fa-map-marker-alt"></i></div>
+                      <div class="ml-3"><p class="text-sm font-medium text-gray-900" id="modalEventLocation"></p></div>
+                    </div>
+                    <div class="flex items-start">
+                      <div class="flex-shrink-0 text-gray-500 w-6"><i class="fas fa-coins"></i></div>
+                      <div class="ml-3">
+                        <p class="text-sm font-medium text-gray-900" id="modalEventBudget"></p>
+                        <p class="text-sm text-gray-500">Budget Allocation</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="w-full md:w-1/2 px-4">
+                <div class="border rounded-lg p-4 h-full">
+                  <h4 class="font-medium text-gray-800 mb-3">Description</h4>
+                  <p class="text-sm text-gray-600 mb-4" id="modalEventDescription"></p>
+                  <h5 class="font-medium text-gray-800 mb-2">Required Items:</h5>
+                  <ul class="list-disc list-inside text-sm text-gray-600 mb-2" id="modalEventRequiredItems"></ul>
+                </div>
+              </div>
+            </div>
+
+            <div class="mb-4">
+              <img id="modalEventImage" src="" alt="Event Cover" class="w-full max-h-64 object-cover rounded mb-4" style="display:none;">
+            </div>
+
+            <div class="flex justify-end">
+              <button id="openRegisterFromDetail" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md">
+                <i class="fas fa-user-plus mr-1"></i> Register for this event
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- REGISTRATION MODAL -->
+      <div id="registerModal" class="modal-overlay hidden">
+        <div class="modal-panel w-full max-w-2xl">
+          <div class="modal-header">
+            <div class="flex items-center justify-between">
+              <h3 class="modal-title text-lg text-white">Event Registration</h3>
+              <button id="closeRegisterModalBtn" class="text-white hover:text-gray-200">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+          </div>
+          <div class="modal-body">
+            <form id="eventRegisterForm" class="space-y-4">
+              <input type="hidden" name="event_id" id="reg_event_id">
+              <div class="bg-gray-50 border rounded-md p-3">
+                <div class="text-sm text-gray-600">
+                  <span class="font-semibold text-gray-900" id="reg_event_title">—</span>
+                  <span class="mx-2 text-gray-400">•</span>
+                  <span id="reg_event_when">—</span>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                  <input name="full_name" required type="text" class="w-full border rounded-md px-3 py-2"/>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Barangay</label>
+                  <select name="barangay" id="reg_barangay" required class="w-full border rounded-md px-3 py-2"></select>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                  <input name="contact" type="tel" class="w-full border rounded-md px-3 py-2"/>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                  <input name="email" type="email" class="w-full border rounded-md px-3 py-2"/>
+                </div>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Notes (optional)</label>
+                <input name="notes" type="text" class="w-full border rounded-md px-3 py-2" placeholder="e.g., dietary needs, companion"/>
+              </div>
+
+              <div class="flex items-start space-x-2">
+                <input id="dpa" type="checkbox" class="mt-1" required>
+                <label for="dpa" class="text-sm text-gray-700">I agree to the SK Data Privacy Notice and event safety guidelines.</label>
+              </div>
+
+              <div class="flex justify-end gap-3">
+                <button type="button" id="cancelRegisterBtn" class="px-4 py-2 bg-gray-100 rounded-md">Cancel</button>
+                <button type="submit" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md">Submit Registration</button>
+              </div>
+            </form>
+            <!-- Registration QR Modal -->
+            <div id="registrationQRModal" class="modal-overlay hidden">
+              <div class="modal-panel w-full max-w-md">
+                <div class="modal-header">
+                  <div class="flex items-center justify-between">
+                    <h3 class="modal-title text-lg text-gray-900">Your Registration QR</h3>
+                    <button id="closeRegistrationQRModalBtn" class="text-gray-400 hover:text-gray-500"><i class="fas fa-times"></i></button>
+                  </div>
+                </div>
+                <div class="modal-body flex flex-col items-center">
+                  <div id="registrationQRContainer" class="my-4"></div>
+                  <div class="text-sm text-gray-700 break-all" id="registrationQRUrl"></div>
+                  <div class="mt-4 text-green-700 text-center">Show this QR at the event to check in!</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Toast -->
+      <div id="toast" class="hidden fixed bottom-5 right-5 bg-gray-900 text-white text-sm px-4 py-2 rounded-lg shadow-lg"></div>
+    </main>
+  </div>
+</div>
+
+<script>
+  // Barangays
+  const BARANGAYS = [ "Anos","Bagong Silang","Bambang","Batong Malake","Baybayin","Bayog","Lalakay","Maahas","Malinta","Mayondon","Putho-Tuntungin","San Antonio","Tadlac","Timugan" ];
+  function populateBarangaySelect(sel){
+    if(!sel) return;
+    sel.innerHTML = '<option value="">Select Barangay</option>';
+    BARANGAYS.forEach(b=>{ const o=document.createElement('option'); o.value=b; o.textContent=b; sel.appendChild(o); });
+  }
+
+  // Utils
+  function showModal(el){ if(!el) return; el.classList.remove('hidden'); document.body.classList.add('modal-open'); }
+  function hideModal(el){ if(!el) return; el.classList.add('hidden'); document.body.classList.remove('modal-open'); }
+  function showToast(msg){
+    const t=document.getElementById('toast'); if(!t){ alert(msg); return; }
+    t.textContent=msg; t.classList.remove('hidden'); t.style.opacity='1';
+    setTimeout(()=>{ t.style.opacity='0'; setTimeout(()=>t.classList.add('hidden'),200); }, 1800);
+  }
+  function fmt12h(t){ if(!t) return '—'; const [H,M]=String(t).split(':'); let h=+H||0; const am=h>=12?'PM':'AM'; h=h%12||12; return `${h}:${String(M||'00').padStart(2,'0')} ${am}`; }
+  function fmtDate(d){ if(!d) return '—'; const [y,m,dd]=d.split('-').map(n=>parseInt(n,10)); return new Date(y,m-1,dd).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}); }
+
+  // Mobile menu
+  (document.getElementById('mobile-menu-button')||{}).addEventListener?.('click', () => {
+    document.getElementById('mobile-menu')?.classList.toggle('hidden');
+  });
+
+  // Search + filter (list and grid)
+  const searchInput = document.getElementById('searchInput');
+  const filterStatus = document.getElementById('filterStatus');
+  
+  let activeCategory = 'all'; // Track active category for chip filtering
+  
+  function applyFilters(){
+    const q=(searchInput.value||'').toLowerCase();
+    const s=(filterStatus.value||'all');
+    const c=activeCategory; // Use chip-selected category instead of dropdown
+    
+    // Filter list view
+    document.querySelectorAll('#eventsTbody tr.event-row').forEach(tr=>{
+      const name=(tr.dataset.name||'').toLowerCase();
+      const type=(tr.dataset.type||'').toLowerCase();
+      const status=(tr.dataset.status||'');
+      const matchText = name.includes(q) || type.includes(q);
+      const matchStat = (s==='all') || (status===s);
+      const matchCat = (c==='all') || (type===c);
+      tr.style.display = (matchText && matchStat && matchCat) ? '' : 'none';
+    });
+    
+    // Filter grid view
+    document.querySelectorAll('#gridContainer .event-card').forEach(card=>{
+      const name=(card.dataset.name||'').toLowerCase();
+      const type=(card.dataset.type||'').toLowerCase();
+      const status=(card.dataset.status||'');
+      const matchText = name.includes(q) || type.includes(q);
+      const matchStat = (s==='all') || (status===s);
+      const matchCat = (c==='all') || (type===c);
+      card.style.display = (matchText && matchStat && matchCat) ? '' : 'none';
+    });
+  }
+  
+  // Category chip filtering
+  document.querySelectorAll('.category-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      // Remove active class from all chips
+      document.querySelectorAll('.category-chip').forEach(c => c.classList.remove('active'));
+      // Add active class to clicked chip
+      chip.classList.add('active');
+      // Update active category
+      activeCategory = chip.dataset.category;
+      // Apply filters
+      applyFilters();
+    });
+  });
+  
+  searchInput?.addEventListener('input', applyFilters);
+  filterStatus?.addEventListener('change', applyFilters);
+
+  // AM/PM format in list & grid
+  document.querySelectorAll('.list-time').forEach(el=> el.textContent = `${fmt12h(el.dataset.start)} — ${fmt12h(el.dataset.end)}`);
+  document.querySelectorAll('.list-date').forEach(el=> el.textContent = fmtDate(el.dataset.date));
+  document.querySelectorAll('.grid-time').forEach(el=> el.textContent = `${fmt12h(el.dataset.start)} — ${fmt12h(el.dataset.end)}`);
+  document.querySelectorAll('.grid-date').forEach(el=> el.textContent = fmtDate(el.dataset.date));
+
+  // Detail modal
+  let lastEvent = null;
+  const detailModal = document.getElementById('eventDetailModal');
+  document.getElementById('closeDetailModalBtn')?.addEventListener('click', ()=> hideModal(detailModal));
+
+  document.querySelectorAll('.view-details-btn').forEach(btn=>{
+    btn.addEventListener('click', function(){
+      const ev = JSON.parse(this.dataset.event); lastEvent = ev;
+      document.getElementById('modalEventName').textContent = ev.name||'';
+      document.getElementById('modalEventType').textContent = (ev.type||'').replace('_',' ').toUpperCase();
+      document.getElementById('modalEventDate').textContent = fmtDate(ev.date);
+      document.getElementById('modalEventTime').textContent = `${fmt12h(ev.start_time)} — ${fmt12h(ev.end_time)}`;
+      document.getElementById('modalEventLocation').textContent = ev.location||'';
+      document.getElementById('modalEventBudget').textContent = ev.budget ? `₱${parseFloat(ev.budget).toLocaleString()}` : '—';
+      document.getElementById('modalEventDescription').textContent = ev.description||'';
+      const ul = document.getElementById('modalEventRequiredItems'); ul.innerHTML='';
+      if(ev.required_items){ String(ev.required_items).split(',').forEach(i=>{ if(i.trim()) ul.innerHTML += `<li>${i.trim()}</li>`; }); }
+      const img = document.getElementById('modalEventImage');
+      if(ev.cover_image_url){ img.src = ev.cover_image_url; img.style.display=''; } else { img.style.display='none'; }
+      updateDetailRegisterButton(ev);
+      showModal(detailModal);
+    });
+  });
+
+  // Registration modal
+  const regModal = document.getElementById('registerModal');
+  const openRegisterFromDetailBtn = document.getElementById('openRegisterFromDetail');
+  populateBarangaySelect(document.getElementById('reg_barangay'));
+  function isRegistrationClosed(ev){
+    if(!ev) return true;
+    const today = new Date().toISOString().slice(0,10);
+    if(ev.registration_deadline && ev.registration_deadline < today) return true;
+    if(ev.date && ev.date < today) return true;
+    return false;
+  }
+  function updateDetailRegisterButton(ev){
+    if(!openRegisterFromDetailBtn) return;
+    const closed = isRegistrationClosed(ev);
+    openRegisterFromDetailBtn.disabled = closed;
+    if(closed){
+      openRegisterFromDetailBtn.classList.add('bg-gray-400','cursor-not-allowed');
+      openRegisterFromDetailBtn.classList.remove('bg-blue-600','hover:bg-blue-700');
+      openRegisterFromDetailBtn.innerHTML = '<i class="fas fa-user-slash mr-1"></i> Registration Closed';
+    } else {
+      openRegisterFromDetailBtn.classList.remove('bg-gray-400','cursor-not-allowed');
+      openRegisterFromDetailBtn.classList.add('bg-blue-600','hover:bg-blue-700');
+      openRegisterFromDetailBtn.innerHTML = '<i class="fas fa-user-plus mr-1"></i> Register for this event';
+    }
+  }
+  function openRegister(ev){
+    if(isRegistrationClosed(ev)){
+      showToast('Registration is closed for this event.');
+      return;
+    }
+    document.getElementById('reg_event_id').value = ev.id || '';
+    document.getElementById('reg_event_title').textContent = ev.name || '—';
+    document.getElementById('reg_event_when').textContent = `${fmtDate(ev.date)} • ${fmt12h(ev.start_time)} — ${fmt12h(ev.end_time)}`;
+    showModal(regModal);
+  }
+  document.querySelectorAll('.register-btn').forEach(btn=>{
+    btn.addEventListener('click', function(){ const ev = JSON.parse(this.dataset.event); lastEvent = ev; openRegister(ev); });
+  });
+  document.getElementById('openRegisterFromDetail')?.addEventListener('click', ()=>{ if(!lastEvent || isRegistrationClosed(lastEvent)) return; hideModal(detailModal); openRegister(lastEvent); });
+  document.getElementById('closeRegisterModalBtn')?.addEventListener('click', ()=> hideModal(regModal));
+  document.getElementById('cancelRegisterBtn')?.addEventListener('click', ()=> hideModal(regModal));
+
+  document.getElementById('eventRegisterForm')?.addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const payload = {
+      event_id: Number(fd.get('event_id')),
+      full_name: (fd.get('full_name')||'').trim(),
+      barangay: fd.get('barangay') || null,
+      contact: fd.get('contact') || null,
+      email: fd.get('email') || null,
+      notes: fd.get('notes') || null
+    };
+    if(!payload.event_id || !payload.full_name || !payload.barangay){ showToast('Please complete required fields.'); return; }
+    try{
+      const res = await fetch('/api/event_registration', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+      const data = await res.json();
+      if(data.success && data.qr_url){
+        hideModal(regModal); e.target.reset();
+        // Show QR modal
+        const qrModal = document.getElementById('registrationQRModal');
+        const qrContainer = document.getElementById('registrationQRContainer');
+        const qrUrl = document.getElementById('registrationQRUrl');
+        qrContainer.innerHTML = '';
+        new QRCode(qrContainer, { text: data.qr_url, width: 200, height: 200 });
+        qrUrl.textContent = data.qr_url;
+        showModal(qrModal);
+      }
+      else{ showToast('Error: '+(data.error||'Unknown error')); }
+    }catch(err){ showToast('Network error'); }
+  });
+
+  document.getElementById('closeRegistrationQRModalBtn')?.addEventListener('click', ()=> hideModal(document.getElementById('registrationQRModal')));
+
+  // Toggle view (Grid default)
+  const listView  = document.getElementById('listView');
+  const gridView  = document.getElementById('gridView');
+  const viewList  = document.getElementById('viewListBtn');
+  const viewGrid  = document.getElementById('viewGridBtn');
+  function setView(mode){
+    if(mode==='list'){ listView.classList.remove('hidden'); gridView.classList.add('hidden'); viewList.classList.add('on'); viewGrid.classList.remove('on'); }
+    else{ gridView.classList.remove('hidden'); listView.classList.add('hidden'); viewGrid.classList.add('on'); viewList.classList.remove('on'); }
+  }
+  viewList?.addEventListener('click', ()=> setView('list'));
+  viewGrid?.addEventListener('click', ()=> setView('grid'));
+  setView('grid'); // default
+
+  // Extend filters to grid cards
+  function applyFiltersToGrid(){
+    const q=(document.getElementById('searchInput').value||'').toLowerCase();
+    const s=(document.getElementById('filterStatus').value||'all');
+    const c=activeCategory; // Use chip-selected category
+    document.querySelectorAll('#gridContainer .event-card').forEach(card=>{
+      const name=(card.dataset.name||'').toLowerCase();
+      const type=(card.dataset.type||'').toLowerCase();
+      const status=(card.dataset.status||'');
+      const matchText = name.includes(q) || type.includes(q);
+      const matchStat = (s==='all') || (status===s);
+      const matchCat = (c==='all') || (type===c);
+      card.style.display = (matchText && matchStat && matchCat) ? '' : 'none';
+    });
+  }
+  const _applyFiltersOrig = applyFilters;
+  window.applyFilters = function(){ _applyFiltersOrig?.(); applyFiltersToGrid(); };
+  applyFilters(); // initial sync
+
+
+   const userDropdownToggle = document.getElementById('userDropdownToggle');
+  const userDropdownMenu = document.getElementById('userDropdownMenu');
+  userDropdownToggle?.addEventListener('click', function (e) {
+    e.stopPropagation(); userDropdownMenu?.classList.toggle('hidden');
+      });
+  document.addEventListener('click', function () { userDropdownMenu?.classList.add('hidden'); });
+
+
+
+    /* Financial Reports dropdown toggle */
+    (function(){
+      const btn = document.getElementById('finDropdownBtn');
+      const menu = document.getElementById('finSubMenu');
+      const chevron = document.getElementById('finChevron');
+      if(btn && menu){
+        btn.addEventListener('click', function(e){
+          e.preventDefault();
+          e.stopPropagation();
+          const isHidden = menu.classList.toggle('hidden');
+          if(chevron) chevron.style.transform = isHidden ? '' : 'rotate(180deg)';
+        });
+      }
+    })();</script>
+</body>
+</html>

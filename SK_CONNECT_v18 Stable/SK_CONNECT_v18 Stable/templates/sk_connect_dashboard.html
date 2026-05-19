@@ -1,0 +1,1393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>SK Connect — Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+  <!-- Tailwind + Icons + Chart.js -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+
+  <!-- Poppins font -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- FullCalendar -->
+  <link href="{{ url_for('static', filename='vendor/fullcalendar/index.global.css') }}" rel="stylesheet">
+
+  <style>
+    :root{ --sk-blue:#0d2a52; --sk-yellow:#FCD116; }
+    html,body{ height:100%; }
+    
+    /* Modern Calendar Styles */
+    .fc {
+      --fc-border-color: #e5e7eb;
+      --fc-button-bg-color: #2563eb;
+      --fc-button-border-color: #2563eb;
+      --fc-button-hover-bg-color: #1d4ed8;
+      --fc-button-hover-border-color: #1d4ed8;
+      --fc-button-active-bg-color: #1e40af;
+      --fc-button-active-border-color: #1e40af;
+      font-family: 'Poppins', sans-serif;
+    }
+    
+    /* Custom Event Display */
+    .fc-daygrid-event {
+      display: flex !important;
+      flex-direction: column !important;
+      padding: 4px 6px !important;
+      margin: 2px 4px !important;
+      background: #2563eb !important;
+      border: none !important;
+      border-radius: 4px !important;
+    }
+    
+    .fc-daygrid-event .fc-event-main {
+      flex-direction: column !important;
+      display: flex !important;
+    }
+    
+    .fc-daygrid-event .fc-event-title {
+      order: 1;
+      font-weight: 500 !important;
+      font-size: 0.875rem !important;
+      line-height: 1.25 !important;
+      color: white !important;
+      margin-bottom: 2px !important;
+    }
+    
+    .fc-daygrid-event .fc-event-time {
+      order: 2;
+      font-size: 0.75rem !important;
+      opacity: 0.9 !important;
+      color: rgba(255, 255, 255, 0.9) !important;
+    }
+    
+    .fc-daygrid-event-dot {
+      display: none !important;
+    }
+    
+    .fc-day-today {
+      background: #eff6ff !important;
+    }
+    
+    
+    /* Better event display */
+    .fc-daygrid-event {
+      padding: 4px 8px !important;
+      margin: 1px 0 !important;
+    }
+    
+    .fc-daygrid-event .fc-event-title {
+      font-weight: 500;
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 0.875rem;
+    }
+    
+    .fc-daygrid-event .fc-event-time {
+      font-size: 0.75rem;
+      opacity: 0.9;
+      margin-right: 4px;
+    }
+    
+    .fc-daygrid-event-dot {
+      display: none !important;
+    }
+    
+    .fc-daygrid-day-events {
+      margin-top: 4px !important;
+    }
+    
+    .fc .fc-daygrid-day-number {
+      font-size: 0.875rem;
+      padding: 6px 8px;
+      color: #4b5563;
+    }
+    
+    .fc-direction-ltr .fc-daygrid-event.fc-event-end {
+      margin-right: 4px !important;
+    }
+    
+    .fc .fc-toolbar-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+    }
+    .fc .fc-button {
+      padding: 0.5rem 1rem;
+      font-weight: 500;
+      border-radius: 0.5rem;
+      text-transform: none;
+      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    }
+    .fc .fc-daygrid-day-frame {
+      padding: 4px;
+    }
+    .fc .fc-daygrid-day-number {
+      font-size: 0.875rem;
+      padding: 6px 8px;
+      color: #4b5563;
+    }
+    .fc .fc-daygrid-event {
+      border-radius: 6px;
+      padding: 2px 6px;
+      margin-bottom: 2px;
+      font-size: 0.875rem;
+    }
+    .fc .fc-day-today {
+      background-color: #eff6ff !important;
+    }
+    .fc .fc-col-header-cell {
+      padding: 8px 0;
+      background-color: #f9fafb;
+    }
+    .fc .fc-toolbar.fc-header-toolbar {
+      margin-bottom: 1.5rem;
+      padding: 0 1rem;
+    }
+    body{
+      font-family:"Poppins",system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial,"Noto Sans","Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol";
+      background:#fff;
+      color:#111827;
+    }
+    /* Sidebar + nav */
+    .sidebar{ background:var(--sk-blue)!important; color:#fff; }
+    .sidebar .sidebar-item{ color:#e5e7eb; }
+    .sidebar .sidebar-item:hover{ background:rgba(255,255,255,.06); transform:translateX(4px); }
+    .active-nav{
+      background:linear-gradient(90deg, rgba(252,209,22,.22), rgba(252,209,22,0))!important;
+      border-left:4px solid var(--sk-yellow);
+      color:#fff!important;
+    }
+    /* Topbar */
+    .app-topbar{
+      background:#fff!important; color:#111827;
+      border-bottom:1px solid #e5e7eb; position:sticky; top:0; z-index:30;
+    }
+    .brand-img{ width:40px; height:40px; border-radius:10px; object-fit:cover; }
+    /* Cards */
+    .kpi-card{ border:1px solid #eef2f7; border-radius:1rem; }
+    /* Dropdown & misc */
+    .dropdown-item:hover { background:#f3f4f6; }
+    .dropdown-divider { border-top:1px solid #e5e7eb; }
+  </style>
+</head>
+
+<body class="antialiased">
+  <div class="flex h-screen overflow-hidden">
+    <!-- Sidebar (same look as Dashboard) -->
+    <aside class="hidden md:flex md:flex-shrink-0 sidebar">
+      <div class="flex flex-col w-64">
+        <div class="px-4 py-6 flex items-center">
+          <img src="/static/images/SKLOGO.png" alt="SK Logo" class="brand-img mr-3">
+          <div>
+            <div class="text-white text-xl font-extrabold">SK<span class="text-yellow-300">Connect</span></div>
+            <div class="text-blue-200 text-xs">Los Baños Federation</div>
+          </div>
+        </div>
+
+        
+
+        <div class="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
+          <nav class="flex-1 px-2 space-y-1">
+            <a href="admin_dashboard" data-title="Dashboard" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-home mr-3 text-lg"></i> Dashboard
+            </a>
+            <a href="admin_announcements" data-title="Announcements" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-bullhorn mr-3 text-lg"></i> Announcements
+            </a>
+            <a href="admin_events_projects" data-title="Events & Projects" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-calendar mr-3 text-lg"></i> Events & Projects
+            </a>
+            <a href="admin_financial_report" data-title="Financial Reports" class="sidebar-item active-nav flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-chart-pie mr-3 text-lg"></i> Financial Reports
+            </a>
+            <a href="admin_feedback" data-title="Feedback & Polls" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-poll mr-3 text-lg"></i> Surveys & Polls
+            </a>
+            <a href="admin_documents" data-title="Documents" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-file-alt mr-3 text-lg"></i> Documents
+            </a>
+            <a href="admin_volunteer" data-title="Volunteer" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-hands-helping mr-3 text-lg"></i> Volunteer
+            </a>
+            <a href="admin_training_resources" data-title="Training Resources" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-graduation-cap mr-3 text-lg"></i> Training Resources
+            </a>
+            <a href="admin_community" data-title="Community Board" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-users mr-3 text-lg"></i> Community Board
+            </a>
+            <a href="admin_incidents" data-title="Incident Reports" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-exclamation-triangle mr-3 text-lg"></i> Incident Reports
+            </a>
+            <a href="admin_user_approval" data-title="User Approval" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-user-check mr-3 text-lg"></i> User Approval
+            </a>
+          </nav>
+        </div>
+
+        <!-- user dropdown -->
+        <div class="flex-shrink-0 flex border-t border-white/10 p-4 relative">
+          <div id="userDropdownToggle" class="flex flex-col items-center cursor-pointer w-full">
+            <div class="flex items-center justify-center w-full">
+              <img class="h-9 w-9 rounded-full" src="{{ current_user.profile_pic if current_user and current_user.profile_pic else get_default_profile_image(current_user) }}" alt="Profile">
+              <div class="ml-3 flex-1 min-w-0">
+                <div class="text-base font-medium text-white truncate uppercase">{{ session['username'] if session.get('username') else 'Guest' }}</div>
+                <div class="text-xs text-blue-100 mt-0.5 truncate">{{ session['position']|title if session.get('position') else 'User' }}</div>
+              </div>
+              <i class="fas fa-chevron-down ml-2 text-blue-200 flex-shrink-0"></i>
+            </div>
+          </div>
+          <ul id="userDropdownMenu" class="absolute left-0 right-0 mx-auto bottom-14 z-20 w-60 bg-white rounded shadow-lg py-2 text-gray-700 hidden">
+            <li>
+              <a class="dropdown-item flex items-center px-4 py-2 hover:bg-gray-100" href="{{ url_for('profile') }}">
+                <i class="fas fa-user mr-2"></i>Profile
+              </a>
+            </li>
+            <li><a class="dropdown-item flex items-center px-4 py-2 hover:bg-gray-100" href="#"><i class="fas fa-cog mr-2"></i>Settings</a></li>
+            <li><hr class="dropdown-divider my-1"></li>
+            <li><a class="dropdown-item flex items-center px-4 py-2 hover:bg-gray-100" href="/logout"><i class="fas fa-sign-out-alt mr-2"></i>Logout</a></li>
+          </ul>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Mobile top bar (white like Dashboard) -->
+    <div class="md:hidden app-topbar w-full flex items-center justify-between px-4 py-3">
+      <div class="flex items-center">
+        <img src="/static/images/SKLOGO.png" class="brand-img mr-2" alt="SK"/>
+        <h1 class="text-lg font-extrabold">SK<span class="text-blue-700">Connect</span></h1>
+      </div>
+      <button id="mobile-menu-button" class="text-gray-700 focus:outline-none">
+        <i class="fas fa-bars text-xl"></i>
+      </button>
+    </div>
+
+    <!-- Mobile dropdown (blue like sidebar) -->
+    <div id="mobile-menu" class="md:hidden absolute top-14 left-0 right-0 sidebar z-10 hidden">
+      <nav class="px-2 pt-2 pb-3 space-y-1">
+        <a href="admin_dashboard" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-home mr-2"></i> Dashboard</a>
+        <a href="admin_announcements" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-bullhorn mr-2"></i> Announcements</a>
+        <a href="admin_events_projects" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-calendar mr-2"></i> Events & Projects</a>
+        <a href="admin_financial_report" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium bg-blue-800"><i class="fas fa-chart-pie mr-2"></i> Financial Reports</a>
+        <a href="admin_feedback" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-poll mr-2"></i> Surveys & Polls</a>
+        <a href="admin_documents" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-file-alt mr-2"></i> Documents</a>
+        <a href="admin_volunteer" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-hands-helping mr-2"></i> Volunteer</a>
+        <a href="admin_training_resources" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-graduation-cap mr-2"></i> Training Resources</a>
+        <a href="admin_community" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-users mr-2"></i> Community Board</a>
+        <a href="admin_incidents" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-exclamation-triangle mr-2"></i> Incident Reports</a>
+        <a href="admin_user_approval" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-user-check mr-2"></i> User Approval</a>
+      </nav>
+    </div>
+
+
+    <!-- Main content -->
+    <div class="flex-1 flex flex-col overflow-hidden">
+      <!-- Top navigation (white) -->
+      <header class="app-topbar">
+        <div class="flex justify-between items-center px-4 py-4 sm:px-6 lg:px-8">
+          <h1 id="page-title" class="text-2xl font-extrabold">Dashboard</h1>
+
+          <div class="flex items-center gap-4">
+            <div class="relative">
+              <input class="top-search pl-10 pr-3 py-2 rounded-lg w-72 focus:outline-none" placeholder="Search...">
+              <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+            </div>
+
+            <div class="relative">
+              <button id="notifToggle" class="p-1 rounded-full text-gray-500 hover:text-gray-700 focus:outline-none relative" aria-haspopup="true" aria-expanded="false" aria-controls="notifPanel">
+                <i class="fas fa-bell text-xl"></i>
+                <span id="notifDot" class="absolute -top-0.5 -right-0.5 inline-block w-2 h-2 bg-red-600 rounded-full"></span>
+              </button>
+
+              <div id="notifPanel" class="notif-panel hidden absolute right-0 top-10 w-80 bg-white rounded-lg shadow-xl ring-1 ring-black/5 z-30">
+                <div class="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+                  <span class="font-semibold text-gray-800">Notifications</span>
+                  <button id="markAllRead" class="text-xs text-blue-600 hover:underline">Mark all as read</button>
+                </div>
+                <ul class="max-h-80 overflow-y-auto divide-y divide-gray-100">
+                  <li class="p-3 hover:bg-gray-50 flex items-start gap-3">
+                    <span class="unread-dot mt-2 bg-red-500"></span>
+                    <div><p class="text-sm text-gray-800">Barangay Clean-up Drive starts in 2 days.</p><p class="text-xs text-gray-500">2h ago</p></div>
+                  </li>
+                  <li class="p-3 hover:bg-gray-50 flex items-start gap-3">
+                    <span class="unread-dot mt-2 bg-red-500"></span>
+                    <div><p class="text-sm text-gray-800">New feedback received for “Youth Summit”.</p><p class="text-xs text-gray-500">1d ago</p></div>
+                  </li>
+                  <li class="p-3 hover:bg-gray-50 flex items-start gap-3">
+                    <span class="mt-2 inline-block w-2 h-2 bg-gray-300 rounded-full"></span>
+                    <div><p class="text-sm text-gray-800">Monthly financial report uploaded.</p><p class="text-xs text-gray-500">3d ago</p></div>
+                  </li>
+                </ul>
+                <a href="#" class="block text-center text-sm text-blue-600 hover:bg-gray-50 py-2 rounded-b-lg">View all</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Content area -->
+      <main class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-white">
+        <!-- QUICK ACTIONS -->
+
+        <!-- KPI CARDS -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <div class="bg-white overflow-hidden shadow rounded-lg kpi-card">
+            <div class="p-5">
+              <div class="flex items-center">
+                <div class="flex-shrink-0 bg-blue-500 rounded-md p-3"><i class="fas fa-calendar-check text-white text-xl"></i></div>
+                <div class="ml-5">
+                  <h3 class="text-lg font-medium text-gray-900">Upcoming Events</h3>
+                  <p class="text-2xl font-extrabold text-gray-800" id="eventsCount">{{ stats.upcoming_events if stats and stats.upcoming_events is not none else 3 }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white overflow-hidden shadow rounded-lg kpi-card">
+            <div class="p-5">
+              <div class="flex items-center">
+                <div class="flex-shrink-0 bg-green-500 rounded-md p-3"><i class="fas fa-bullhorn text-white text-xl"></i></div>
+                <div class="ml-5">
+                  <h3 class="text-lg font-medium text-gray-900">Total Announcements</h3>
+<p class="text-2xl font-extrabold text-gray-800" id="kpiTotal">{{ total_announcements }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white overflow-hidden shadow rounded-lg kpi-card">
+            <div class="p-5">
+              <div class="flex items-center">
+                <div class="flex-shrink-0 bg-purple-500 rounded-md p-3"><i class="fas fa-users text-white text-xl"></i></div>
+                <div class="ml-5">
+                  <h3 class="text-lg font-medium text-gray-900">Active Volunteers</h3>
+                  <p class="text-2xl font-extrabold text-gray-800" id="volsCount">{{ stats.volunteers_active if stats and stats.volunteers_active is not none else (stats.volunteers_upcoming if stats and stats.volunteers_upcoming is not none else 24) }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white overflow-hidden shadow rounded-lg kpi-card">
+            <div class="p-5">
+              <div class="flex items-center">
+                <div class="flex-shrink-0 bg-yellow-500 rounded-md p-3"><i class="fas fa-poll text-white text-xl"></i></div>
+                <div class="ml-5">
+                  <h3 class="text-lg font-medium text-gray-900">Active Polls</h3>
+                  <p class="text-2xl font-extrabold text-gray-800" id="pollsCount">{{ stats.polls_active if stats and stats.polls_active is not none else (stats.polls if stats and stats.polls is not none else 2) }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white shadow rounded-lg p-6 mt-6">
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-semibold text-gray-900">Monthly Budget Allocated</h3>
+            <div class="flex space-x-2">
+              <button id="dashMonthlyYear2026" data-year="2026" class="text-sm text-gray-600 hover:bg-gray-100 px-3 py-1 rounded-md">2026</button>
+              <button id="dashMonthlyYear2025" data-year="2025" class="text-sm bg-blue-100 text-blue-800 px-3 py-1 rounded-md">2025</button>
+              <button id="dashMonthlyYear2024" data-year="2024" class="text-sm text-gray-600 hover:bg-gray-100 px-3 py-1 rounded-md">2024</button>
+            </div>
+          </div>
+          <div class="h-64">
+            <canvas id="monthlySpendingChartDashboard"></canvas>
+          </div>
+        </div>
+       
+
+        <!-- Chart + Poll -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+          <div class="bg-white shadow rounded-lg p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Budget Allocation</h3>
+            <div class="h-64"><canvas id="budgetChart"></canvas></div>
+          </div>
+          <div class="bg-white shadow rounded-lg p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Active Poll</h3>
+            {% if active_polls and active_polls|length > 0 %}
+              {# Render the first active poll by default #}
+              {% set poll = active_polls[0] %}
+              <form method="post" action="{{ url_for('vote_poll') }}">
+                <input type="hidden" name="poll_id" value="{{ poll.id }}">
+                <div class="mb-2">
+                  <h4 class="text-md font-semibold text-gray-800">{{ poll.question if poll.question else 'Untitled Poll' }}</h4>
+                </div>
+                <div id="poll-toast-{{ poll.id }}" class="hidden fixed right-6 top-6 z-50 bg-white border rounded shadow-lg px-4 py-2 text-sm text-gray-800"></div>
+                <div class="space-y-3">
+                  {# Backend stores options as list of strings and votes as a map {option_text: count} #}
+                  {% set votes_map = poll.votes or {} %}
+                  {% set total_votes = poll.total_votes or 0 %}
+                  {% for opt_text in poll.options %}
+                    {% set cnt = votes_map.get(opt_text) or 0 %}
+                    {% set pct = (cnt / total_votes * 100) if total_votes > 0 else 0 %}
+                    <div>
+                      <div class="flex items-center">
+                        <input type="radio" name="option" id="opt-{{ loop.index }}" value="{{ opt_text }}" class="mr-2">
+                        <label for="opt-{{ loop.index }}" class="text-sm text-gray-700">{{ opt_text }}</label>
+                      </div>
+                      <div class="mt-1 w-full bg-gray-200 rounded-full h-2">
+                        <div class="bg-blue-500 h-2 rounded-full poll-bar" data-pct="{{ (pct | round(0) | int) }}"></div>
+                      </div>
+                      <div class="text-xs text-gray-500 mt-1">{{ (pct | round(0) | int) ~ '%' }} ({{ cnt }} votes)</div>
+                    </div>
+                  {% endfor %}
+                </div>
+                <div class="mt-4">
+                  <button id="vote-btn-{{ poll.id }}" type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700">Vote Now</button>
+                </div>
+              </form>
+            {% else %}
+              <div class="text-sm text-gray-600">No active polls at the moment.</div>
+            {% endif %}
+          </div>
+        </div>
+
+         <!-- Project table -->
+        <div class="grid grid-cols-1 gap-6">
+          <div class="bg-white shadow rounded-lg p-6">
+            <div class="flex justify-between items-center mb-4">
+              <h3 class="text-lg font-semibold text-gray-900">Project Progress</h3>
+              <div>
+                <select class="text-sm border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                  <option>All Projects</option>
+                  <option>Ongoing</option>
+                  <option>Completed</option>
+                </select>
+              </div>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                  <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Project</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Budget</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Progress</th>
+                  </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                  <tr>
+                    <td class="px-6 py-4 whitespace-nowrap"><div class="text-sm font-medium text-gray-900">Youth Leadership Summit</div></td>
+                    <td class="px-6 py-4 whitespace-nowrap"><span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">Planning</span></td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">₱50,000</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="w-full bg-gray-200 rounded-full h-2"><div class="bg-yellow-500 h-2 rounded-full" style="width:25%"></div></div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="px-6 py-4 whitespace-nowrap"><div class="text-sm font-medium text-gray-900">Sports Festival</div></td>
+                    <td class="px-6 py-4 whitespace-nowrap"><span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">Ongoing</span></td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">₱75,000</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="w-full bg-gray-200 rounded-full h-2"><div class="bg-blue-500 h-2 rounded-full" style="width:60%"></div></div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="px-6 py-4 whitespace-nowrap"><div class="text-sm font-medium text-gray-900">Clean-up Drive</div></td>
+                    <td class="px-6 py-4 whitespace-nowrap"><span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Completed</span></td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">₱25,000</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="w-full bg-gray-200 rounded-full h-2"><div class="bg-green-500 h-2 rounded-full" style="width:100%"></div></div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white shadow rounded-lg p-6 mb-8">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-gray-900">Approvals & Tasks</h3>
+            <a href="#" class="text-sm text-blue-600 hover:text-blue-800 font-medium">View all</a>
+          </div>
+          <ul class="divide-y divide-gray-100">
+            <li class="py-3 flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <span class="task-dot bg-blue-600"></span>
+                <span class="text-gray-800">User sign-ups pending approval</span>
+              </div>
+              <span class="count-pill bg-blue-50 text-blue-700">{{ stats.sk_users_pending_rows if stats and stats.sk_users_pending_rows is not none else (stats.pending_approvals if stats and stats.pending_approvals is not none else 3) }}</span>
+            </li>
+            <li class="py-3 flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <span class="task-dot bg-yellow-500"></span>
+                <span class="text-gray-800">Events needing attendance upload</span>
+              </div>
+              <span class="count-pill bg-yellow-50 text-yellow-700">{{ stats.events_needing_attendance if stats and stats.events_needing_attendance is not none else 2 }}</span>
+            </li>
+            <li class="py-3 flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <span class="task-dot bg-red-600"></span>
+                <span class="text-gray-800">Financial reports due this week</span>
+              </div>
+              <span class="count-pill bg-red-50 text-red-700">{{ stats.financial_reports_due if stats and stats.financial_reports_due is not none else 1 }}</span>
+            </li>
+            <li class="py-3 flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <span class="task-dot bg-green-600"></span>
+                <span class="text-gray-800">Feedback to review</span>
+              </div>
+              <span class="count-pill bg-green-50 text-green-700">{{ stats.feedback_to_review if stats and stats.feedback_to_review is not none else 5 }}</span>
+            </li>
+          </ul>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          <!-- Recent Announcements -->
+          <div class="bg-white shadow rounded-lg p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Recent Announcements</h3>
+            <div class="space-y-4">
+              {% if recent_announcements and recent_announcements|length > 0 %}
+                {% for ann in recent_announcements %}
+                  <div class="border-b pb-4">
+                    <h4 class="font-medium text-gray-800">{{ ann.title }}</h4>
+                    <p class="text-sm text-gray-600">{{ ann.description }}</p>
+                    <div class="mt-2 flex items-center text-sm text-gray-500">
+                      <i class="fas fa-clock mr-1"></i>
+                      {# Show relative time using server helper time_ago(); title shows formatted absolute time #}
+                      <span class="created" title="{{ format_datetime(ann.created_at, '%b %d, %Y %I:%M %p', 'UTC') }}">{{ time_ago(ann.created_at) }}</span>
+                    </div>
+                  </div>
+                {% endfor %}
+              {% else %}
+                <div class="border-b pb-4">
+                  <h4 class="font-medium text-gray-800">Barangay Clean-up Drive</h4>
+                  <p class="text-sm text-gray-600">Join us this Saturday for the community clean-up drive at Barangay Batong Malake.</p>
+                  <div class="mt-2 flex items-center text-sm text-gray-500"><i class="fas fa-clock mr-1"></i> Posted 2 days ago</div>
+                </div>
+                <div class="border-b pb-4">
+                  <h4 class="font-medium text-gray-800">Youth Leadership Summit Registration</h4>
+                  <p class="text-sm text-gray-600">Registration for the annual Youth Leadership Summit is now open. Limited slots available!</p>
+                  <div class="mt-2 flex items-center text-sm text-gray-500"><i class="fas fa-clock mr-1"></i> Posted 1 week ago</div>
+                </div>
+                <div>
+                  <h4 class="font-medium text-gray-800">SK Budget Hearing</h4>
+                  <p class="text-sm text-gray-600">The SK Budget Hearing for 2025 will be held on June 5, 2025 at the Municipal Hall.</p>
+                  <div class="mt-2 flex items-center text-sm text-gray-500"><i class="fas fa-clock mr-1"></i> Posted 2 weeks ago</div>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Upcoming Events -->
+          <div class="bg-white shadow rounded-lg p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Upcoming Events</h3>
+            <div class="space-y-4">
+              {% if upcoming_events_list and upcoming_events_list|length > 0 %}
+                {% for ev in upcoming_events_list %}
+                  <div class="flex items-start">
+                    <div class="flex-shrink-0 bg-blue-100 rounded-md p-2 text-center">
+                      {% set ev_date = ev.date %}
+                      {% if ev_date %}
+                        {% set month = ev_date[:3]|upper if ev_date is string else '' %}
+                        {% set day = ev_date.split('-')[-1] if ev_date is string else '' %}
+                        <span class="block text-sm font-bold text-blue-800">{{ month }}</span>
+                        <span class="block text-lg font-bold text-blue-800">{{ day }}</span>
+                      {% else %}
+                        <span class="block text-sm font-bold text-blue-800">TBD</span>
+                      {% endif %}
+                    </div>
+                    <div class="ml-4">
+                      <h4 class="font-medium text-gray-800">{{ ev.name }}</h4>
+                      <p class="text-sm text-gray-600">{{ ev.start_time if ev.start_time else '' }} {{ 'at' if ev.start_time and ev.location else '' }} {{ ev.location if ev.location else '' }}</p>
+                      <div class="mt-2"><a href="#" class="text-blue-600 hover:text-blue-800 text-sm font-medium">More details</a></div>
+                    </div>
+                  </div>
+                {% endfor %}
+              {% else %}
+                <div class="flex items-start">
+                  <div class="flex-shrink-0 bg-blue-100 rounded-md p-2 text-center">
+                    <span class="block text-sm font-bold text-blue-800">MAY</span>
+                    <span class="block text-lg font-bold text-blue-800">23</span>
+                  </div>
+                  <div class="ml-4">
+                    <h4 class="font-medium text-gray-800">Sports Fest Opening Ceremony</h4>
+                    <p class="text-sm text-gray-600">9:00 AM at Municipal Basketball Court</p>
+                    <div class="mt-2"><a href="#" class="text-blue-600 hover:text-blue-800 text-sm font-medium">More details</a></div>
+                  </div>
+                </div>
+
+                <div class="flex items-start">
+                  <div class="flex-shrink-0 bg-blue-100 rounded-md p-2 text-center">
+                    <span class="block text-sm font-bold text-blue-800">MAY</span>
+                    <span class="block text-lg font-bold text-blue-800">25</span>
+                  </div>
+                  <div class="ml-4">
+                    <h4 class="font-medium text-gray-800">Barangay Clean-up Drive</h4>
+                    <p class="text-sm text-gray-600">7:00 AM at Barangay Batong Malake</p>
+                    <div class="mt-2"><a href="#" class="text-blue-600 hover:text-blue-800 text-sm font-medium">Register</a></div>
+                  </div>
+                </div>
+
+                <div class="flex items-start">
+                  <div class="flex-shrink-0 bg-blue-100 rounded-md p-2 text-center">
+                    <span class="block text-sm font-bold text-blue-800">JUN</span>
+                    <span class="block text-lg font-bold text-blue-800">05</span>
+                  </div>
+                  <div class="ml-4">
+                    <h4 class="font-medium text-gray-800">SK Budget Hearing</h4>
+                    <p class="text-sm text-gray-600">2:00 PM at Municipal Hall</p>
+                    <div class="mt-2"><a href="#" class="text-blue-600 hover:text-blue-800 text-sm font-medium">More details</a></div>
+                  </div>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        
+
+        
+
+        <!-- Calendar -->
+        <div class="bg-white shadow rounded-lg p-6 mt-6">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">Events Calendar</h3>
+          <div id="fc-calendar"></div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script>
+  // Dashboard monthly spending chart (events vs projects)
+  (function(){
+    let dashMonthlyChart = null;
+    let dashCurrentYear = '2025';
+
+    async function fetchMonthlyBreakdownDashboard(year) {
+      const labels = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      const eventsSeries = new Array(12).fill(0);
+      const projectsSeries = new Array(12).fill(0);
+
+      try {
+        const eventsRes = await fetch('/api/events');
+        const projectsRes = await fetch('/api/projects');
+        const events = eventsRes.ok ? await eventsRes.json() : [];
+        const projects = projectsRes.ok ? await projectsRes.json() : [];
+
+        if (Array.isArray(events)) {
+          events.forEach(ev => {
+            try {
+              // ev.start may be an ISO string or Date-like
+              const start = ev.start || ev.date || (ev.extendedProps && ev.extendedProps.start) || null;
+              const dt = start ? new Date(start) : null;
+              if (!dt || String(dt.getFullYear()) !== String(year)) return;
+              const m = dt.getMonth();
+              const budget = (ev.extendedProps && (ev.extendedProps.budget || ev.extendedProps.amount_spent)) || ev.budget || 0;
+              eventsSeries[m] += Number(budget) || 0;
+            } catch (e) { console.warn('dash: event agg err', e, ev); }
+          });
+        }
+
+        if (Array.isArray(projects)) {
+          projects.forEach(p => {
+            try {
+              const start = p.start || p.start_date || (p.extendedProps && p.extendedProps.start) || null;
+              const dt = start ? new Date(start) : null;
+              if (!dt || String(dt.getFullYear()) !== String(year)) return;
+              const m = dt.getMonth();
+              // Use budget_allocated as primary value for projects (requested change)
+              const allocated = p.budget_allocated || p.budget || (p.extendedProps && (p.extendedProps.budget || p.extendedProps.budget_allocated)) || p.amount_spent || 0;
+              projectsSeries[m] += Number(allocated) || 0;
+            } catch (e) { console.warn('dash: project agg err', e, p); }
+          });
+        }
+
+        return { labels, events: eventsSeries, projects: projectsSeries };
+      } catch (err) {
+        console.warn('dash: fetchMonthlyBreakdown error', err);
+        return { labels, events: eventsSeries, projects: projectsSeries };
+      }
+    }
+
+    function initDashChart() {
+      const ctx = document.getElementById('monthlySpendingChartDashboard').getContext('2d');
+      dashMonthlyChart = new Chart(ctx, {
+        type: 'line',
+        data: { labels: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+                datasets: [
+                  { label: 'Events (Budget)', data: new Array(12).fill(0), borderColor: '#2563EB', backgroundColor: 'rgba(37,99,235,0.08)', fill: true, tension: 0.4 },
+                  { label: 'Projects (Allocated)', data: new Array(12).fill(0), borderColor: '#F97316', backgroundColor: 'rgba(249,115,22,0.08)', fill: true, tension: 0.4 }
+                ] },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } },
+                   scales: { y: { beginAtZero: true, ticks: { callback: v => '₱' + Number(v).toLocaleString() } } } }
+      });
+    }
+
+    async function updateDashChart(year) {
+      dashCurrentYear = year || dashCurrentYear;
+      if (!dashMonthlyChart) initDashChart();
+      const breakdown = await fetchMonthlyBreakdownDashboard(dashCurrentYear);
+      dashMonthlyChart.data.labels = breakdown.labels;
+      dashMonthlyChart.data.datasets[0].data = breakdown.events;
+      dashMonthlyChart.data.datasets[1].data = breakdown.projects;
+      dashMonthlyChart.update();
+    }
+
+    document.addEventListener('DOMContentLoaded', function(){
+      // wire year buttons
+      document.getElementById('dashMonthlyYear2026')?.addEventListener('click', () => updateDashChart('2026'));
+      document.getElementById('dashMonthlyYear2025')?.addEventListener('click', () => updateDashChart('2025'));
+      document.getElementById('dashMonthlyYear2024')?.addEventListener('click', () => updateDashChart('2024'));
+      // initial load
+      updateDashChart(dashCurrentYear);
+    });
+  })();
+  </script>
+  <script>
+    (function () {
+      // highlight the correct item based on current URL and set the topbar title
+      const links = document.querySelectorAll('.sidebar-item, .mobile-nav');
+      const here = window.location.pathname + window.location.hash;
+
+      let matched = false;
+      links.forEach(a => {
+        const href = new URL(a.getAttribute('href'), window.location.origin);
+        const key = href.pathname + href.hash;
+
+        if (here === key || here.endsWith(key)) {
+          a.classList.add('active-nav');
+          matched = true;
+          const t = a.dataset.title || a.textContent.trim();
+          const h = document.getElementById('page-title');
+          if (h) h.textContent = t;
+        } else {
+          a.classList.remove('active-nav');
+        }
+      });
+      // fallback: keep Dashboard highlighted if nothing matched yet
+      if (!matched) {
+        const first = document.querySelector('.sidebar-item');
+        first?.classList.add('active-nav');
+      }
+
+      // mobile menu toggle
+      const mobileMenuButton = document.getElementById('mobile-menu-button');
+      const mobileMenu = document.getElementById('mobile-menu');
+      mobileMenuButton?.addEventListener('click', () => mobileMenu?.classList.toggle('hidden'));
+
+      // user dropdown
+      const userDropdownToggle = document.getElementById('userDropdownToggle');
+      const userDropdownMenu = document.getElementById('userDropdownMenu');
+      userDropdownToggle?.addEventListener('click', function (e) {
+        e.stopPropagation(); userDropdownMenu?.classList.toggle('hidden');
+      });
+      document.addEventListener('click', function () { userDropdownMenu?.classList.add('hidden'); });
+
+      // notifications
+      const notifToggle  = document.getElementById('notifToggle');
+      const notifPanel   = document.getElementById('notifPanel');
+      const notifDot     = document.getElementById('notifDot');
+      const markAllRead  = document.getElementById('markAllRead');
+      function openPanel(){ notifPanel?.classList.remove('hidden'); notifToggle?.setAttribute('aria-expanded','true'); notifDot?.classList.add('hidden'); }
+      function closePanel(){ notifPanel?.classList.add('hidden'); notifToggle?.setAttribute('aria-expanded','false'); }
+      notifToggle?.addEventListener('click', (e)=>{ e.stopPropagation(); notifPanel?.classList.contains('hidden') ? openPanel() : closePanel(); });
+      document.addEventListener('click', (e)=>{ if(!notifPanel || notifPanel.classList.contains('hidden')) return; if(!notifPanel.contains(e.target) && !notifToggle.contains(e.target)) closePanel(); });
+      document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closePanel(); });
+      markAllRead?.addEventListener('click', (e)=>{ e.preventDefault(); notifPanel?.querySelectorAll('.unread-dot').forEach(d=>d.classList.add('is-read')); notifDot?.classList.add('hidden'); });
+
+      // budget chart
+      const ctx = document.getElementById('budgetChart')?.getContext('2d');
+      if(ctx && window.Chart){
+        new Chart(ctx,{
+          type:'doughnut',
+          data:{
+            labels:['Sports & Recreation','Education','Environment','Health','Cultural','Administrative'],
+            datasets:[{
+              data:[30,20,15,15,10,10],
+              backgroundColor:['rgba(54,162,235,.8)','rgba(75,192,192,.8)','rgba(52,168,83,.8)','rgba(255,99,132,.8)','rgba(153,102,255,.8)','rgba(255,159,64,.8)'],
+              borderColor:['rgba(54,162,235,1)','rgba(75,192,192,1)','rgba(52,168,83,1)','rgba(255,99,132,1)','rgba(153,102,255,1)','rgba(255,159,64,1)'],
+              borderWidth:1
+            }]
+          },
+          options:{
+            responsive:true, maintainAspectRatio:false,
+            plugins:{ legend:{ position:'right', labels:{ boxWidth:12, padding:15 } },
+              tooltip:{ callbacks:{ label:(c)=>`${c.label}: ${c.raw}%` } } }
+          }
+        });
+      }
+    })();
+    // set poll bar widths from data attributes (avoids injecting % into style via Jinja)
+    document.addEventListener('DOMContentLoaded', function () {
+      document.querySelectorAll('.poll-bar').forEach(function (el) {
+        var pct = el.getAttribute('data-pct') || '0';
+        el.style.width = pct + '%';
+      });
+  // Attach AJAX submit handlers for poll forms
+  var voteUrl = "{{ url_for('vote_poll') }}";
+  document.querySelectorAll('form[action="' + voteUrl + '"]').forEach(function (form) {
+        form.addEventListener('submit', function (ev) {
+          ev.preventDefault();
+          var pollId = form.querySelector('input[name="poll_id"]').value;
+          var optionEl = form.querySelector('input[name="option"]:checked');
+          if (!optionEl) {
+            showToast(pollId, 'Please select an option before voting.');
+            return;
+          }
+          var option = optionEl.value;
+          var data = new FormData();
+          data.append('poll_id', pollId);
+          data.append('option', option);
+
+          fetch(form.getAttribute('action'), {
+            method: 'POST',
+            body: data,
+            credentials: 'same-origin',
+            headers: {
+              'X-Requested-With': 'XMLHttpRequest'
+            }
+          }).then(function (res) { return res.json().catch(()=>({success:false,error:'Invalid response'})); })
+            .then(function (json) {
+              if (json && json.success) {
+                showToast(pollId, 'Vote recorded. Thank you!');
+                // Update bars and counts if returned
+                if (json.votes) {
+                  updatePollDisplay(pollId, json.votes, json.total_votes);
+                }
+              } else {
+                var msg = (json && json.error) ? json.error : 'Vote failed.';
+                showToast(pollId, msg);
+              }
+            }).catch(function (err) {
+              showToast(pollId, 'Network error. Try again.');
+            });
+        });
+      });
+
+      function showToast(pollId, message) {
+        var el = document.getElementById('poll-toast-' + pollId);
+        if (!el) return;
+        el.textContent = message;
+        el.classList.remove('hidden');
+        el.style.opacity = 1;
+        setTimeout(function () { el.classList.add('hidden'); }, 3500);
+      }
+
+      function updatePollDisplay(pollId, votesObj, totalVotes) {
+        // find poll container by hidden input
+        var input = document.querySelector('input[name="poll_id"][value="' + pollId + '"]');
+        if (!input) return;
+        var container = input.closest('form');
+        // for each option radio, update the sibling count and bar
+        container.querySelectorAll('input[name="option"]').forEach(function (r) {
+          var optVal = r.value;
+          var cnt = votesObj[optVal] || 0;
+          var pct = totalVotes > 0 ? Math.round((cnt / totalVotes) * 100) : 0;
+          // find the .poll-bar in the same option block
+          var block = r.closest('div');
+          if (!block) return;
+          var bar = block.querySelector('.poll-bar');
+          if (bar) {
+            bar.setAttribute('data-pct', pct);
+            bar.style.width = pct + '%';
+          }
+          // update text nodes that show counts (simple heuristic)
+          var txt = block.querySelector('.text-xs');
+          if (txt) txt.textContent = pct + '% (' + cnt + ' votes)';
+        });
+      }
+    });
+  </script>
+
+  <!-- FullCalendar JS: use global (non-module) build and fail gracefully if it doesn't load -->
+  <script src="{{ url_for('static', filename='vendor/fullcalendar/index.global.min.js') }}" crossorigin="anonymous"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const dateEventsModal = document.getElementById('dateEventsModal');
+      const dateEventsBackdrop = document.getElementById('dateEventsBackdrop');
+      const closeDateEvents = document.getElementById('closeDateEvents');
+      const dateEventsTitle = document.getElementById('dateEventsTitle');
+      const dateEventsList = document.getElementById('dateEventsList');
+
+      function showDateEvents(date, events) {
+        const formattedDate = new Date(date).toLocaleDateString('en-US', {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        });
+        
+        dateEventsTitle.querySelector('span').textContent = formattedDate;
+        dateEventsList.innerHTML = '';
+        
+        if (!events || events.length === 0) {
+          dateEventsList.innerHTML = '<div class="text-gray-500 text-center py-4">No events scheduled for this date.</div>';
+        } else {
+          events.forEach(event => {
+            const eventTime = new Date(event.start).toLocaleTimeString('en-US', {
+              hour: 'numeric',
+              minute: '2-digit',
+              hour12: true
+            });
+            dateEventsList.innerHTML += `
+              <div class="p-3 bg-gray-50 rounded-lg">
+                <div class="font-semibold text-gray-900">${event.title}</div>
+                <div class="text-sm text-gray-600 mt-1">
+                  <i class="far fa-clock mr-1"></i> ${eventTime}
+                </div>
+              </div>`;
+          });
+        }
+        
+        dateEventsModal.classList.remove('hidden');
+      }
+
+      function closeDateModal() {
+        if (dateEventsModal) {
+          dateEventsModal.classList.add('hidden');
+        }
+      }
+
+      // Close modal when clicking backdrop or close button
+      if (dateEventsBackdrop) {
+        dateEventsBackdrop.addEventListener('click', closeDateModal);
+      }
+      if (closeDateEvents) {
+        closeDateEvents.addEventListener('click', closeDateModal);
+      }
+
+      // Close modal on escape key
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && dateEventsModal && !dateEventsModal.classList.contains('hidden')) {
+          closeDateModal();
+        }
+      });
+
+      var calendarEl = document.getElementById('fc-calendar');
+      if (!calendarEl) return;
+
+      if (typeof FullCalendar === 'undefined') {
+        console.error('FullCalendar is not available. The calendar will not be displayed.');
+        calendarEl.innerHTML = '<div style="padding:24px;color:#6b7280">Calendar failed to load. Please check your network or try again later.</div>';
+        return;
+      }
+
+      var calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        headerToolbar: {
+          left: 'prev,next today',
+          center: 'title',
+          right: 'dayGridMonth,timeGridWeek'
+        },
+        height: 'auto',
+        events: [], // load via fetch below so we can log the response for debugging
+        eventDisplay: 'block',
+        displayEventTime: true,
+        displayEventEnd: true,
+        dateClick: function(info) {
+          const events = calendar.getEvents().filter(event => {
+            const eventDate = new Date(event.start);
+            return eventDate.toDateString() === info.date.toDateString();
+          });
+          showDateEvents(info.date, events);
+        },
+        eventContent: function(arg) {
+          let timeText = '';
+          if (arg.event.start) {
+            const startTime = arg.event.start.toLocaleTimeString('en-PH', {
+              hour: 'numeric',
+              minute: '2-digit',
+              hour12: true
+            });
+            const endTime = arg.event.end ? arg.event.end.toLocaleTimeString('en-PH', {
+              hour: 'numeric',
+              minute: '2-digit',
+              hour12: true
+            }) : '';
+            timeText = endTime ? `${startTime} - ${endTime}` : startTime;
+          }
+          
+          return {
+            html: `
+              <div class="fc-event-main-frame">
+                <div class="fc-event-title-container">
+                  <div class="fc-event-title">${arg.event.title}</div>
+                  <div class="fc-event-time">${timeText}</div>
+                </div>
+              </div>
+            `
+          };
+        },
+        dayMaxEvents: 3,
+        themeSystem: 'standard',
+        contentHeight: 700,
+        eventBackgroundColor: '#2563EB',
+        eventBorderColor: '#2563EB',
+        eventTextColor: '#ffffff',
+        dayHeaderFormat: { weekday: 'short' },
+        displayEventTime: true,
+        displayEventEnd: true,
+        eventTimeFormat: {
+          hour: 'numeric',
+          minute: '2-digit',
+          meridiem: 'short'
+        },
+        eventDidMount: function(info) {
+          // Add tooltip with full event title
+          info.el.setAttribute('title', info.event.title);
+        },
+        slotMinTime: '08:00:00',
+        slotMaxTime: '20:00:00',
+        slotDuration: '01:00:00',
+        titleFormat: { month: 'long', year: 'numeric' },
+        buttonText: {
+          today: 'Today',
+          month: 'Month',
+          week: 'Week'
+        },
+        views: {
+          dayGridMonth: {
+            dayHeaderFormat: { weekday: 'short' }
+          }
+        },
+        dateClick: function(info) {
+          var clickedDate = info.dateStr; // YYYY-MM-DD
+          var evs = calendar.getEvents().map(function(e){
+            // map FullCalendar Event API to plain object expected by showDateEvents
+            return {
+              id: e.id,
+              title: e.title,
+              start: e.start,
+              startStr: e.startStr,
+              end: e.end,
+              extendedProps: e.extendedProps || {}
+            };
+          }).filter(function(e){
+            return (e.startStr && e.startStr.indexOf(clickedDate) === 0) || (e.start && e.start.toISOString().indexOf(clickedDate) === 0);
+          });
+          window.showDateEvents(clickedDate, evs);
+        },
+        eventClick: function(info) {
+          info.jsEvent.preventDefault();
+          // use the shared modal helper
+          window.showEventDetailModal(info.event);
+        }
+      });
+      calendar.render();
+      // Fetch events manually and add to calendar
+      fetch('/api/events?include_organizers=1', { 
+        credentials: 'same-origin',
+        headers: { 'Accept': 'application/json' }
+      })
+        .then(function (res) {
+          if (!res.ok) {
+            throw new Error('API returned status ' + res.status);
+          }
+          return res.json().catch(function(err) {
+            throw new Error('Invalid JSON response from API');
+          });
+        })
+        .then(function (data) {
+          console.log('api/events returned:', data);
+          var events = [];
+          
+          if (Array.isArray(data)) {
+            events = data;
+          } else if (data && data.events && Array.isArray(data.events)) {
+            events = data.events;
+          } else {
+            throw new Error('Unexpected response format');
+          }
+
+          if (events.length) {
+            // Validate and sanitize each event
+            events = events.filter(function(evt) {
+              return evt && typeof evt === 'object' && evt.title && (evt.start || evt.date);
+            }).map(function(evt) {
+              // Ensure dates are properly formatted
+              if (evt.date && !evt.start) evt.start = evt.date;
+              // Clean up the title by removing any leading numbers and dots
+              if (evt.title) {
+                evt.title = evt.title.replace(/^\d+[a-zA-Z]?\s+/, '');
+              }
+              return evt;
+            });
+            
+            calendar.addEventSource(events);
+            console.log('Added ' + events.length + ' events to calendar');
+          } else {
+            calendarEl.insertAdjacentHTML('beforeend', 
+              '<div class="text-gray-500 text-sm p-4 text-center">No upcoming events scheduled</div>'
+            );
+          }
+        })
+        .catch(function (err) {
+          console.error('Error fetching /api/events:', err);
+          calendarEl.insertAdjacentHTML('beforeend',
+            '<div class="text-red-500 text-sm p-4 text-center">' + 
+            'Could not load events. Please try refreshing the page.' +
+            '</div>'
+          );
+        });
+    });
+  </script>
+
+  {% include '_event_detail_modal.html' %}
+
+  <script>
+    // Event detail modal handler
+    window.showEventDetailModal = function(event) {
+      const props = event.extendedProps || {};
+      
+      // Get the full event data from our custom properties
+      const eventData = {
+        name: event.title,
+        type: props.type || event.extendedProps?.type || 'Event',
+        description: props.description || event.extendedProps?.description || '',
+        date: props.date || event.start,
+        start_time: props.start_time || event.start || null,
+        end_time: props.end_time || event.end || null,
+        location: props.location || event.extendedProps?.location || '',
+        max_participants: props.max_participants || event.extendedProps?.max_participants || 0,
+        required_items: props.required_items || event.extendedProps?.required_items || [],
+        registration_deadline: props.registration_deadline || event.extendedProps?.registration_deadline,
+        budget: props.budget || event.extendedProps?.budget || 0,
+        cover_image_url: props.cover_image_url || props.cover_image || event.extendedProps?.cover_image_url,
+        enable_qr: props.enable_qr || event.extendedProps?.enable_qr || false,
+        created_at: props.created_at || event.extendedProps?.created_at,
+        organizers: props.organizers || event.extendedProps?.organizers || []
+      };
+
+      // Debug: Log the event data to see what we're receiving
+      console.log('Event Data:', event);
+      console.log('Event Props:', props);
+      console.log('Extended Props:', event.extendedProps);
+      console.log('Processed Event Data:', eventData);
+
+      // Update modal content
+      document.getElementById('modalEventName').textContent = eventData.name || eventData.title || 'Untitled Event';
+      document.getElementById('modalEventType').textContent = eventData.type;
+      
+      // Format and set date/time
+      const eventDate = new Date(eventData.date);
+      document.getElementById('modalEventDate').textContent = eventDate.toLocaleDateString('en-PH', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+      
+      let timeText = '';
+      const formatTime = (timeStr) => {
+        if (!timeStr) return '';
+        try {
+          // Handle both date-time strings and time-only strings
+          const date = timeStr.includes('T') ? new Date(timeStr) : new Date(`1970-01-01T${timeStr}`);
+          return date.toLocaleTimeString('en-PH', {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true
+          });
+        } catch (e) {
+          return timeStr; // Fallback to original string if parsing fails
+        }
+      };
+
+      if (eventData.start_time && eventData.end_time) {
+        timeText = `${formatTime(eventData.start_time)} - ${formatTime(eventData.end_time)}`;
+      } else if (eventData.start_time) {
+        timeText = `Starts at ${formatTime(eventData.start_time)}`;
+      } else {
+        timeText = 'Time TBD';
+      }
+      document.getElementById('modalEventTime').textContent = timeText;
+      // Set other event details
+      document.getElementById('modalEventLocation').textContent = eventData.location || 'Location TBD';
+      document.getElementById('modalEventMaxParticipants').textContent = eventData.max_participants > 0 ? 
+        eventData.max_participants : 'Unlimited';
+      document.getElementById('modalEventBudget').textContent = eventData.budget ? 
+        new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(eventData.budget) : '-';
+      // Set description
+      const descriptionEl = document.getElementById('modalEventDescription');
+      if (eventData.description) {
+        descriptionEl.textContent = eventData.description;
+        descriptionEl.classList.remove('text-gray-500', 'italic');
+      } else {
+        descriptionEl.textContent = 'No description available.';
+        descriptionEl.classList.add('text-gray-500', 'italic');
+      }
+
+      // Set deadline if available
+      const deadlineEl = document.getElementById('modalEventDeadline');
+      if (eventData.registration_deadline) {
+        const deadline = new Date(eventData.registration_deadline);
+        deadlineEl.textContent = `Registration deadline: ${deadline.toLocaleDateString('en-PH')}`;
+        deadlineEl.style.display = 'block';
+      } else {
+        deadlineEl.style.display = 'none';
+      }
+
+      // Handle cover image
+      const imageEl = document.getElementById('modalEventImage');
+      if (eventData.cover_image_url) {
+        imageEl.src = eventData.cover_image_url;
+        imageEl.style.display = 'block';
+      } else {
+        imageEl.style.display = 'none';
+      }
+
+      // Required items list
+      const reqEl = document.getElementById('modalEventRequiredItems');
+      reqEl.innerHTML = '';
+      const items = eventData.required_items;
+      if (Array.isArray(items)) {
+        items.forEach(item => {
+          const li = document.createElement('li');
+          li.textContent = item;
+          reqEl.appendChild(li);
+        });
+      } else if (typeof items === 'string' && items.trim()) {
+        items.split(',')
+          .map(x => x.trim())
+          .filter(Boolean)
+          .forEach(item => {
+            const li = document.createElement('li');
+            li.textContent = item;
+            reqEl.appendChild(li);
+          });
+      }
+      
+      // Handle organizers
+      const orgEl = document.getElementById('modalEventOrganizers');
+      orgEl.innerHTML = '';
+      
+      // Parse organizers from various possible formats
+      let organizers = [];
+      try {
+        if (typeof eventData.organizers === 'string') {
+          // Handle JSON string
+          organizers = JSON.parse(eventData.organizers);
+        } else if (Array.isArray(eventData.organizers)) {
+          // Handle array format
+          organizers = eventData.organizers;
+        } else if (typeof eventData.organizers === 'object' && eventData.organizers !== null) {
+          // Handle single organizer object
+          organizers = [eventData.organizers];
+        }
+      } catch (e) {
+        console.error('Error parsing organizers:', e);
+        organizers = [];
+      }
+      
+      if (organizers && organizers.length > 0) {
+        organizers.forEach(org => {
+          const div = document.createElement('div');
+          div.className = 'mb-2 p-3 border-l-4 border-blue-500 bg-blue-50 rounded-r hover:bg-blue-100 transition-colors';
+          
+          const nameSpan = document.createElement('div');
+          nameSpan.className = 'font-semibold text-gray-900 flex items-center';
+          
+          // Add user icon
+          const userIcon = document.createElement('i');
+          userIcon.className = 'fas fa-user mr-2 text-blue-500';
+          nameSpan.appendChild(userIcon);
+          
+          // Add name text
+          const nameText = document.createElement('span');
+          nameText.textContent = typeof org === 'object' ? (org.name || org.organizer_name || 'Unnamed') : org;
+          nameSpan.appendChild(nameText);
+          
+          div.appendChild(nameSpan);
+          
+          // Handle position from various property names
+          const position = typeof org === 'object' ? (org.position || org.organizer_position || org.role) : null;
+          if (position) {
+            const posSpan = document.createElement('div');
+            posSpan.className = 'text-sm text-gray-600 mt-1 flex items-center';
+            posSpan.innerHTML = '<i class="fas fa-user-tag mr-2 text-blue-400"></i>' + position;
+            div.appendChild(posSpan);
+          }
+          
+          orgEl.appendChild(div);
+        });
+      } else {
+        const div = document.createElement('div');
+        div.className = 'text-gray-500 italic text-sm flex items-center';
+        div.innerHTML = '<i class="fas fa-info-circle mr-2"></i>No organizers listed';
+        orgEl.appendChild(div);
+      }
+
+      // Show QR section if enabled
+      const qrSection = document.getElementById('modalEventQR');
+      qrSection.style.display = eventData.enable_qr ? 'block' : 'none';
+
+      // Created at timestamp
+      const createdEl = document.getElementById('modalEventCreatedAt');
+      if (eventData.created_at) {
+        const created = new Date(eventData.created_at);
+        createdEl.textContent = created.toLocaleString('en-PH');
+      } else {
+        createdEl.textContent = 'Unknown';
+      }
+
+      // Event image and community service note
+      const img = document.getElementById('modalEventImage');
+      if (eventData.cover_image_url) {
+        img.onerror = function() {
+          // If image fails to load, fall back to default or hide
+          this.src = "{{ url_for('static', filename='images/default_event.jpg') }}";
+          if (this.naturalWidth === 0) {
+            // If default also fails, hide the image
+            this.style.display = 'none';
+          }
+        };
+        img.src = eventData.cover_image_url;
+        img.style.display = 'block';
+      } else {
+        img.style.display = 'none';
+      }
+
+      // Check for cleaning-related events to show community service note
+      const eventType = (eventData.type || '').toLowerCase();
+      const showCommunityNote = eventType.includes('clean') || 
+                               eventType.includes('community') || 
+                               eventType.includes('service');
+      document.getElementById('communityServiceNote').style.display = 
+        showCommunityNote ? 'block' : 'none';
+
+      // Remove schedule section (not used in current modal)
+      const scheduleSection = document.getElementById('modalEventSchedule');
+      if (scheduleSection) scheduleSection.style.display = 'none';
+
+      // Show or hide organizers parent depending on whether we have organizers
+      const organizersSection = document.getElementById('modalEventOrganizers');
+      if (organizersSection) {
+        if (organizersSection.children && organizersSection.children.length > 0) {
+          // ensure parent container is visible
+          organizersSection.parentElement.style.display = '';
+        } else {
+          // hide parent when there are no organizers
+          organizersSection.parentElement.style.display = 'none';
+        }
+      }
+
+      // Show modal
+      document.getElementById('eventDetailModal').classList.remove('hidden');
+    }
+
+    // Modal close handlers
+    document.getElementById('closeDetailModalBtn')?.addEventListener('click', () => {
+      document.getElementById('eventDetailModal').classList.add('hidden');
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        document.getElementById('eventDetailModal').classList.add('hidden');
+      }
+    });
+
+    document.getElementById('eventDetailModal')?.addEventListener('click', function(e) {
+      if (e.target === this) {
+        this.classList.add('hidden');
+      }
+    });
+  </script>
+
+</body>
+</html>

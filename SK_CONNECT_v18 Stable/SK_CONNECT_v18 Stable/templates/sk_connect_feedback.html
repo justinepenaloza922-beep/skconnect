@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>SK Connect — Survey & Polls</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+  <!-- Tailwind + Icons + (optional) Chart.js -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+ <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root{ --sk-blue:#0d2a52; --sk-yellow:#FCD116; }
+    html,body{ height:100%; }
+    body{
+      margin:0;
+      overflow:hidden;
+      font-family:"Poppins",system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial,"Noto Sans","Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol";
+      background:#fff; color:#111827;
+    }
+
+    /* Sidebar + nav */
+    .sidebar{ background:var(--sk-blue)!important; color:#fff; }
+    .sidebar .sidebar-item{ color:#e5e7eb; }
+    .sidebar .sidebar-item:hover{ background:rgba(255,255,255,.06); transform:translateX(4px); }
+    .active-nav{
+      background:linear-gradient(90deg, rgba(252,209,22,.22), rgba(252,209,22,0))!important;
+      border-left:4px solid var(--sk-yellow);
+      color:#fff!important;
+    }
+
+    /* Topbar */
+    .app-topbar{
+      background:#fff!important; color:#111827;
+      border-bottom:1px solid #e5e7eb; position:sticky; top:0; z-index:30;
+    }
+    .brand-img{ width:40px; height:40px; border-radius:10px; object-fit:cover; }
+
+    /* Cards */
+    .kpi-card{ border:1px solid #eef2f7; border-radius:1rem; }
+
+    /* Dropdown & misc */
+    .dropdown-item:hover { background:#f3f4f6; }
+    .dropdown-divider { border-top:1px solid #e5e7eb; }
+
+    .chart-container {
+    height: 320px; /* or 280px, adjust as needed */
+    max-height: 90vw;
+    min-height: 220px;
+  }
+
+  /* redesigned custom card hover + transitions */
+  .poll-card, .survey-card {
+    transition: all 0.2s ease;
+  }
+  .poll-card:hover, .survey-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.1);
+  }
+  .stat-card {
+    transition: all 0.2s;
+  }
+  .stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 20px -10px rgba(0, 0, 0, 0.08);
+  }
+  .progress-bar {
+    transition: width 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+  }
+  </style>
+</head>
+
+<body class="antialiased">
+  <div class="flex h-screen overflow-hidden">
+    <!-- Sidebar -->
+    <aside class="hidden md:flex md:flex-shrink-0 sidebar">
+      <div class="flex flex-col w-64">
+        <div class="px-4 py-6 flex items-center">
+          <img src="/static/images/SKLOGO.png" alt="SK Logo" class="brand-img mr-3">
+          <div>
+            <div class="text-white text-xl font-extrabold">SK<span class="text-yellow-300">Connect</span></div>
+            <div class="text-blue-200 text-xs">Los Baños Federation</div>
+          </div>
+        </div>
+
+        <div class="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
+          <nav class="flex-1 px-2 space-y-1">
+            <a href="admin_dashboard" data-title="Dashboard" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-home mr-3 text-lg"></i> Dashboard
+            </a>
+            <a href="admin_announcements" data-title="Announcements" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-bullhorn mr-3 text-lg"></i> Announcements
+            </a>
+            <a href="admin_events_projects" data-title="Events & Projects" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-calendar mr-3 text-lg"></i> Events & Projects
+            </a>
+            <a href="admin_financial_report" data-title="Financial Reports" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-chart-pie mr-3 text-lg"></i> Financial Reports
+            </a>
+            <a href="admin_feedback" data-title="Surveys & Polls" class="sidebar-item active-nav flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-poll mr-3 text-lg"></i> Surveys & Polls
+            </a>
+            <a href="admin_documents" data-title="Documents" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-file-alt mr-3 text-lg"></i> Documents
+            </a>
+            <a href="admin_volunteer" data-title="Volunteer" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-hands-helping mr-3 text-lg"></i> Volunteer
+            </a>
+            <a href="admin_training_resources" data-title="Training Resources" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-graduation-cap mr-3 text-lg"></i> Training Resources
+            </a>
+            <a href="admin_community" data-title="Community Board" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-users mr-3 text-lg"></i> Community Board
+            </a>
+            <a href="admin_incidents" data-title="Incident Reports" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-exclamation-triangle mr-3 text-lg"></i> Incident Reports
+            </a>
+            <a href="admin_user_approval" data-title="User Approval" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-user-check mr-3 text-lg"></i> User Approval
+            </a>
+          </nav>
+        </div>
+
+        <!-- user dropdown -->
+        <div class="flex-shrink-0 flex border-t border-white/10 p-4 relative">
+          <div id="userDropdownToggle" class="flex flex-col items-center cursor-pointer w-full">
+            <div class="flex items-center justify-center w-full">
+              <img class="h-9 w-9 rounded-full" src="{{ current_user.profile_pic if current_user and current_user.profile_pic else get_default_profile_image(current_user) }}" alt="Profile">
+              <div class="ml-3 flex-1 min-w-0">
+                <div class="text-base font-medium text-white truncate uppercase">{{ session['username'] if session.get('username') else 'Guest' }}</div>
+                <div class="text-xs text-blue-100 mt-0.5 truncate">{{ session['position']|title if session.get('position') else 'User' }}</div>
+              </div>
+              <i class="fas fa-chevron-down ml-2 text-blue-200 flex-shrink-0"></i>
+            </div>
+          </div>
+          <ul id="userDropdownMenu" class="absolute left-0 right-0 mx-auto bottom-14 z-20 w-60 bg-white rounded shadow-lg py-2 text-gray-700 hidden">
+            <li>
+              <a class="dropdown-item flex items-center px-4 py-2 hover:bg-gray-100" href="{{ url_for('profile') }}">
+                <i class="fas fa-user mr-2"></i>Profile
+              </a>
+            </li>
+            <li><a class="dropdown-item flex items-center px-4 py-2 hover:bg-gray-100" href="#"><i class="fas fa-cog mr-2"></i>Settings</a></li>
+            <li><hr class="dropdown-divider my-1"></li>
+            <li><a class="dropdown-item flex items-center px-4 py-2 hover:bg-gray-100" href="/logout"><i class="fas fa-sign-out-alt mr-2"></i>Logout</a></li>
+          </ul>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Mobile top bar -->
+    <div class="md:hidden app-topbar w-full flex items-center justify-between px-4 py-3">
+      <div class="flex items-center">
+        <img src="/static/images/SKLOGO.png" class="brand-img mr-2" alt="SK"/>
+        <h1 class="text-lg font-extrabold">SK<span class="text-blue-700">Connect</span></h1>
+      </div>
+      <button id="mobile-menu-button" class="text-gray-700 focus:outline-none">
+        <i class="fas fa-bars text-xl"></i>
+      </button>
+    </div>
+
+    <!-- Mobile dropdown -->
+    <div id="mobile-menu" class="md:hidden absolute top-14 left-0 right-0 sidebar z-10 hidden">
+      <nav class="px-2 pt-2 pb-3 space-y-1">
+        <a href="admin_dashboard" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-home mr-2"></i> Dashboard</a>
+        <a href="admin_announcements" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-bullhorn mr-2"></i> Announcements</a>
+        <a href="admin_events_projects" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-calendar mr-2"></i> Events & Projects</a>
+        <a href="admin_financial_report" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium bg-blue-800"><i class="fas fa-chart-pie mr-2"></i> Financial Reports</a>
+        <a href="admin_feedback" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-poll mr-2"></i> Surveys & Polls</a>
+        <a href="admin_documents" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-file-alt mr-2"></i> Documents</a>
+        <a href="admin_volunteer" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-hands-helping mr-2"></i> Volunteer</a>
+        <a href="admin_training_resources" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-graduation-cap mr-2"></i> Training Resources</a>
+        <a href="admin_community" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-users mr-2"></i> Community Board</a>
+        <a href="admin_incidents" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-exclamation-triangle mr-2"></i> Incident Reports</a>
+        <a href="admin_user_approval" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-user-check mr-2"></i> User Approval</a>
+      </nav>
+    </div>
+
+    <!-- Main -->
+    <div class="flex-1 min-w-0 flex flex-col overflow-hidden">
+      <!-- Top header (unchanged structure) -->
+      <header class="bg-white border-b sticky top-0 z-20">
+        <div class="flex justify-between items-center px-4 py-4 sm:px-6 lg:px-8">
+          <h1 id="page-title" class="text-2xl font-semibold text-gray-800 flex items-center">
+            <i class="fas fa-poll-h mr-3 text-blue-500"></i> Surveys & Polls
+          </h1> 
+          <button class="relative p-2 rounded-full text-gray-400 hover:text-gray-600 focus:outline-none">
+            <i class="fas fa-bell text-xl"></i>
+            <span class="absolute -top-0.5 -right-0.5 inline-block w-2 h-2 bg-red-600 rounded-full"></span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Only main content scrolls — redesigned section -->
+      <main class="flex-1 overflow-y-auto p-5 sm:p-7 lg:p-9 bg-gradient-to-b from-gray-50 to-white">
+        <!-- POLLS -->
+        <section id="polls" class="tab-content">
+          <!-- header + buttons -->
+          <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-8">
+            <div>
+              <p class="text-gray-500 text-base leading-relaxed max-w-2xl">Create and manage community polls and surveys — gather real-time insights from residents.</p>
+            </div>
+            <div class="flex gap-3">
+              <button id="createPollBtn" onclick="testModal('pollModal')" class="bg-blue-700 hover:bg-blue-800 text-white px-5 py-2.5 rounded-xl font-semibold shadow-md transition-all duration-200 flex items-center gap-2 text-sm">
+                <i class="fas fa-plus-circle text-base"></i> Create Poll
+              </button>
+              <button id="createSurveyBtn" onclick="testModal('surveyModal')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl font-semibold shadow-md transition-all duration-200 flex items-center gap-2 text-sm">
+                <i class="fas fa-clipboard-list"></i> Create Survey
+              </button>
+            </div>
+          </div>
+
+          <!-- modern quick stats cards -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-11">
+            <div class="stat-card bg-white rounded-2xl shadow-sm border border-gray-100 p-5 flex items-center gap-4 hover:shadow-md transition">
+              <div class="p-3.5 rounded-xl bg-blue-50"><i class="fas fa-poll-h text-blue-600 text-2xl"></i></div>
+              <div>
+                <p class="text-3xl font-bold text-gray-800">{{ polls|length if polls is defined else 0 }}</p>
+                <p class="text-gray-500 text-sm font-medium mt-0.5">Active Polls</p>
+              </div>
+            </div>
+            <div class="stat-card bg-white rounded-2xl shadow-sm border border-gray-100 p-5 flex items-center gap-4 hover:shadow-md transition">
+              <div class="p-3.5 rounded-xl bg-emerald-50"><i class="fas fa-users text-emerald-600 text-2xl"></i></div>
+              <div>
+                <p class="text-3xl font-bold text-gray-800">854</p>
+                <p class="text-gray-500 text-sm font-medium mt-0.5">Total Responses</p>
+              </div>
+            </div>
+            <div class="stat-card bg-white rounded-2xl shadow-sm border border-gray-100 p-5 flex items-center gap-4 hover:shadow-md transition">
+              <div class="p-3.5 rounded-xl bg-violet-50"><i class="fas fa-chart-line text-violet-600 text-2xl"></i></div>
+              <div>
+                <p class="text-3xl font-bold text-gray-800">82%</p>
+                <p class="text-gray-500 text-sm font-medium mt-0.5">Participation Rate</p>
+              </div>
+            </div>
+            <div class="stat-card bg-white rounded-2xl shadow-sm border border-gray-100 p-5 flex items-center gap-4 hover:shadow-md transition">
+              <div class="p-3.5 rounded-xl bg-amber-50"><i class="fas fa-hourglass-half text-amber-600 text-2xl"></i></div>
+              <div>
+                <p class="text-3xl font-bold text-gray-800">{{ polls|length if polls is defined else 0 }}</p>
+                <p class="text-gray-500 text-sm font-medium mt-0.5">Ending Soon</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Cards grid redesigned: elegant two-column layout -->
+          <div id="poll-survey-grid" class="grid grid-cols-1 lg:grid-cols-2 gap-7">
+            <!-- Polls column -->
+            <div class="space-y-7">
+              {% for poll in polls %}
+              <article class="poll-card bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden transition-all" data-poll-card data-poll-id="{{ poll.id }}">
+                <div class="p-6">
+                  <div class="flex justify-between items-start gap-3 flex-wrap mb-3">
+                    <h3 class="font-bold text-xl text-gray-800 leading-tight">{{ poll.question }}</h3>
+                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700 whitespace-nowrap">
+                      <i class="far fa-calendar-alt mr-1 text-gray-500"></i> {{ poll.end_date_display }}
+                    </span>
+                  </div>
+                  <div class="flex items-center gap-2 text-sm text-gray-500 mb-4">
+                    <i class="fas fa-users text-blue-400"></i>
+                    <span class="participants font-semibold text-gray-700">{{ poll.total_votes }}</span> <span>participants</span>
+                  </div>
+                  <form class="poll-form space-y-4">
+                    {% set votes = poll.votes %}
+                    {% set total = poll.total_votes %}
+                    <div class="space-y-4">
+                      {% for option in poll.options %}
+                        {% set count = votes[option] if votes and option in votes else 0 %}
+                        {% set percent = (count / total * 100) if total > 0 else 0 %}
+                        <label class="poll-option block cursor-pointer group">
+                          <div class="flex items-center justify-between text-sm">
+                            <div class="flex items-center gap-2">
+                              <input type="radio" name="poll_{{ poll.id }}" value="{{ option }}" {% if poll.user_voted %}disabled{% endif %} class="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500">
+                              <span class="text-gray-700 font-medium">{{ option }}</span>
+                            </div>
+                            <span class="percentage text-xs font-semibold text-gray-500">{{ percent|round(1) }}%</span>
+                          </div>
+                          <div class="mt-1.5 w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+                            <div class="bar bg-gradient-to-r from-blue-500 to-indigo-500 h-2 rounded-full progress-bar" data-width="{{ percent|default(0)|round(1) }}" style="width: {{ percent|default(0)|round(1) }}%"></div>
+                          </div>
+                          <div class="votes text-xs text-gray-400 mt-1">{{ count|default(0) }} votes</div>
+                        </label>
+                      {% endfor %}
+                    </div>
+                    <button type="button" class="vote-now-btn mt-2 w-full sm:w-auto bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-semibold py-2.5 px-5 rounded-xl text-sm transition shadow-sm"
+                      {% if poll.user_voted %}disabled{% endif %}>
+                      {% if poll.user_voted %} ✓ Voted{% else %}🗳️ Vote Now{% endif %}
+                    </button>
+                  </form>
+                </div>
+              </article>
+              {% endfor %}
+            </div>
+
+            <!-- Surveys column -->
+            <div class="space-y-7">
+              {% for survey in surveys %}
+              <article class="survey-card bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden transition-all" data-survey-id="{{ survey.id }}">
+                <div class="p-6">
+                  <div class="flex items-center justify-between mb-4">
+                    <span class="inline-flex items-center gap-1.5 bg-indigo-50 text-indigo-700 text-xs font-semibold px-3 py-1.5 rounded-full">
+                      <i class="fas fa-clipboard-list text-indigo-500"></i> Survey
+                    </span>
+                    <div class="flex items-center text-xs text-gray-400">
+                      <i class="far fa-calendar-alt mr-1"></i>
+                      <span>{% if survey.created_at %}{{ survey.created_at[:10] }}{% else %}Ongoing{% endif %}</span>
+                    </div>
+                  </div>
+                  <h3 class="text-xl font-bold text-gray-800 mb-2.5 leading-snug">{{ survey.title }}</h3>
+                  <p class="text-gray-500 text-sm mb-5 leading-relaxed">{{ survey.description }}</p>
+                  <div class="flex items-center justify-between pt-2 border-t border-gray-100">
+                    <div class="flex items-center gap-1.5 text-sm text-gray-500">
+                      <i class="fas fa-file-signature text-indigo-400"></i>
+                      <span>0 responses</span>
+                    </div>
+                    <button class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-medium px-5 py-2 rounded-xl text-sm transition-all flex items-center gap-1.5">
+                      View Details <i class="fas fa-arrow-right text-xs"></i>
+                    </button>
+                  </div>
+                </div>
+              </article>
+              {% endfor %}
+            </div>
+          </div>
+
+          <!-- Ended polls / Poll Results list (redesigned) -->
+          {% if ended_polls and ended_polls|length > 0 %}
+          <div class="mt-10 bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <h3 class="text-lg font-bold text-gray-800 flex items-center gap-2 mb-4"><i class="fas fa-chart-simple text-blue-500"></i> Closed Poll Results</h3>
+            <div class="divide-y divide-gray-100">
+              {% for ep in ended_polls %}
+              <div class="py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div>
+                  <div class="font-semibold text-gray-800">{{ ep.question }}</div>
+                  <div class="text-sm text-gray-400 flex items-center gap-1 mt-1"><i class="far fa-clock"></i> Ended: {{ ep.end_date }}</div>
+                </div>
+                <div>
+                  <button data-poll-result-btn data-poll-id="{{ ep.id }}" class="text-sm bg-gray-100 hover:bg-blue-50 text-blue-700 font-medium px-4 py-2 rounded-xl transition">Analyze Results</button>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+          {% endif %}
+
+          <!-- Ended surveys / Survey Results list -->
+          {% if ended_surveys and ended_surveys|length > 0 %}
+          <div class="mt-7 bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <h3 class="text-lg font-bold text-gray-800 flex items-center gap-2 mb-4"><i class="fas fa-poll text-indigo-500"></i> Archived Surveys</h3>
+            <div class="divide-y divide-gray-100">
+              {% for es in ended_surveys %}
+              <div class="py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div>
+                  <div class="font-semibold text-gray-800">{{ es.title }}</div>
+                  <div class="text-sm text-gray-400">Closed on {{ es.end_date }}</div>
+                </div>
+                <div>
+                  <button data-survey-result-btn data-survey-id="{{ es.id }}" class="text-sm bg-gray-100 hover:bg-indigo-50 text-indigo-700 font-medium px-4 py-2 rounded-xl transition">View Insights</button>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+          {% endif %}
+
+        </section>
+        
+        <!-- ========== MODALS (unchanged functionality, only minimal design polish but preserved all IDs/classes) ========== -->
+        <!-- View Poll Results Modal -->
+        <div id="viewPollModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40" style="backdrop-filter: blur(4px);">
+          <div class="bg-white w-full max-w-2xl rounded-xl shadow-xl overflow-auto max-h-[90vh]">
+            <div class="h-12 bg-gradient-to-r from-blue-800 to-blue-900 rounded-t-xl flex items-center justify-between px-4">
+              <h3 class="text-white font-semibold">Poll Results</h3>
+              <button id="closeViewPollModal" class="text-white hover:text-gray-200"><i class="fas fa-times text-lg"></i></button>
+            </div>
+            <div class="p-6">
+              <div id="pollResultsContainer">
+                <div class="mb-4">
+                  <div class="text-lg font-semibold" id="pollResultsQuestion"></div>
+                  <div class="text-sm text-gray-500" id="pollResultsMeta"></div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div><canvas id="pollResultsChart" class="w-full h-64"></canvas></div>
+                  <div><div id="pollOptionsList" class="space-y-3"></div><div class="mt-4 text-sm text-gray-600">Total votes: <span id="pollTotalVotes">0</span></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- View Survey Results Modal -->
+        <div id="viewSurveyModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40" style="backdrop-filter: blur(4px);">
+          <div class="bg-white w-full max-w-2xl rounded-xl shadow-xl overflow-auto max-h-[90vh]">
+            <div class="h-12 bg-gradient-to-r from-purple-700 to-purple-900 rounded-t-xl flex items-center justify-between px-4">
+              <h3 class="text-white font-semibold">Survey Results</h3>
+              <button id="closeViewSurveyModal" class="text-white hover:text-gray-200"><i class="fas fa-times text-lg"></i></button>
+            </div>
+            <div class="p-6"><div id="surveyResultsContainer"><div class="mb-4"><div class="text-lg font-semibold" id="surveyResultsTitle"></div><div class="text-sm text-gray-500" id="surveyResultsMeta"></div></div><div id="surveyQuestionsList" class="space-y-6"></div></div></div>
+          </div>
+        </div>
+
+        <!-- Poll Modal -->
+        <div id="pollModal" onclick="if(event.target === this) this.classList.add('hidden')" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40" style="backdrop-filter: blur(4px);">
+          <div class="bg-white w-full max-w-md rounded-xl shadow-xl">
+            <div class="h-12 bg-gradient-to-r from-blue-800 to-blue-900 rounded-t-xl flex items-center justify-between px-4">
+              <h3 class="text-white font-semibold">Create Poll</h3>
+              <button id="closePollModalTop" onclick="document.getElementById('pollModal').classList.add('hidden')" class="text-white hover:text-gray-200"><i class="fas fa-times text-lg"></i></button>
+            </div>
+            <div class="p-6">
+              <form id="pollForm" class="space-y-4" method="post" action="/create_poll">
+                <div><label class="block text-sm font-semibold text-gray-800 mb-2">Poll Question</label><textarea name="question" rows="3" required class="w-full border-2 border-gray-300 focus:border-blue-500 rounded-lg px-4 py-3 text-base font-medium resize-none" placeholder="What would you like to ask the community?"></textarea></div>
+                <div><label class="block text-sm font-medium text-gray-700 mb-2">Answer Options</label><div id="pollOptions" class="space-y-2"><input name="options" type="text" required class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm" placeholder="Option 1"><input name="options" type="text" required class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm" placeholder="Option 2"></div><button type="button" id="addOptionBtn" class="text-blue-600 hover:underline text-sm mt-2">+ Add Option</button></div>
+                <div class="bg-red-50 border-2 border-red-200 rounded-lg p-4"><label class="block text-sm font-semibold text-red-800 mb-3"><i class="fas fa-calendar-alt mr-1"></i>Poll End Date & Time</label><div class="grid grid-cols-2 gap-3"><div><label class="block text-xs text-red-700 mb-1">Date</label><input name="end_date" type="date" required class="w-full border-2 border-red-300 focus:border-red-500 rounded-lg px-3 py-2 text-sm"></div><div><label class="block text-xs text-red-700 mb-1">Time</label><input name="end_time" type="time" required class="w-full border-2 border-red-300 focus:border-red-500 rounded-lg px-3 py-2 text-sm"></div></div><p class="text-xs text-red-600 mt-2">Poll will automatically close at this date and time</p></div>
+                <div class="flex justify-end gap-2"><button type="button" id="cancelPoll" onclick="document.getElementById('pollModal').classList.add('hidden')" class="px-4 py-2 rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200">Cancel</button><button type="submit" id="pollCreateSubmit" class="px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700">Create</button></div>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        <!-- Survey Modal -->
+        <div id="surveyModal" onclick="if(event.target === this) this.classList.add('hidden')" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40" style="backdrop-filter: blur(4px);">
+          <div class="bg-white w-full max-w-md rounded-xl shadow-xl">
+            <div class="h-12 bg-gradient-to-r from-blue-800 to-blue-900 rounded-t-xl flex items-center justify-between px-4">
+              <h3 class="text-white font-semibold">Create Survey</h3>
+              <button id="closeSurveyModalTop" onclick="document.getElementById('surveyModal').classList.add('hidden')" class="text-white hover:text-gray-200"><i class="fas fa-times text-lg"></i></button>
+            </div>
+            <div class="p-6">
+              <form id="surveyForm" class="space-y-4" method="post" action="/create_survey">
+                <div><label class="block text-sm font-medium text-gray-700 mb-1">Survey Title</label><input name="title" type="text" required class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm" placeholder="Survey title"></div>
+                <div><label class="block text-sm font-medium text-gray-700 mb-1">Description</label><textarea name="description" rows="3" required class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm" placeholder="Survey description"></textarea></div>
+                <div class="bg-red-50 border-2 border-red-200 rounded-lg p-4"><label class="block text-sm font-semibold text-red-800 mb-3"><i class="fas fa-calendar-alt mr-1"></i>Survey End Date & Time</label><div class="grid grid-cols-2 gap-3"><div><label class="block text-xs text-red-700 mb-1">Date</label><input name="end_date" type="date" required class="w-full border-2 border-red-300 focus:border-red-500 rounded-lg px-3 py-2 text-sm"></div><div><label class="block text-xs text-red-700 mb-1">Time</label><input name="end_time" type="time" required class="w-full border-2 border-red-300 focus:border-red-500 rounded-lg px-3 py-2 text-sm"></div></div><p class="text-xs text-red-600 mt-2">Survey will automatically close at this date and time</p></div>
+                <div class="flex justify-end gap-2"><button type="button" id="cancelSurvey" onclick="document.getElementById('surveyModal').classList.add('hidden')" class="px-4 py-2 rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200">Cancel</button><button type="submit" id="surveyCreateSubmit" class="px-4 py-2 rounded-md bg-purple-600 text-white hover:bg-purple-700">Create</button></div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- ===== Full original script (preserving all functions, endpoints, selectors) ===== -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      console.log('DOM loaded, starting initialization...');
+      function initNavigation() {
+        const btn = document.getElementById('mobile-menu-button');
+        const menu = document.getElementById('mobile-menu');
+        if (btn && menu) {
+          btn.addEventListener('click', (e) => { e.stopPropagation(); menu.classList.toggle('hidden'); const icon = btn.querySelector('i'); icon.className = menu.classList.contains('hidden') ? 'fas fa-bars text-xl' : 'fas fa-times text-xl'; });
+          document.addEventListener('click', (e) => { if (!menu.contains(e.target) && !btn.contains(e.target)) { menu.classList.add('hidden'); btn.querySelector('i').className = 'fas fa-bars text-xl'; } });
+        }
+        const userToggle = document.getElementById('userDropdownToggle'); const userMenu = document.getElementById('userDropdownMenu');
+        if (userToggle && userMenu) { userToggle.addEventListener('click', (e) => { e.stopPropagation(); userMenu.classList.toggle('hidden'); }); document.addEventListener('click', (e) => { if (!userMenu.contains(e.target) && !userToggle.contains(e.target)) userMenu.classList.add('hidden'); }); }
+      }
+      function initTabs() { const tabs = document.querySelectorAll('.sub-nav-tab'); const contents = document.querySelectorAll('.tab-content'); tabs.forEach(tab => { tab.addEventListener('click', () => { const target = tab.getAttribute('data-tab'); tabs.forEach(t => t.classList.remove('text-blue-600', 'border-blue-600')); tabs.forEach(t => t.classList.add('text-gray-500', 'border-transparent')); tab.classList.add('text-blue-600', 'border-blue-600'); tab.classList.remove('text-gray-500'); contents.forEach(c => c.classList.add('hidden')); document.getElementById(target)?.classList.remove('hidden'); }); }); }
+      function openModal(modal) { if (!modal) return; modal.classList.remove('hidden'); document.body.style.overflow = 'hidden'; }
+      function closeModal(modal) { if (!modal) return; modal.classList.add('hidden'); document.body.style.overflow = 'auto'; }
+      function initModals() {
+        const pollModal = document.getElementById('pollModal'); const surveyModal = document.getElementById('surveyModal'); const viewSurveyModal = document.getElementById('viewSurveyModal');
+        const createPollBtn = document.getElementById('createPollBtn'); if (createPollBtn) createPollBtn.addEventListener('click', (e) => { e.preventDefault(); openModal(pollModal); });
+        const createSurveyBtn = document.getElementById('createSurveyBtn'); if (createSurveyBtn) createSurveyBtn.addEventListener('click', (e) => { e.preventDefault(); openModal(surveyModal); });
+        document.getElementById('closePollModal')?.addEventListener('click', () => closeModal(pollModal)); document.getElementById('cancelPoll')?.addEventListener('click', () => closeModal(pollModal));
+        document.getElementById('closeSurveyModal')?.addEventListener('click', () => closeModal(surveyModal)); document.getElementById('cancelSurvey')?.addEventListener('click', () => closeModal(surveyModal));
+        [pollModal, surveyModal, viewSurveyModal].forEach(modal => { if (modal) modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(modal); }); });
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { document.getElementById('pollModal')?.classList.add('hidden'); document.getElementById('surveyModal')?.classList.add('hidden'); document.getElementById('viewSurveyModal')?.classList.add('hidden'); } });
+      }
+      window.testModal = function(modalId) { const modal = document.getElementById(modalId); if (modal) modal.classList.remove('hidden'); else console.error('Modal not found:', modalId); };
+      function initPollCreateForm() {
+        const form = document.getElementById('pollForm'); const addBtn = document.getElementById('addOptionBtn'); const optionsBox = document.getElementById('pollOptions');
+        addBtn?.addEventListener('click', () => { const c = optionsBox.querySelectorAll('input').length + 1; const inp = document.createElement('input'); inp.name = 'options'; inp.type = 'text'; inp.required = true; inp.className = 'w-full border rounded-md px-3 py-2'; inp.placeholder = 'Option ' + c; optionsBox.appendChild(inp); setTimeout(() => inp.focus(), 20); });
+        form?.addEventListener('submit', async function (e) { e.preventDefault(); });
+        document.getElementById('pollCreateSubmit')?.addEventListener('click', async function () { const btn = this; const formEl = document.getElementById('pollForm'); btn.disabled = true; const fd = new FormData(formEl); const options = Array.from(formEl.querySelectorAll('input[name="options"]')).map(i => i.value).filter(Boolean); const payload = new URLSearchParams(); payload.append('question', fd.get('question')); options.forEach(opt => payload.append('options', opt)); payload.append('end_date', fd.get('end_date')); payload.append('end_time', fd.get('end_time')); try{ const res = await fetch('/create_poll', { method: 'POST', body: payload, headers: { 'X-Requested-With': 'XMLHttpRequest' }, credentials: 'same-origin' }); const j = await res.json().catch(()=>null); if (j && j.success) { toast('Poll created successfully!', 'success'); closeModal(document.getElementById('pollModal')); formEl.reset(); const allOptions = optionsBox.querySelectorAll('input[name="options"]'); if (allOptions.length > 2) { [...allOptions].slice(2).forEach(n => n.remove()); } } else { toast('Failed to create poll: ' + (j && j.error ? j.error : ''), 'error'); } }catch(err){ console.error(err); toast('Failed to create poll', 'error'); } btn.disabled = false; });
+        document.getElementById('surveyForm')?.addEventListener('submit', async function (e) { e.preventDefault(); });
+        document.getElementById('surveyCreateSubmit')?.addEventListener('click', async function (){ const formEl = document.getElementById('surveyForm'); const fd = new FormData(formEl); fd.append('end_time', fd.get('end_time')); try{ const res = await fetch('/create_survey', { method: 'POST', body: fd, headers: { 'X-Requested-With': 'XMLHttpRequest' }, credentials: 'same-origin' }); const j = await res.json().catch(()=>null); if (j && j.success) { toast('Survey created successfully!', 'success'); closeModal(document.getElementById('surveyModal')); formEl.reset(); } else { toast('Failed to create survey', 'error'); } }catch(err){ console.error(err); toast('Failed to create survey', 'error'); } });
+      }
+      document.querySelectorAll('.vote-now-btn').forEach(btn => { btn.addEventListener('click', function () { if (btn.disabled) return; btn.disabled = true; const pollCard = btn.closest('[data-poll-card]'); const pollId = pollCard.getAttribute('data-poll-id'); const selectedInput = pollCard.querySelector('input[type="radio"]:checked'); if (!selectedInput) { alert('Please select an option before voting.'); btn.disabled = false; return; } const option = selectedInput.value; fetch('/vote_poll', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, credentials: 'same-origin', body: `poll_id=${pollId}&option=${encodeURIComponent(option)}` }).then(res => res.json()).then(data => { if (data.success) { const total = data.total_votes; pollCard.querySelector('.participants').textContent = total; pollCard.querySelectorAll('.poll-option').forEach(optEl => { const optLabel = optEl.querySelector('span.text-gray-700').textContent.trim(); const count = data.votes[optLabel] || 0; const percent = total ? Math.round((count / total) * 100) : 0; optEl.querySelector('.percentage').textContent = percent + '%'; optEl.querySelector('.votes').textContent = count + ' votes'; optEl.querySelector('.bar').style.width = percent + '%'; const radio = optEl.querySelector('input[type="radio"]'); if(radio) radio.disabled = true; }); btn.disabled = true; btn.textContent = "✓ Voted"; } else { alert(data.error || "Failed to vote."); btn.disabled = false; } }); }); });
+      document.querySelectorAll('button.bg-purple-600, button.bg-indigo-50').forEach(btn => { btn.addEventListener('click', function () { const surveyCard = btn.closest('article'); const surveyId = surveyCard.getAttribute('data-survey-id'); const surveyTitle = surveyCard.querySelector('h3').textContent; document.querySelector('#viewSurveyModal h3').textContent = `${surveyTitle} - Responses`; const content = document.getElementById('surveyResponsesContent'); if(content) content.innerHTML = `<div class="text-center text-gray-500 py-8"><i class="fas fa-inbox text-4xl text-gray-300 mb-4"></i><p class="text-lg font-medium">No responses yet</p><p class="text-sm text-gray-400">Responses will appear here once submitted.</p></div>`; openModal(document.getElementById('viewSurveyModal')); }); });
+      document.getElementById('closeViewSurveyModal')?.addEventListener('click', () => closeModal(document.getElementById('viewSurveyModal')));
+      document.getElementById('closeTakeSurveyModal')?.addEventListener('click', () => closeModal(document.getElementById('takeSurveyModal'))); document.getElementById('cancelTakeSurvey')?.addEventListener('click', () => closeModal(document.getElementById('takeSurveyModal'))); document.getElementById('takeSurveyForm')?.addEventListener('submit', function (e) { e.preventDefault(); const fd = new FormData(this); fetch('/submit_survey', { method: 'POST', body: fd }).then(res => res.json()).then(data => { if (data.success) { alert('Survey submitted!'); closeModal(document.getElementById('takeSurveyModal')); this.reset(); } else { alert(data.error || "Failed to submit survey."); } }); });
+      document.getElementById('showAnsweredSurveysBtn')?.addEventListener('click', function () { const modal = document.getElementById('answeredSurveysModal'); const content = document.getElementById('answeredSurveysContent'); content.innerHTML = '<div class="text-gray-500 text-center">Loading...</div>'; openModal(modal); fetch('/api/answered_surveys').then(res => res.json()).then(data => { if (data.surveys && data.surveys.length) { content.innerHTML = data.surveys.map(survey => `<div class="bg-gray-50 rounded-lg p-4 border"><div class="text-gray-700 font-semibold mb-1">Survey ID: ${survey.survey_id}</div><div class="text-gray-500 text-xs mb-2">Answered: ${survey.created_at}</div><ul class="list-disc pl-5 text-sm">${survey.answers.map(ans => `<li>${ans}</li>`).join('')}</ul></div>`).join(''); } else { content.innerHTML = '<div class="text-gray-500 text-center">No answered surveys yet.</div>'; } }).catch(() => { content.innerHTML = '<div class="text-red-500 text-center">Failed to load surveys.</div>'; }); }); document.getElementById('closeAnsweredSurveysModal')?.addEventListener('click', function () { closeModal(document.getElementById('answeredSurveysModal')); });
+      function toast(msg, type = 'info') { const base = 'fixed top-4 right-4 z-50 px-4 py-2 rounded-lg shadow text-white'; const color = type === 'success' ? 'bg-green-600' : type === 'error' ? 'bg-red-600' : 'bg-blue-600'; const el = document.createElement('div'); el.className = base + ' ' + color; el.textContent = msg; document.body.appendChild(el); setTimeout(() => { el.remove(); }, 2000); }
+      let pollResultsChart = null; let surveyQuestionCharts = {};
+      async function fetchPollResults(pollId) { try { const res = await fetch(`/api/poll_results/${pollId}`); if (!res.ok) throw new Error('Network error'); return await res.json(); } catch (err) { console.error(err); return null; } }
+      async function fetchSurveyResults(surveyId) { try { const res = await fetch(`/api/survey_results/${surveyId}`); if (!res.ok) throw new Error(); return await res.json(); } catch (err) { console.error(err); return null; } }
+      function openModalById(id) { const m = document.getElementById(id); if (m) { m.classList.remove('hidden'); document.body.style.overflow = 'hidden'; } }
+      function closeModalById(id) { const m = document.getElementById(id); if (m) { m.classList.add('hidden'); document.body.style.overflow = 'auto'; } }
+      function destroyChart(instance) { try { if (instance && typeof instance.destroy === 'function') instance.destroy(); } catch (e) { console.warn(e); } }
+      document.querySelectorAll('button[data-poll-result-btn]').forEach(btn => { btn.addEventListener('click', async function () { const pollId = btn.getAttribute('data-poll-id'); if (!pollId) return; const data = await fetchPollResults(pollId); if (!data) { toast('Failed to load poll results', 'error'); return; } document.getElementById('pollResultsQuestion').textContent = data.question || 'Poll'; document.getElementById('pollResultsMeta').textContent = data.end_date ? `Ended: ${data.end_date}` : ''; document.getElementById('pollTotalVotes').textContent = data.total_votes || 0; const optionsList = document.getElementById('pollOptionsList'); optionsList.innerHTML = ''; const labels = []; const values = []; const colors = []; (data.options || []).forEach((opt, idx) => { const count = data.votes && data.votes[opt] ? data.votes[opt] : 0; const percent = data.total_votes ? Math.round((count / data.total_votes) * 100) : 0; const el = document.createElement('div'); el.className = 'p-3 border rounded'; el.innerHTML = `<div class="flex justify-between"><div class="font-medium">${opt}</div><div class="text-sm text-gray-500">${count} votes • ${percent}%</div></div>`; optionsList.appendChild(el); labels.push(opt); values.push(count); const palette = ['#3b82f6','#06b6d4','#8b5cf6','#f97316','#ef4444','#10b981','#f59e0b']; colors.push(palette[idx % palette.length]); }); const ctx = document.getElementById('pollResultsChart').getContext('2d'); destroyChart(pollResultsChart); pollResultsChart = new Chart(ctx, { type: 'doughnut', data: { labels, datasets: [{ data: values, backgroundColor: colors }] }, options: { responsive: true, maintainAspectRatio: false } }); openModalById('viewPollModal'); }); });
+      document.querySelectorAll('button[data-survey-result-btn]').forEach(btn => { btn.addEventListener('click', async function () { const surveyId = btn.getAttribute('data-survey-id'); if (!surveyId) return; const data = await fetchSurveyResults(surveyId); if (!data) { toast('Failed to load survey results', 'error'); return; } document.getElementById('surveyResultsTitle').textContent = data.title || 'Survey'; document.getElementById('surveyResultsMeta').textContent = data.end_date ? `Ended: ${data.end_date}` : ''; const list = document.getElementById('surveyQuestionsList'); list.innerHTML = ''; surveyQuestionCharts = {}; (data.questions || []).forEach((q, i) => { const wrap = document.createElement('div'); wrap.className = 'p-4 border rounded'; wrap.innerHTML = `<div class="font-medium mb-2">Q${i+1}. ${q.question}</div><div class="md:flex gap-4"><div class="md:w-1/2"><canvas id="survey-q-${q.id}" class="w-full h-40"></canvas></div><div class="md:flex-1" id="survey-q-${q.id}-meta"></div></div>`; list.appendChild(wrap); const ctx = document.getElementById(`survey-q-${q.id}`).getContext('2d'); const labels = (q.options || []).slice(); const values = labels.map(opt => (q.answers && q.answers[opt]) ? q.answers[opt] : 0); const palette = ['#6366f1','#0ea5a4','#a78bfa','#fb923c','#ef4444','#34d399','#fbbf24']; const colors = labels.map((_, idx) => palette[idx % palette.length]); destroyChart(surveyQuestionCharts[q.id]); surveyQuestionCharts[q.id] = new Chart(ctx, { type: q.type === 'text' ? 'bar' : (q.options.length > 6 ? 'bar' : 'pie'), data: { labels, datasets: [{ data: values, backgroundColor: colors }] }, options: { responsive: true, maintainAspectRatio: false } }); const meta = document.getElementById(`survey-q-${q.id}-meta`); meta.innerHTML = (labels.map((lab, idx) => `<div class="text-sm mb-1"><span class="font-medium">${lab}</span>: ${(values[idx]||0)} responses</div>`).join('')); }); openModalById('viewSurveyModal'); }); });
+      document.getElementById('closeViewPollModal')?.addEventListener('click', () => closeModalById('viewPollModal')); document.getElementById('closeViewSurveyModal')?.addEventListener('click', () => closeModalById('viewSurveyModal'));
+      const CHIP_STYLES = { all: ['bg-blue-600', 'text-white'], infrastructure: ['bg-blue-600', 'text-white'], events: ['bg-pink-600', 'text-white'], programs: ['bg-purple-600', 'text-white'], environment: ['bg-green-600', 'text-white'], safety: ['bg-gray-700', 'text-white'], }; const CHIP_IDLE = ['bg-gray-100', 'text-gray-700']; document.querySelectorAll('.chip').forEach(ch => { ch.classList.add(...CHIP_IDLE); if (ch.classList.contains('active')) { ch.classList.remove(...CHIP_IDLE); ch.classList.add(...CHIP_STYLES[ch.dataset.category || 'all']); } ch.addEventListener('click', () => { document.querySelectorAll('.chip').forEach(b => { b.className = b.className.replace(/bg-\S+|text-\S+/g, '').trim(); b.classList.add(...CHIP_IDLE); b.classList.remove('active'); }); ch.classList.remove(...CHIP_IDLE); ch.classList.add(...(CHIP_STYLES[ch.dataset.category] || CHIP_STYLES.all)); ch.classList.add('active'); const cat = ch.dataset.category; document.querySelectorAll('.suggest-card').forEach(card => { card.style.display = (!cat || cat === 'all' || card.dataset.category === cat) ? '' : 'none'; }); }); });
+      function keyReact(id, type) { return `sk-react:${id}:${type}`; }
+      function initReacts(root = document) { root.querySelectorAll('.suggest-card').forEach(card => { const id = card.dataset.id; card.querySelectorAll('.react').forEach(btn => { const type = btn.dataset.type; const countEl = btn.querySelector('.count'); if (localStorage.getItem(keyReact(id, type))) btn.classList.add('text-green-700'); btn.addEventListener('click', () => { const toggled = btn.classList.toggle('text-green-700'); let n = parseInt(countEl.textContent, 10) || 0; if (toggled) { localStorage.setItem(keyReact(id, type), '1'); n++; } else { localStorage.removeItem(keyReact(id, type)); n = Math.max(0, n - 1); } countEl.textContent = n; }); }); }); } initReacts();
+      document.addEventListener('click', (e) => { const t = e.target; if (t.closest('.toggle-comments')) { const btn = t.closest('.toggle-comments'); const sect = document.getElementById(btn.dataset.target); if (!sect) return; const open = sect.classList.toggle('hidden'); btn.textContent = (open ? 'View comments' : 'Hide comments') + ' (' + btn.closest('.suggest-card').querySelector('.comment-count').textContent + ')'; } if (t.closest('.approve')) { const id = t.closest('.approve').dataset.id; const chip = document.getElementById(`status-${id}`); chip.textContent = 'Approved'; chip.className = 'inline-flex items-center px-2.5 py-1 rounded text-xs font-medium bg-green-100 text-green-800'; } if (t.closest('.reject')) { const id = t.closest('.reject').dataset.id; const chip = document.getElementById(`status-${id}`); chip.textContent = 'Rejected'; chip.className = 'inline-flex items-center px-2.5 py-1 rounded text-xs font-medium bg-red-100 text-red-800'; } }); document.addEventListener('submit', (e) => { const form = e.target.closest('.comment-form'); if (!form) return; e.preventDefault(); const txt = form.querySelector('input').value.trim(); if (!txt) return; const list = form.previousElementSibling; const li = document.createElement('li'); li.className = 'border border-gray-200 rounded p-3'; li.innerHTML = `<div class="text-sm text-gray-600 mb-1"><b>You</b> • just now</div><p class="text-gray-800"></p>`; li.querySelector('p').textContent = txt; list.appendChild(li); const card = form.closest('.suggest-card'); const countEl = card.querySelector('.comment-count'); countEl.textContent = (parseInt(countEl.textContent, 10) || 0) + 1; form.reset(); }); const suggestionModal = document.getElementById('suggestionModal'); document.getElementById('openSuggestionModalBtn')?.addEventListener('click', () => openModal(suggestionModal)); document.getElementById('closeSuggestionModal')?.addEventListener('click', () => closeModal(suggestionModal)); document.getElementById('cancelSuggestion')?.addEventListener('click', () => closeModal(suggestionModal)); suggestionModal?.addEventListener('click', (e) => { if (e.target === suggestionModal) closeModal(suggestionModal); });
+      function handleCreate(form) { form.addEventListener('submit', (e) => { e.preventDefault(); const fd = new FormData(form); const title = (fd.get('title') || '').toString().trim(); const category = (fd.get('category') || '').toString(); const description = (fd.get('description') || '').toString().trim(); if (!title || !category || !description) return; const id = 's' + Date.now(); const colors = { infrastructure: ['bg-blue-50', 'text-blue-600', 'bg-blue-100', 'text-blue-800'], events: ['bg-pink-50', 'text-pink-600', 'bg-pink-100', 'text-pink-800'], programs: ['bg-purple-50', 'text-purple-600', 'bg-purple-100', 'text-purple-800'], environment: ['bg-green-50', 'text-green-600', 'bg-green-100', 'text-green-800'], safety: ['bg-gray-100', 'text-gray-700', 'bg-gray-200', 'text-gray-800'] }[category] || ['bg-gray-50', 'text-gray-700', 'bg-gray-100', 'text-gray-800']; const card = document.createElement('article'); card.className = 'suggest-card bg-white rounded-xl shadow-sm border border-gray-200 p-6'; card.dataset.id = id; card.dataset.category = category; card.innerHTML = `<header class="flex items-start justify-between"><div class="flex items-start space-x-3"><div class="h-10 w-10 rounded-full ${colors[0]} flex items-center justify-center"><i class="fas fa-user ${colors[1]}"></i></div><div><span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium ${colors[2]} ${colors[3]}">${category.charAt(0).toUpperCase() + category.slice(1)}</span><div class="mt-1 text-sm text-gray-500">By You • just now</div></div></div><span id="status-${id}" class="inline-flex items-center px-2.5 py-1 rounded text-xs font-medium bg-yellow-100 text-yellow-800">Under Review</span></header><h3 class="mt-4 text-lg font-semibold text-gray-900"></h3><p class="mt-2 text-gray-700"></p><div class="mt-4 flex items-center justify-between text-sm"><div class="flex items-center gap-6"><button class="react" data-type="like"><span class="emoji">👍</span><span class="count">0</span></button><button class="react" data-type="love"><span class="emoji">❤️</span><span class="count">0</span></button><button class="react" data-type="clap"><span class="emoji">🙌</span><span class="count">0</span></button><button class="toggle-comments text-blue-600 hover:underline" data-target="c-${id}">View comments (<span class="comment-count">0</span>)</button></div><div class="flex gap-2"><button class="approve px-2 py-1 rounded text-xs bg-green-100 text-green-800" data-id="${id}">Approve</button><button class="reject px-2 py-1 rounded text-xs bg-red-100 text-red-800" data-id="${id}">Reject</button></div></div><section id="c-${id}" class="comments mt-4 hidden"><ul class="space-y-3"></ul><form class="comment-form mt-3 flex gap-2"><input type="text" required placeholder="Write a comment..." class="flex-1 border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"><button class="px-3 py-2 rounded bg-blue-600 text-white text-sm">Post</button></form></section>`; card.querySelector('h3').textContent = title; card.querySelector('p').textContent = description; document.getElementById('suggestionList').insertBefore(card, document.getElementById('suggestionList').firstChild); initReacts(card); form.reset(); if (form.id === 'modalSuggestForm') { document.getElementById('cancelSuggestion').click(); } alert('Suggestion submitted!'); }); } handleCreate(document.getElementById('sideSuggestForm')); handleCreate(document.getElementById('modalSuggestForm'));
+      initNavigation(); initTabs(); initModals(); initPollCreateForm();
+    });
+    (function(){ const t = document.getElementById('userDropdownToggle'); const m = document.getElementById('userDropdownMenu'); t?.addEventListener('click', (e)=>{ e.stopPropagation(); m?.classList.toggle('hidden'); }); document.addEventListener('click', ()=> m?.classList.add('hidden')); })();
+  </script>
+</body>
+</html>

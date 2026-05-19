@@ -1,0 +1,29 @@
+<div class="recent-poll">
+  <h3>Most Recent Poll</h3>
+  {% if poll %}
+    <div>
+      <strong>{{ poll[1] }}</strong>
+      <ul>
+        {% for option in poll[2]|from_json %}
+          <li>{{ option }}</li>
+        {% endfor %}
+      </ul>
+      <small>Created: {{ poll[3] }}</small>
+    </div>
+  {% else %}
+    <p>No polls available.</p>
+  {% endif %}
+</div>
+
+<div class="recent-survey">
+  <h3>Most Recent Survey</h3>
+  {% if survey %}
+    <div>
+      <strong>{{ survey[1] }}</strong>
+      <p>{{ survey[2] }}</p>
+      <small>Created: {{ survey[3] }}</small>
+    </div>
+  {% else %}
+    <p>No surveys available.</p>
+  {% endif %}
+</div>

@@ -1,0 +1,261 @@
+/* =========================================================
+   SK Connect – Brand / Dashboard Styles
+   Save as: /static/css/sk_brand_theme.css
+   ========================================================= */
+
+/* Load Poppins (backup in case <head> misses it) */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap');
+
+/* ---------- Core palette ---------- */
+:root{
+  --sk-blue:   #2147A8;   /* cleaner SK blue */
+  --sk-blue-2: #193a8c;   /* darker shade for hover */
+  --sk-yellow: #FCD116;   /* SK yellow accent */
+  --sk-navy:   #0A1E3A;   /* deep navy for text */
+  --sk-red-rgb: 224,20,42; /* primary red (for soft tints) */
+}
+
+/* Poppins everywhere */
+html, body, .font-sans, .font-sans *{
+  font-family: 'Poppins', system-ui, -apple-system, "Segoe UI", Roboto,
+               "Helvetica Neue", Arial, "Noto Sans", sans-serif !important;
+}
+
+/* ---------- Sidebar background (simple & clean) ---------- */
+.sk-sidebar{
+  background: linear-gradient(180deg, #234cae 0%, #1b3f93 60%, #152f72 100%);
+}
+
+/* =========================================================
+   NAV (moved/refined from inline)
+   ========================================================= */
+
+/* Base nav item (idle) */
+.sidebar-item{
+  position: relative;
+  color: rgba(255,255,255,0.80);
+  border-radius: .9rem;
+  transition:
+    background .18s ease,
+    transform .18s ease,
+    box-shadow .18s ease,
+    color .18s ease;
+}
+.sidebar-item i{ color:#dfe8ff; }
+.sidebar-item:hover{
+  background: rgba(255,255,255,.10);
+  color:#fff;
+  transform: translateX(2px);
+}
+
+/* Active nav – SK-blue pill + soft yellow splash from the left */
+.active-nav{
+  position: relative;
+  color:#fff !important;
+  background: var(--sk-blue);
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,.14),
+    0 10px 22px rgba(25,58,140,.28);
+  transform: translateX(4px);
+  font-weight: 800;
+}
+.active-nav i{ color:#ffffff !important; }
+
+/* remove any legacy pseudo elements by default */
+.sidebar-item::before,
+.sidebar-item::after{ content:none; }
+
+/* Active splash (fade to nothing at the end) */
+.sidebar-item.active-nav::before{
+  content:"";
+  position:absolute; inset:0; pointer-events:none;
+  border-radius: inherit;
+  background: linear-gradient(90deg,
+    rgba(252,209,22,.75) 0%,
+    rgba(252,209,22,.35) 18%,
+    rgba(252,209,22,.10) 35%,
+    rgba(252,209,22,0) 70%
+  );
+}
+
+/* Bigger “Dashboard” (optional) */
+.dashboard-link{
+  font-size: 1rem;
+  padding-top: .95rem; padding-bottom: .95rem;
+  font-weight: 700;
+}
+@media (min-width:768px){ .dashboard-link{ font-size:1.08rem; } }
+
+/* Mobile nav */
+.mobile-nav{ color: rgba(255,255,255,0.75); }
+.mobile-nav:hover{ background: rgba(255,255,255,.10); color:#fff; }
+.mobile-nav.bg-blue-800{
+  background: linear-gradient(135deg, var(--sk-blue), var(--sk-blue-2));
+  color:#fff;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.12);
+}
+
+/* Tabs helper */
+.tab-content.active{ display:block; }
+
+/* =========================================================
+   Scrollbars & Panels
+   ========================================================= */
+::-webkit-scrollbar{ width: 6px; }
+::-webkit-scrollbar-track{ background: #1e3a8a; }
+::-webkit-scrollbar-thumb{ background: rgba(255,255,255,0.2); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover{ background: rgba(255,255,255,0.3); }
+
+.notif-panel{ box-shadow: 0 18px 40px rgba(0,0,0,.12); border-radius:.75rem; }
+.notif-panel ul::-webkit-scrollbar{ width: 8px; }
+.notif-panel ul::-webkit-scrollbar-thumb{ background: rgba(25,58,140,.25); border-radius: 9999px; }
+.notif-panel ul::-webkit-scrollbar-track{ background: transparent; }
+.unread-dot.is-read{ opacity: 0; transition: opacity .2s ease; }
+
+/* =========================================================
+   Top bar (white with subtle brand accent)
+   ========================================================= */
+header.bg-white.shadow{ border-top: 4px solid var(--sk-blue); }
+
+/* =========================================================
+   Brand (logo + title)
+   ========================================================= */
+.brand-logo{
+  width: 40px; height: 40px; display:block; object-fit:contain;
+  border-radius: 12px; background:#fff; padding:4px;
+  box-shadow: 0 6px 16px rgba(0,0,0,.15), inset 0 0 0 1px rgba(0,0,0,.06);
+}
+.brand-title{
+  font-size: 1.25rem;
+  font-weight: 800; letter-spacing:.2px; line-height:1.1; color:#fff;
+}
+.brand-connect{
+  background: linear-gradient(90deg, var(--sk-yellow) 0%, #ffe470 100%);
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+}
+.brand-sub{ font-size:.75rem; color:#cfe1ff; }
+
+/* Optional legacy brand tiles */
+.brand-tile{ position:relative; overflow:hidden;
+  background: radial-gradient(circle at 30% 30%, var(--sk-blue), var(--sk-blue-2)); }
+.brand-ring{
+  box-shadow: inset 0 0 0 2px rgba(255,255,255,.1), 0 0 0 3px rgba(252,209,22,.35);
+}
+.brand-tile img{
+  position:absolute; inset:3px;
+  width:calc(100% - 6px); height:calc(100% - 6px);
+  object-fit:contain; filter: drop-shadow(0 1px 1px rgba(0,0,0,.25));
+}
+
+/* =========================================================
+   Cards / Sections (soft hover + “pop”)
+   ========================================================= */
+.stat-card{
+  border-radius: .9rem;
+  box-shadow: 0 1px 2px rgba(16,24,40,.04), 0 14px 24px -8px rgba(25,58,140,.18);
+  border: 1px solid rgba(2,6,23,.05);
+}
+.stat-number{
+  font-weight:800; line-height:1; letter-spacing:.2px; color:#0A1E3A;
+  font-size: 2rem;
+}
+@media (min-width:1024px){ .stat-number{ font-size: 2.5rem; } }
+
+/* Treat common white “cards” uniformly */
+.bg-white.shadow,
+.bg-white.shadow-sm,
+.bg-white.shadow-md,
+.bg-white.shadow-lg,
+.bg-white.overflow-hidden.shadow,
+.bg-white.rounded-lg.shadow,
+.kpi-card {
+  transition:
+    box-shadow .22s ease,
+    transform .22s ease,
+    border-color .22s ease,
+    background-color .22s ease;
+  border: 1px solid rgba(0,0,0,.06);
+  border-radius: 12px;
+}
+
+/* Hover: tiny lift + very light red tint + soft shadow */
+.bg-white.shadow:hover,
+.bg-white.shadow-sm:hover,
+.bg-white.shadow-md:hover,
+.bg-white.shadow-lg:hover,
+.bg-white.overflow-hidden.shadow:hover,
+.bg-white.rounded-lg.shadow:hover,
+.kpi-card:hover {
+  transform: translateY(-1px);
+  background-image: linear-gradient(
+    0deg,
+    rgba(var(--sk-red-rgb), .03),
+    rgba(var(--sk-red-rgb), .03)
+  );
+  border-color: rgba(var(--sk-red-rgb), .18);
+  box-shadow:
+    0 10px 30px rgba(var(--sk-red-rgb), .08),
+    0 2px 10px rgba(var(--sk-red-rgb), .05);
+}
+
+/* Row-ish hovers inside lists/tables */
+.divide-y > li:hover,
+table tbody tr:hover {
+  background: rgba(var(--sk-red-rgb), .02);
+}
+
+/* Quick-actions */
+.qa-btn.qa-outline {
+  transition: box-shadow .2s ease, transform .2s ease, border-color .2s ease, background-color .2s ease, color .2s ease;
+}
+.qa-btn.qa-outline:hover {
+  transform: translateY(-1px);
+  border-color: rgba(var(--sk-red-rgb), .25);
+  background-color: rgba(var(--sk-red-rgb), .04);
+  box-shadow: 0 8px 20px rgba(var(--sk-red-rgb), .10);
+}
+.qa-btn.qa-primary { transition: transform .18s ease, box-shadow .18s ease; }
+.qa-btn.qa-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 26px rgba(var(--sk-red-rgb), .18);
+}
+
+/* Charts guard */
+.chart-wrap{ height: 16rem; }
+#budgetChart{ width:100% !important; height:100% !important; }
+
+/* Accessibility */
+:focus-visible{
+  outline: 2px solid var(--sk-yellow);
+  outline-offset: 2px;
+}
+.notification {
+  position: absolute;
+  top: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #e74c3c;
+  color: #fff;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  font-weight: 500;
+  z-index: 1000;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  transition: opacity 0.3s;
+}
+.notification {
+  display: block;
+  padding: 10px;
+  margin: 10px 0;
+  border-radius: 5px;
+}
+
+.notification.success {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.notification.danger {
+  background-color: #f8d7da;
+  color: #721c24;
+}

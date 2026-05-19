@@ -1,0 +1,614 @@
+/* =========================================
+   SK Connect Homepage — Clean POP (v2)
+   Palette (from SK logo):
+     Blue   #0038A8 (primary)
+     Red    #CE1126 (accent)
+     Yellow #FCD116 (accent)
+   Tailwind must load BEFORE this file.
+   ========================================= */
+/* === Make everything Poppins (no HTML changes) === */
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap");
+
+html, body, .font-sans, .font-sans * {
+  font-family: 'Poppins', system-ui, -apple-system, "Segoe UI",
+               Roboto, "Helvetica Neue", Arial, "Noto Sans",
+               "Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol", sans-serif !important;
+}
+
+/* optional: slightly stronger headings/buttons for that Poppins look */
+h1,h2,h3 { font-weight: 700; }
+button, .font-medium { font-weight: 600; }
+
+/* ---------- Brand tokens ---------- */
+:root{
+  --sk-blue:     #0038A8;   /* primary */
+  --sk-blue-700: #0b57d0;   /* hover */
+  --sk-blue-900: #0a2f86;
+
+  --sk-red:      #CE1126;   /* accent */
+  --sk-yellow:   #FCD116;   /* accent */
+
+  --ink:   #0f172a;         /* text */
+  --muted: #64748b;         /* secondary text */
+}
+
+/* ---------- Basics ---------- */
+html,body{ color:var(--ink); background:#fff; }
+a,button{ transition:all .2s ease; }
+
+/* ---------------------------------------------------
+   Make Tailwind “blue” utilities follow SK blue
+   (kept for compatibility with your HTML)
+   --------------------------------------------------- */
+.bg-blue-600,
+.bg-blue-500 { background-color: var(--sk-blue) !important; }
+.hover\:bg-blue-700:hover { background-color: var(--sk-blue-700) !important; }
+
+.text-blue-600 { color: var(--sk-blue) !important; }
+.text-blue-700 { color: var(--sk-blue-700) !important; }
+.hover\:text-blue-800:hover { color: var(--sk-blue-900) !important; }
+
+.border-blue-600 { border-color: var(--sk-blue) !important; }
+.bg-blue-100    { background-color: rgba(0,56,168,.10) !important; }
+
+/* ---------------------------------------------------
+   NAVIGATION
+   --------------------------------------------------- */
+nav{ box-shadow:0 6px 18px rgba(0,0,0,.06); }
+
+/* Desktop links */
+.nav-link{
+  display:inline-block; padding:.5rem .75rem; border-radius:.5rem;
+  color:#eaf1ff; transition:background-color .2s ease, color .2s ease;
+}
+.nav-link:hover{ background:rgba(255,255,255,.09); color:#fff; }
+
+/* Desktop Login pill */
+.nav-login{
+  display:inline-block; font-weight:700; border-radius:.6rem;
+  padding:.45rem .95rem; background:#fff; color:var(--sk-blue);
+  box-shadow:0 8px 18px rgba(0,56,168,.22);
+}
+.nav-login:hover{ background:#f8fafc; }
+
+/* Mobile menu overlay gradient (when used) */
+@media (max-width: 767px){
+  .fixed.inset-0.bg-blue-600{
+    background-image:linear-gradient(135deg, var(--sk-blue), var(--sk-red));
+  }
+}
+
+/* Navbar brand image (SK logo) */
+.brand-img{
+  width:36px; height:36px; border-radius:50%; object-fit:cover;
+  box-shadow:0 0 0 2px rgba(255,255,255,.65), 0 6px 12px rgba(0,0,0,.15);
+}
+
+/* ---------------------------------------------------
+   HERO — light, clean, still on-brand
+   (no HTML change required)
+   --------------------------------------------------- */
+.hero, .hero-pattern{
+  color:var(--ink);
+  background:
+    radial-gradient(700px 300px at 15% 12%, rgba(252,209,22,.18), transparent 55%), /* yellow glow */
+    radial-gradient(900px 420px at 110% -10%, rgba(206,17,38,.08), transparent 60%), /* faint red */
+    linear-gradient(180deg,#ffffff 0%, #fbfdff 55%, #f6f9ff 100%); /* clean base */
+}
+
+/* subtle blue ribbon behind the hero headline */
+.hero .hero-text, .hero-pattern .hero-text{ position:relative; z-index:0; }
+.hero .hero-text::before, .hero-pattern .hero-text::before{
+  content:"";
+  position:absolute; left:-3%; top:-14px; height:220px; width:72%;
+  background:linear-gradient(120deg, var(--sk-blue-700), var(--sk-blue));
+  border-radius:28px; filter: blur(2px); opacity:.14; z-index:-1;
+}
+
+/* hero image carding */
+.hero-image img{
+  border-radius:16px;
+  box-shadow:0 24px 40px -12px rgba(0,56,168,.18), 0 3px 0 rgba(255,255,255,.85) inset;
+}
+
+/* optional badge above headline (if you add one with class .hero-badge) */
+.hero-badge{
+  display:inline-flex; align-items:center; gap:.5rem;
+  background: rgba(0,56,168,.06);
+  border:1px solid rgba(0,56,168,.18);
+  border-radius:9999px; padding:.35rem .75rem;
+  font-weight:600; letter-spacing:.2px; color:var(--ink);
+  backdrop-filter: blur(3px);
+}
+.hero-badge::before{
+  content:""; width:.55rem; height:.55rem; border-radius:50%;
+  background:var(--sk-yellow); box-shadow:0 0 0 3px rgba(252,209,22,.28);
+}
+
+/* HERO CTAs: keep your HTML classes, restyle here */
+.hero .bg-blue-600{ /* primary button inside hero -> red gradient */
+  background:linear-gradient(90deg, #E0142A, var(--sk-red)) !important;
+  box-shadow:0 12px 22px rgba(206,17,38,.25), inset 0 -2px 0 rgba(255,255,255,.35);
+  border:none;
+}
+.hero .hover\:bg-blue-700:hover{
+  background:linear-gradient(90deg, #f21b32, #d11628) !important;
+}
+.hero .border.border-blue-600{ /* ghost button inside hero */
+  border-width:2px!important;
+  border-color:#e7eefc!important;
+  color:var(--sk-blue)!important;
+  background:#fff;
+  box-shadow:0 0 0 rgba(0,0,0,0);
+}
+.hero .border.border-blue-600:hover{
+  border-color:var(--sk-blue-700)!important;
+  box-shadow:0 12px 22px rgba(11,87,208,.18);
+}
+
+/* ---------------------------------------------------
+   Section titles — yellow→red underline (clean)
+   --------------------------------------------------- */
+.text-center h2{
+  position:relative; display:inline-block; font-weight:800; letter-spacing:.2px;
+}
+.text-center h2::after{
+  content:""; position:absolute; left:50%; transform:translateX(-50%);
+  bottom:-10px; width:120px; height:4px; border-radius:9999px;
+  background:linear-gradient(90deg, var(--sk-yellow), var(--sk-red));
+  box-shadow:0 6px 12px rgba(206,17,38,.25);
+}
+
+/* ---------------------------------------------------
+   Feature / Module cards & icons
+   --------------------------------------------------- */
+#features .bg-white.rounded-xl{
+  border:1px solid #e9eef7;
+  border-radius:18px;
+  box-shadow:0 1px 2px rgba(16,24,40,.04);
+  transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+}
+#features .bg-white.rounded-xl:hover{
+  transform:translateY(-6px);
+  border-color:rgba(0,56,168,.30) !important;
+  box-shadow:0 16px 34px rgba(0,56,168,.14);
+}
+
+/* icon chip used in your cards (Tailwind: bg-blue-500 text-white) */
+#features .bg-blue-500.text-white{
+  background:linear-gradient(135deg, var(--sk-blue), var(--sk-blue-700)) !important;
+  border:1px solid rgba(0,56,168,.25);
+  box-shadow:0 10px 16px rgba(0,56,168,.22), 0 0 0 3px rgba(255,255,255,.85) inset;
+  transition:background .2s ease, color .2s ease;
+}
+#features .bg-white.rounded-xl:hover .bg-blue-500.text-white{
+  background:linear-gradient(135deg, var(--sk-yellow), var(--sk-red)) !important;
+  color:#1b1b1b !important;
+}
+
+/* Links inside feature cards lean red on hover */
+#features a:hover{ color: var(--sk-red) !important; }
+
+/* ---------------------------------------------------
+   CTA section on blue backgrounds (if used)
+   --------------------------------------------------- */
+.bg-blue-600 .text-blue-100{ color:#e9f0ff!important; }
+.bg-blue-600 .text-blue-700{ color:#dfe8ff!important; }
+.bg-blue-600 .inline-block.bg-white:hover{
+  box-shadow:0 10px 22px rgba(0,56,168,.18);
+}
+
+/* ---------------------------------------------------
+   Announcements Ticker (optional)
+   HTML: #announcements > .ticker > .ticker-viewport > .ticker-track
+   --------------------------------------------------- */
+.ticker{ display:flex; align-items:center; gap:.75rem; }
+.ticker-badge{
+  background:linear-gradient(135deg, var(--sk-blue), var(--sk-red));
+  color:#fff; font-weight:600; font-size:.85rem;
+  padding:.35rem .6rem; border-radius:9999px; white-space:nowrap;
+}
+.ticker-viewport{
+  position:relative; overflow:hidden; flex:1;
+  border-radius:9999px; background:rgba(0,56,168,.06);
+  border:1px solid rgba(0,56,168,.12);
+}
+.ticker-track{
+  display:flex; gap:2rem; padding:.55rem 1rem; will-change:transform;
+  animation:ticker-move 30s linear infinite;
+}
+.ticker-track:hover{ animation-play-state:paused; }
+.ticker-track li{ color:#0f172a; opacity:.85; white-space:nowrap; }
+@keyframes ticker-move{
+  from{ transform:translateX(0); }
+  to{ transform:translateX(-50%); } /* duplicate items in JS for loop */
+}
+
+/* ---------------------------------------------------
+   Metrics / Animated Counters (optional)
+   --------------------------------------------------- */
+.metric-card{
+  background:#fff; border-radius:16px; padding:18px 16px;
+  border:1px solid rgba(0,56,168,.12);
+  box-shadow:0 8px 18px rgba(0,0,0,.06);
+  text-align:center; transition:transform .2s, box-shadow .2s;
+}
+.metric-card:hover{
+  transform:translateY(-3px);
+  box-shadow:0 16px 26px rgba(0,56,168,.12);
+}
+.metric-label{ color:#64748b; font-weight:600; font-size:.9rem; }
+.metric-value{
+  font-size:2.1rem; font-weight:800; line-height:1.1; margin-top:.2rem;
+  background:linear-gradient(135deg, var(--sk-blue), var(--sk-red));
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+}
+
+/* ---------------------------------------------------
+   FAQ (details/summary) (optional)
+   --------------------------------------------------- */
+.faq{
+  border:1px solid rgba(0,56,168,.12); border-radius:14px;
+  padding:0; margin-bottom:12px; overflow:hidden; background:#fff;
+}
+.faq summary{
+  list-style:none; cursor:pointer; padding:16px 18px; position:relative;
+  font-weight:600; color:#0f172a;
+}
+.faq[open] summary{ background:rgba(0,56,168,.06); }
+.faq summary::-webkit-details-marker{ display:none; }
+.faq summary::after{
+  content:"+"; position:absolute; right:16px; top:50%; transform:translateY(-50%);
+  width:26px; height:26px; border-radius:7px; display:grid; place-items:center;
+  background:rgba(0,56,168,.09); color:var(--sk-blue); font-weight:700;
+}
+.faq[open] summary::after{ content:"–"; }
+.faq p{ padding:0 18px 18px; color:#475569; }
+
+/* ---------------------------------------------------
+   Footer
+   --------------------------------------------------- */
+footer{ background:#0f2138; color:#e7ecf6; }
+footer a{ color:#b7c5e4; }
+footer a:hover{ color:#ffffff !important; }
+
+/* ---------------------------------------------------
+   Accessible focus ring (SK yellow)
+   --------------------------------------------------- */
+a:focus, button:focus, input:focus, select:focus{
+  outline:none;
+  box-shadow:0 0 0 3px rgba(252,209,22,.55), 0 0 0 6px rgba(252,209,22,.18);
+  border-radius:.5rem;
+}
+
+/* =========================================
+   HOVER ACCENT = RED (SK RED)
+   Paste at the very bottom of your CSS file
+   ========================================= */
+:root{ --hover-accent: #CE1126; } /* SK red */
+
+/* --- Navbar --- */
+.nav-link:hover{
+  background: rgba(206,17,38,.16);  /* red tint */
+  color:#fff !important;
+}
+.mobile-link:hover{
+  background: rgba(206,17,38,.18);
+  color:#fff !important;
+}
+.nav-login:hover{
+  background:#fff;                /* keep pill white */
+  box-shadow:0 8px 18px rgba(206,17,38,.22); /* red glow */
+  color:#CE1126;                  /* optional: text turns red */
+}
+
+/* --- Hero buttons --- */
+.hero .border.border-blue-600:hover,
+.btn-ghost:hover{
+  border-color: var(--hover-accent) !important;
+  color: var(--hover-accent) !important;
+  background:#fff; /* keep it clean */
+  box-shadow:0 12px 22px rgba(206,17,38,.18);
+}
+/* primary already red – keep as is */
+
+/* --- Feature / module cards & links --- */
+#features .bg-white.rounded-xl:hover{
+  border-color: var(--hover-accent) !important;
+  box-shadow:0 16px 34px rgba(206,17,38,.16);
+}
+#features a:hover{ color: var(--hover-accent) !important; }
+
+/* --- Global links (fallback) --- */
+a:hover{ color: var(--hover-accent); }
+
+/* --- Optional: social icons hover --- */
+.fab:hover, .fas:hover{ color: var(--hover-accent); }
+
+
+/* ===== CTA button inside blue section — make it POP ===== */
+
+/* Huwag paputlain ang text-blue-700 kapag nasa white button/card */
+.bg-blue-600 .text-blue-700:not(.bg-white){
+  color:#dfe8ff !important;
+}
+
+/* Base state ng white button sa blue background */
+.bg-blue-600 .inline-block.bg-white{
+  color: var(--sk-blue) !important;              /* malinaw na blue text */
+  border: 2px solid rgba(255,255,255,.72);       /* subtle white ring */
+  box-shadow: 0 8px 16px rgba(0,56,168,.18);     /* blue shadow */
+  border-radius: .75rem;                         /* mas pill look */
+}
+
+/* Hover: SK RED + lift */
+.bg-blue-600 .inline-block.bg-white:hover{
+  background: linear-gradient(135deg, var(--sk-red) 0%, #a50f21 100%);
+  color:#fff !important;
+  border-color: transparent;
+  transform: translateY(-2px);
+  box-shadow: 0 14px 26px rgba(206,17,38,.28);
+}
+
+/* Focus (keyboard): yellow focus ring para accessible */
+.bg-blue-600 .inline-block.bg-white:focus-visible{
+  outline: 3px solid var(--sk-yellow);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 4px rgba(252,209,22,.35);
+}
+
+/* Optional: i-single-line ang underline ng big CTA heading */
+.cta-heading{ position:relative; display:inline-block; }
+.cta-heading::after{
+  content:"";
+  position:absolute; left:50%; transform:translateX(-50%);
+  bottom:-12px; height:5px; width:140px; border-radius:9999px;
+  background: linear-gradient(90deg, var(--sk-yellow), var(--sk-red));
+}
+
+/* Global hover accent = RED (para consistent sa theme) */
+:root{ --hover-accent:#CE1126; }
+a:hover{ color:var(--hover-accent); }
+#features a:hover{ color:var(--hover-accent) !important; }
+
+/* Learn More (outline) — same hover as Explore Features */
+a.border-blue-600:hover,
+button.border-blue-600:hover{
+  background: linear-gradient(135deg, var(--sk-red), #a50f21) !important; /* same as primary hover */
+  color: #fff !important;
+  border-color: transparent !important;
+  transform: translateY(-1px);
+  box-shadow: 0 16px 28px rgba(206,17,38,.26);
+}
+
+/* === Feature cards: red border on hover (full box) === */
+#features .bg-white.rounded-xl{
+  border: 1px solid rgba(0,56,168,.12) !important;     /* default subtle border */
+  border-image: none !important;
+  transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease;
+}
+
+#features .bg-white.rounded-xl:hover{
+  border-color: var(--sk-red) !important;               /* SK red border */
+  box-shadow: 0 16px 28px rgba(206,17,38,.14);          /* soft red glow */
+  transform: translateY(-3px);
+}
+
+/* remove any previous top-bar accent if meron */
+#features .bg-white.rounded-xl::before{ content:none !important; }
+
+/* keep links turning red on hover */
+#features a:hover{ color: var(--sk-red) !important; }
+
+/* Learn More (blue outline by default, red on hover) */
+.hero-pattern a.border-blue-600,
+.hero-pattern button.border-blue-600{
+  background: #fff !important;                 /* white pill */
+  color: var(--sk-blue) !important;            /* blue text */
+  border: 2px solid var(--sk-blue) !important; /* BLUE BORDER (default) */
+  border-radius: .75rem;
+  box-shadow: none !important;
+  transition: background .15s ease, color .15s ease,
+              border-color .15s ease, transform .15s ease, box-shadow .15s ease;
+}
+
+.hero-pattern a.border-blue-600:hover,
+.hero-pattern button.border-blue-600:hover{
+  background: linear-gradient(135deg, var(--sk-red), #a50f21) !important; /* same as primary hover */
+  color: #fff !important;
+  border-color: transparent !important;
+  transform: translateY(-1px);
+  box-shadow: 0 16px 28px rgba(206,17,38,.26);
+}
+
+/* (optional) keyboard focus ring – clean & branded */
+.hero-pattern a.border-blue-600:focus-visible,
+.hero-pattern button.border-blue-600:focus-visible{
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(0,56,168,.25), 0 0 0 6px rgba(0,56,168,.15) !important;
+}
+
+/* ===== Sidebar brand (extracted from Tailwind utilities) ===== */
+:root{
+  --tw-blue-900: #1e3a8a;  /* bg-blue-900 */
+  --tw-blue-600: #2563eb;  /* bg-blue-600 */
+  --tw-purple-400: #c4b5fd;/* text-purple-400 */
+  --tw-blue-200: #bfdbfe;  /* text-blue-200 */
+}
+
+/* <div class="flex flex-col w-64 bg-blue-900 text-white"> */
+.sidebar{
+  display: flex;
+  flex-direction: column;
+  width: 16rem;                 /* w-64 */
+  background: var(--tw-blue-900);
+  color: #fff;
+}
+
+/* <div class="px-4 py-6 flex items-center"> */
+.brand-row{
+  padding: 1.5rem 1rem;         /* py-6 px-4 */
+  display: flex;
+  align-items: center;
+}
+
+/* <div class="bg-blue-600 h-10 w-10 rounded-md flex items-center justify-center text-white font-bold text-xl mr-3"> */
+.brand-badge{
+  background: var(--tw-blue-600);
+  height: 2.5rem;               /* h-10 */
+  width: 2.5rem;                /* w-10 */
+  border-radius: .375rem;       /* rounded-md */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;                  /* text-white */
+  font-weight: 700;             /* font-bold */
+  font-size: 1.25rem;           /* text-xl */
+  margin-right: .75rem;         /* mr-3 */
+}
+
+/* <h1 class="text-xl font-bold">SK<span class="text-purple-400">Connect</span></h1> */
+.brand-title{
+  font-size: 1.25rem;           /* text-xl */
+  font-weight: 700;             /* font-bold */
+  line-height: 1.25;
+  margin: 0;
+}
+.brand-title .accent{
+  color: var(--tw-purple-400);  /* text-purple-400 */
+}
+
+/* <p class="text-xs text-blue-200">Los Baños Federation</p> */
+.brand-subtitle{
+  font-size: .75rem;            /* text-xs */
+  color: var(--tw-blue-200);    /* text-blue-200 */
+  margin: 0;
+}
+/* ==== FIX: buttons must not inherit global a:hover (red text) ==== */
+/* Solid primary (blue) — keep text white always, add red hover */
+a.bg-blue-600,
+button.bg-blue-600,
+a.bg-blue-500,
+button.bg-blue-500{
+  color:#fff !important;
+  border-radius:.75rem;
+  box-shadow:0 10px 18px rgba(0,56,168,.18);
+  transition:transform .15s ease, box-shadow .15s ease, background .15s ease;
+}
+a.bg-blue-600:hover,
+button.bg-blue-600:hover,
+a.bg-blue-500:hover,
+button.bg-blue-500:hover{
+  background:linear-gradient(135deg, var(--sk-red), #a50f21) !important;
+  color:#fff !important;
+  transform:translateY(-1px);
+  box-shadow:0 16px 28px rgba(206,17,38,.26);
+}
+
+/* Outline button — blue text/border, turns red on hover */
+a.border-blue-600,
+button.border-blue-600{
+  border-width:2px !important;
+  border-color:var(--sk-blue) !important;
+  color:var(--sk-blue) !important;
+  border-radius:.75rem;
+  transition:all .15s ease;
+}
+a.border-blue-600:hover,
+button.border-blue-600:hover{
+  background:linear-gradient(135deg, var(--sk-yellow), var(--sk-red)) !important;
+  color:#fff !important;
+  border-color:transparent !important;
+  box-shadow:0 12px 24px rgba(206,17,38,.22);
+}
+
+/* Hero CTAs (kahit light o dark hero) — force legible colors */
+.hero-pattern a.bg-blue-600,
+.hero-pattern a.bg-blue-600:hover{
+  color:#fff !important;
+}
+.hero-pattern a.border-blue-600{
+  color:var(--sk-blue) !important;
+}
+.hero-pattern a.border-blue-600:hover{
+  color:#fff !important;
+}
+
+/* Optional: mas airy na shadow sa hero image/cards */
+.hero-pattern img{
+  box-shadow:0 22px 28px -10px rgba(0,0,0,.20), 0 8px 14px -8px rgba(0,0,0,.06);
+  border-radius:14px;
+}
+
+/* TIP: kung may global a:hover na nagre-red, limitahan mo: */
+a:hover{ color:inherit; }                 /* neutral default */
+#features a:hover{ color:var(--sk-red); } /* red accent sa feature links lang */
+footer a:hover{ color:#fff !important; }  /* footer */
+
+/* =========================================
+   FIX BLOCK — keep icons visible w/ Poppins
+   Paste this at the VERY BOTTOM of your file
+   ========================================= */
+
+/* 1) Restore Font Awesome font-family (nao-override ng global Poppins) */
+.fa, .fas, .far, .fal, .fad, .fab,
+.fa-solid, .fa-regular, .fa-light, .fa-duotone, .fa-brands,
+i[class^="fa-"], i[class*=" fa-"] {
+  /* Use FA's CSS variable if present, then fallbacks */
+  font-family: var(--fa-style-family, "Font Awesome 6 Free"),
+               "Font Awesome 6 Free", "Font Awesome 6 Brands",
+               "Font Awesome 5 Free", "Font Awesome 5 Brands",
+               Arial, sans-serif !important;
+  font-style: normal;
+  speak-as: none; /* safer for screen readers on icon fonts */
+}
+
+/* 2) Correct weights per set so glyphs render properly */
+.fas, .fa-solid        { font-weight: 900 !important; } /* Solid */
+.far, .fa-regular      { font-weight: 400 !important; } /* Regular */
+.fal, .fa-light        { font-weight: 300 !important; } /* Light (if you use Pro) */
+.fad, .fa-duotone      { font-weight: 900 !important; } /* Duotone (fallback weight) */
+.fab, .fa-brands       {
+  font-family: "Font Awesome 6 Brands","Font Awesome 5 Brands" !important;
+  font-weight: 400 !important; /* Brands */
+}
+
+/* Optional: ensure <i> inside buttons/links inherit currentColor correctly */
+a i[class^="fa"], a i[class*=" fa-"],
+button i[class^="fa"], button i[class*=" fa-"] {
+  color: currentColor;
+  line-height: 1;
+}
+
+
+/* Brand image (SK logo) */
+.brand-img{
+  width:36px;height:36px;border-radius:50%;object-fit:cover;
+  box-shadow:0 0 0 2px rgba(255,255,255,.65), 0 6px 12px rgba(0,0,0,.15);
+}
+
+/* Desktop links */
+.nav-link{
+  display:inline-block;padding:.5rem .75rem;border-radius:.5rem;
+  transition:background-color .2s ease;
+}
+.nav-link:hover{ background-color:#1e40af; } /* Tailwind blue-700 */
+
+/* Desktop Login pill */
+.nav-login{
+  display:inline-block;font-weight:600;border-radius:.5rem;
+  padding:.5rem 1rem;background:#fff;color:#0038A8; /* SK blue */
+  transition:background-color .2s ease, box-shadow .2s ease;
+}
+.nav-login:hover{ background:#f3f4f6; box-shadow:0 6px 14px rgba(0,56,168,.18); }
+
+/* Mobile links */
+.mobile-link{
+  padding:.5rem .75rem;border-radius:.5rem;transition:background .2s ease;
+}
+.mobile-link:hover{ background:#1e40af; }
+.mobile-login{
+  display:inline-block;width:100%;text-align:center;
+  background:#fff;color:#0038A8;font-weight:600;border-radius:.5rem;
+  padding:.6rem .75rem;
+}

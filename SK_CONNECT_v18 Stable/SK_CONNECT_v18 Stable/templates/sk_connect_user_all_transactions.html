@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>SK Connect — Expense Transactions</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+  <!-- Tailwind + Icons -->
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/SKLOGO.png') }}">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+  
+  <!-- DataTables & Buttons -->
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" />
+  <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.dataTables.min.css" />
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.min.js"></script>
+  <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+  <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
+
+  <!-- Poppins font -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Alpine.js for dropdowns -->
+  <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+  <style>
+    :root{ --sk-blue:#0d2a52; --sk-yellow:#FCD116; }
+    html,body{ height:100%; }
+    body{
+      font-family:"Poppins",system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial,"Noto Sans";
+      background:#f9fafb;
+      color:#111827;
+    }
+    /* Sidebar + nav */
+    .sidebar{ background:var(--sk-blue)!important; color:#fff; }
+    .sidebar .sidebar-item{ color:#e5e7eb; transition:all 0.2s; }
+    .sidebar .sidebar-item:hover{ background:rgba(255,255,255,.08); transform:translateX(4px); }
+    .active-nav{
+      background:linear-gradient(90deg, rgba(252,209,22,.2), rgba(252,209,22,0))!important;
+      border-left:4px solid var(--sk-yellow);
+      color:#fff!important;
+    }
+    /* Topbar */
+    .app-topbar{
+      background:#fff!important; color:#111827;
+      border-bottom:1px solid #e5e7eb; position:sticky; top:0; z-index:30;
+      box-shadow:0 1px 3px rgba(0,0,0,0.05);
+    }
+    .brand-img{ width:40px; height:40px; border-radius:10px; object-fit:cover; }
+    /* Cards */
+    .kpi-card{ border:1px solid #eef2f7; border-radius:1rem; background:#fff; transition:all 0.3s; }
+    .kpi-card:hover{ transform:translateY(-2px); box-shadow:0 10px 25px rgba(0,0,0,0.08); }
+    /* Dropdown & misc */
+    .dropdown-item:hover { background:#f3f4f6; }
+    .dropdown-divider { border-top:1px solid #e5e7eb; }
+    
+    /* DataTables customization */
+    .dt-buttons { 
+      margin-bottom: 1rem;
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .dt-button {
+      background-color: var(--sk-blue) !important;
+      color: white !important;
+      border: none !important;
+      padding: 0.5rem 1rem !important;
+      border-radius: 0.375rem !important;
+      font-weight: 500 !important;
+      font-size: 0.875rem !important;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
+      transition: all 0.2s !important;
+      cursor: pointer !important;
+    }
+    .dt-button:hover {
+      opacity: 0.9;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+    }
+    
+    /* Table styling */
+    .dataTables_wrapper .dataTables_filter input,
+    .dataTables_wrapper .dataTables_length select {
+      border: 1px solid #e5e7eb !important;
+      border-radius: 0.375rem !important;
+      padding: 0.5rem 0.75rem !important;
+      font-size: 0.875rem !important;
+    }
+    
+    #transactionsTable {
+      font-size: 0.875rem;
+    }
+    
+    #transactionsTable thead {
+      background: linear-gradient(to right, #f3f4f6, #f9fafb);
+      font-weight: 600;
+    }
+    
+    #transactionsTable tbody tr {
+      border-bottom: 1px solid #f3f4f6;
+      transition: all 0.2s;
+    }
+    
+    #transactionsTable tbody tr:hover {
+      background-color: #f9fafb;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    
+    /* Status badges */
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.375rem 0.75rem;
+      border-radius: 0.5rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    /* Action buttons */
+    .action-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 0.375rem;
+      transition: all 0.2s;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+    }
+    
+    .action-btn:hover {
+      transform: scale(1.1);
+    }
+    
+    /* Filter section */
+    .filter-section {
+      background: #fff;
+      border-radius: 0.75rem;
+      border: 1px solid #e5e7eb;
+    }
+    
+    /* Stats card animation */
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .stat-card {
+      animation: slideUp 0.5s ease-out;
+    }
+    
+    .stat-card:nth-child(2) { animation-delay: 0.1s; }
+    .stat-card:nth-child(3) { animation-delay: 0.2s; }
+    .stat-card:nth-child(4) { animation-delay: 0.3s; }
+  </style>
+</head>
+
+<body class="antialiased"
+  data-supabase-url="{{ SUPABASE_URL or '' }}"
+  data-supabase-key="{{ SUPABASE_ANON_KEY or '' }}">
+  <div class="flex h-screen overflow-hidden">
+    <!-- Sidebar -->
+    <aside class="hidden md:flex md:flex-shrink-0 sidebar">
+      <div class="flex flex-col w-64">
+        <div class="px-4 py-6 flex items-center">
+          <img src="/static/images/SKLOGO.png" alt="SK Logo" class="brand-img mr-3">
+          <div>
+            <div class="text-white text-xl font-extrabold">SK<span class="text-yellow-300">Connect</span></div>
+            <div class="text-blue-200 text-xs">Los Baños Federation</div>
+          </div>
+        </div>
+
+        <div class="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
+          <nav class="flex-1 px-2 space-y-1">
+            <a href="{{ url_for('user_dashboard') }}" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-home mr-3 text-lg"></i> Dashboard
+            </a>
+            <a href="{{ url_for('user_announcements') }}" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-bullhorn mr-3 text-lg"></i> Announcements
+            </a>
+            <a href="{{ url_for('user_events_projects') }}" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-calendar mr-3 text-lg"></i> Events & Projects
+            </a>
+            <div class="relative" x-data="{ open: false }">
+              <button @click="open = !open" class="sidebar-item active-nav flex items-center justify-between w-full px-4 py-3 text-sm font-medium rounded-md">
+                <span class="flex items-center">
+                  <i class="fas fa-chart-pie mr-3 text-lg"></i> Financial Reports
+                </span>
+                <i class="fas fa-chevron-down text-sm transition-transform" :class="{ 'transform rotate-180': open }"></i>
+              </button>
+              <div x-show="open" 
+                   x-transition:enter="transition ease-out duration-100"
+                   x-transition:enter-start="transform opacity-0 scale-95"
+                   x-transition:enter-end="transform opacity-100 scale-100"
+                   x-transition:leave="transition ease-in duration-75"
+                   x-transition:leave-start="transform opacity-100 scale-100"
+                   x-transition:leave-end="transform opacity-0 scale-95"
+                   class="pl-11 pr-2 py-1 space-y-1">
+                <a href="{{ url_for('user_financial_report') }}" class="block px-3 py-2 text-sm text-blue-100 hover:text-white rounded-md">
+                  <i class="fas fa-chart-bar mr-2"></i>Financial Dashboard
+                </a>
+                <a href="{{ url_for('user_all_transactions') }}" class="block px-3 py-2 text-sm text-blue-100 hover:text-white rounded-md">
+                  <i class="fas fa-receipt mr-2"></i>View Transactions
+                </a>
+                <a href="{{ url_for('user_all_projects') }}" class="block px-3 py-2 text-sm text-blue-100 hover:text-white rounded-md">
+                  <i class="fas fa-briefcase mr-2"></i>View Projects
+                </a>
+              </div>
+            </div>
+            <a href="{{ url_for('user_feedback') }}" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-poll mr-3 text-lg"></i> Surveys & Polls
+            </a>
+            <a href="{{ url_for('user_documents') }}" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-file-alt mr-3 text-lg"></i> Documents
+            </a>
+            <a href="{{ url_for('user_volunteer') }}" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-hands-helping mr-3 text-lg"></i> Volunteer
+            </a>
+            <a href="{{ url_for('user_training_resources') }}" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-graduation-cap mr-3 text-lg"></i> Training Resources
+            </a>
+            <a href="{{ url_for('user_community') }}" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-users mr-3 text-lg"></i> Community Board
+            </a>
+            <a href="{{ url_for('user_incidents') }}" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-exclamation-triangle mr-3 text-lg"></i> Incident Reports
+            </a>
+          </nav>
+        </div>
+
+        <!-- User Dropdown -->
+        <div class="flex-shrink-0 flex border-t border-white/10 p-4 relative">
+          <div id="userDropdownToggle" class="flex items-center cursor-pointer w-full">
+            <img class="h-9 w-9 rounded-full" src="{{ current_user.profile_pic if current_user and current_user.profile_pic else get_default_profile_image(current_user) }}" alt="Profile">
+            <div class="ml-3 flex-1 min-w-0">
+              <div class="text-sm font-medium text-white truncate uppercase">{{ session['username'] if session.get('username') else 'Guest' }}</div>
+              <div class="text-xs text-blue-100 truncate">{{ session['position']|title if session.get('position') else 'User' }}</div>
+            </div>
+          </div>
+          <ul id="userDropdownMenu" class="absolute left-0 right-0 bottom-14 z-20 w-56 bg-white rounded-lg shadow-lg py-1 text-gray-700 hidden">
+            <li><a class="dropdown-item flex items-center px-4 py-2 hover:bg-gray-100" href="{{ url_for('profile') }}"><i class="fas fa-user mr-2"></i>Profile</a></li>
+            <li><a class="dropdown-item flex items-center px-4 py-2 hover:bg-gray-100" href="#"><i class="fas fa-cog mr-2"></i>Settings</a></li>
+            <li><hr class="dropdown-divider my-1"></li>
+            <li><a class="dropdown-item flex items-center px-4 py-2 hover:bg-gray-100" href="/logout"><i class="fas fa-sign-out-alt mr-2"></i>Logout</a></li>
+          </ul>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Mobile Top Bar -->
+    <div class="md:hidden app-topbar w-full flex items-center justify-between px-4 py-3">
+      <div class="flex items-center">
+        <img src="/static/images/SKLOGO.png" class="brand-img mr-2" alt="SK"/>
+        <h1 class="text-lg font-extrabold">SK<span class="text-blue-700">Connect</span></h1>
+      </div>
+      <button id="mobile-menu-button" class="text-gray-700"><i class="fas fa-bars text-xl"></i></button>
+    </div>
+
+    <!-- Mobile Menu -->
+    <div id="mobile-menu" class="md:hidden absolute top-14 left-0 right-0 sidebar z-10 hidden max-h-96 overflow-y-auto">
+      <nav class="px-2 pt-2 pb-3 space-y-1">
+        <a href="{{ url_for('user_dashboard') }}" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-home mr-2"></i> Dashboard</a>
+        <a href="{{ url_for('user_announcements') }}" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-bullhorn mr-2"></i> Announcements</a>
+        <a href="{{ url_for('user_events_projects') }}" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-calendar mr-2"></i> Events & Projects</a>
+        <div x-data="{ open: false }">
+          <button @click="open = !open" class="mobile-nav w-full flex items-center justify-between px-3 py-2 rounded-md text-base font-medium bg-blue-800">
+            <span><i class="fas fa-chart-pie mr-2"></i> Financial Reports</span>
+            <i class="fas fa-chevron-down text-sm" :class="{ 'rotate-180': open }"></i>
+          </button>
+          <div x-show="open" class="pl-6 space-y-1">
+            <a href="{{ url_for('user_financial_report') }}" class="block px-3 py-2 text-sm text-blue-100 hover:text-white"><i class="fas fa-chart-bar mr-2"></i>Dashboard</a>
+            <a href="{{ url_for('user_all_transactions') }}" class="block px-3 py-2 text-sm text-blue-100 hover:text-white"><i class="fas fa-receipt mr-2"></i>Transactions</a>
+            <a href="{{ url_for('user_all_projects') }}" class="block px-3 py-2 text-sm text-blue-100 hover:text-white"><i class="fas fa-briefcase mr-2"></i>Projects</a>
+          </div>
+        </div>
+        <a href="{{ url_for('user_feedback') }}" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-poll mr-2"></i> Surveys & Polls</a>
+        <a href="{{ url_for('user_documents') }}" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-file-alt mr-2"></i> Documents</a>
+        <a href="{{ url_for('user_volunteer') }}" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-hands-helping mr-2"></i> Volunteer</a>
+      </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="flex-1 p-4 md:p-8 overflow-auto bg-gray-50">
+      <!-- Header -->
+      <header class="mb-8">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
+          <div>
+            <h1 class="text-4xl font-bold text-gray-900">Expense Transactions</h1>
+            <p class="mt-2 text-gray-600 text-sm md:text-base">Sangguniang Kabataan Los Baños Federation</p>
+          </div>
+          <div class="mt-4 md:mt-0 text-right">
+            <div class="text-sm font-medium text-gray-900">Last Updated</div>
+            <div class="text-sm text-gray-600">{{ now.strftime('%B %d, %Y %I:%M %p') }}</div>
+          </div>
+        </div>
+
+        <!-- KPI Cards (unchanged) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="stat-card bg-white rounded-lg shadow-sm p-6 border-l-4 border-blue-500 kpi-card">
+            <div class="flex items-center">
+              <div class="flex-shrink-0">
+                <div class="flex items-center justify-center h-12 w-12 rounded-lg bg-blue-100">
+                  <i class="fas fa-money-bill text-blue-600 text-lg"></i>
+                </div>
+              </div>
+              <div class="ml-5 w-0 flex-1">
+                <dl>
+                  <dt class="text-sm font-medium text-gray-500 truncate">Total Expenses</dt>
+                  <dd class="text-lg font-bold text-gray-900">₱{{ "{:,.2f}".format(total_amount|default(0)|float) }}</dd>
+                </dl>
+              </div>
+            </div>
+          </div>
+
+          <div class="stat-card bg-white rounded-lg shadow-sm p-6 border-l-4 border-green-500 kpi-card">
+            <div class="flex items-center">
+              <div class="flex-shrink-0">
+                <div class="flex items-center justify-center h-12 w-12 rounded-lg bg-green-100">
+                  <i class="fas fa-calendar text-green-600 text-lg"></i>
+                </div>
+              </div>
+              <div class="ml-5 w-0 flex-1">
+                <dl>
+                  <dt class="text-sm font-medium text-gray-500 truncate">This Month</dt>
+                  <dd class="text-lg font-bold text-gray-900">₱{{ "{:,.2f}".format(monthly_amount|default(0)|float) }}</dd>
+                </dl>
+              </div>
+            </div>
+          </div>
+
+          <div class="stat-card bg-white rounded-lg shadow-sm p-6 border-l-4 border-purple-500 kpi-card">
+            <div class="flex items-center">
+              <div class="flex-shrink-0">
+                <div class="flex items-center justify-center h-12 w-12 rounded-lg bg-purple-100">
+                  <i class="fas fa-receipt text-purple-600 text-lg"></i>
+                </div>
+              </div>
+              <div class="ml-5 w-0 flex-1">
+                <dl>
+                  <dt class="text-sm font-medium text-gray-500 truncate">Total Records</dt>
+                  <dd class="text-lg font-bold text-gray-900">{{ total }}</dd>
+                </dl>
+              </div>
+            </div>
+          </div>
+
+          <div class="stat-card bg-white rounded-lg shadow-sm p-6 border-l-4 border-yellow-500 kpi-card">
+            <div class="flex items-center">
+              <div class="flex-shrink-0">
+                <div class="flex items-center justify-center h-12 w-12 rounded-lg bg-yellow-100">
+                  <i class="fas fa-chart-line text-yellow-600 text-lg"></i>
+                </div>
+              </div>
+              <div class="ml-5 w-0 flex-1">
+                <dl>
+                  <dt class="text-sm font-medium text-gray-500 truncate">Avg Amount</dt>
+                  <dd class="text-lg font-bold text-gray-900">₱{{ "{:,.2f}".format((total_amount|default(0)|float / total) if total > 0 else 0) }}</dd>
+                </dl>
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Filters (unchanged) -->
+      <div class="filter-section p-6 mb-6">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-sm font-semibold text-gray-900">Advanced Filters</h3>
+          <button id="toggleFilters" class="text-gray-500 hover:text-gray-700"><i class="fas fa-filter"></i></button>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+          <div><label class="block text-xs font-medium text-gray-700 mb-1">From Date</label><input type="date" id="dateFrom" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"></div>
+          <div><label class="block text-xs font-medium text-gray-700 mb-1">To Date</label><input type="date" id="dateTo" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"></div>
+          <div><label class="block text-xs font-medium text-gray-700 mb-1">Category</label><select id="categoryFilter" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"><option value="">All Categories</option><option value="supplies">Supplies</option><option value="equipment">Equipment</option><option value="events">Events</option><option value="training">Training</option><option value="miscellaneous">Miscellaneous</option></select></div>
+          <div><label class="block text-xs font-medium text-gray-700 mb-1">Type</label><select id="typeFilter" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"><option value="">All Types</option><option value="expense">Expense</option><option value="income">Income</option></select></div>
+          <div><label class="block text-xs font-medium text-gray-700 mb-1">Barangay</label><select id="barangayFilter" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"><option value="">All Barangays</option>  <option value="anos">Anos</option>
+  <option value="bagong silang">Bagong Silang</option>
+  <option value="bambang">Bambang</option>
+  <option value="batong malake">Batong Malake</option>
+  <option value="baybayin">Baybayin</option>
+  <option value="bayog">Bayog</option>
+  <option value="lalakay">Lalakay</option>
+  <option value="maahas">Maahas</option>
+  <option value="malinta">Malinta</option>
+  <option value="mayondon">Mayondon</option>
+  <option value="putho-tuntungin">Putho-Tuntungin</option>
+  <option value="san antonio">San Antonio</option>
+  <option value="tadlac">Tadlac</option>
+  <option value="timugan">Timugan</option></select></div>
+        </div>
+        <div class="flex justify-end gap-3 mt-4">
+          <button id="clearFilters" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition"><i class="fas fa-times mr-2"></i>Clear</button>
+          <button id="applyFilters" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition"><i class="fas fa-check mr-2"></i>Apply</button>
+        </div>
+      </div>
+
+      <!-- Table Card -->
+      <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+        <div class="px-6 py-5 border-b border-gray-200 flex items-center justify-between flex-wrap gap-4">
+          <div><h2 class="text-lg font-semibold text-gray-900">Transaction History</h2><p class="text-xs text-gray-500 mt-1">Manage and review all financial transactions</p></div>
+          <div class="relative" id="exportDropdown">
+            <button class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition"><i class="fas fa-download mr-2"></i>Export</button>
+            <div class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 z-20">
+              <a href="#" class="csv-export flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"><i class="fas fa-file-csv mr-2 text-green-600"></i>CSV (Filtered)</a>
+              <a href="#" class="pdf-export flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"><i class="fas fa-file-pdf mr-2 text-red-600"></i>PDF (Filtered)</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table id="transactionsTable" class="w-full">
+            <thead><tr><th class="px-6 py-3 text-left text-xs font-semibold text-gray-700">Project</th><th class="px-6 py-3 text-left text-xs font-semibold text-gray-700">Description</th><th class="px-6 py-3 text-right text-xs font-semibold text-gray-700">Amount</th><th class="px-6 py-3 text-center text-xs font-semibold text-gray-700">Type</th><th class="px-6 py-3 text-left text-xs font-semibold text-gray-700">Category</th><th class="px-6 py-3 text-left text-xs font-semibold text-gray-700">Barangay</th><th class="px-6 py-3 text-left text-xs font-semibold text-gray-700">Date</th><th class="px-6 py-3 text-center text-xs font-semibold text-gray-700">Actions</th></tr></thead>
+            <tbody>
+              {% for t in transactions %}
+              <tr data-project-name="{{ t.project_name or '' }}">
+                <td class="px-6 py-4 whitespace-nowrap"><div class="text-sm font-medium text-gray-900">{{ t.project_name or t.project_id or '—' }}</div></td>
+                <td class="px-6 py-4"><div class="text-sm text-gray-900 max-w-xs truncate">{{ t.title or '—' }}</div><div class="text-xs text-gray-500">{{ (t.description[:40] if t.description else '') or '—' }}{{ '...' if t.description and t.description|length > 40 else '' }}</div></td>
+                <td class="px-6 py-4 whitespace-nowrap text-right"><span class="text-sm font-semibold text-gray-900">₱{{ "{:,.2f}".format(t.amount|float) }}</span></td>
+                <td class="px-6 py-4 whitespace-nowrap text-center">{% if t.type|lower == 'expense' %}<span class="status-badge bg-red-100 text-red-800"><i class="fas fa-arrow-down mr-1"></i>Expense</span>{% else %}<span class="status-badge bg-green-100 text-green-800"><i class="fas fa-arrow-up mr-1"></i>Income</span>{% endif %}</td>
+                <td class="px-6 py-4 whitespace-nowrap">{% set cat_colors = {'supplies':'bg-blue-100 text-blue-800','equipment':'bg-purple-100 text-purple-800','events':'bg-pink-100 text-pink-800','training':'bg-indigo-100 text-indigo-800','miscellaneous':'bg-gray-100 text-gray-800'} %}<span class="status-badge {{ cat_colors.get(t.category|lower, 'bg-gray-100 text-gray-800') }}">{{ (t.category or 'Other')|title }}</span></td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{{ t.barangay or '—' }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{{ t.date or '—' }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-center"><button onclick="viewTransaction('{{ t.id }}', '{{ t.project_id or '' }}', '{{ t.title or '' }}', '{{ t.amount|float }}', '{{ t.type|title }}', '{{ t.category|title or '' }}', '{{ t.barangay or '' }}', '{{ t.date or '' }}', '{{ t.description or '' }}')" class="action-btn text-blue-600 hover:bg-blue-50" title="View"><i class="fas fa-eye"></i></button></td>
+              </tr>
+              {% else %}
+              <tr><td colspan="8" class="px-6 py-12 text-center"><div class="flex flex-col items-center"><i class="fas fa-inbox text-4xl text-gray-300 mb-3"></i><p class="text-gray-500 font-medium">No transactions found</p></div></td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal (unchanged) -->
+  <div id="transactionModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-96 overflow-y-auto"><div class="sticky top-0 bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-5 flex items-center justify-between border-b border-blue-800"><h3 class="text-lg font-semibold text-white"><i class="fas fa-receipt mr-3"></i>Transaction Details</h3><button onclick="closeModal()" class="text-blue-100 hover:text-white"><i class="fas fa-times text-xl"></i></button></div><div class="p-6 space-y-6"><div class="grid grid-cols-1 md:grid-cols-2 gap-6"><div class="bg-gray-50 rounded-lg p-4"><label class="block text-xs font-semibold text-gray-600">Project ID</label><p id="modal-project-id" class="text-lg font-semibold text-gray-900">—</p></div><div class="bg-gray-50 rounded-lg p-4"><label class="block text-xs font-semibold text-gray-600">Title</label><p id="modal-title" class="text-lg font-semibold text-gray-900">—</p></div><div class="bg-gray-50 rounded-lg p-4"><label class="block text-xs font-semibold text-gray-600">Barangay</label><p id="modal-barangay" class="text-lg font-semibold text-gray-900">—</p></div><div class="bg-gray-50 rounded-lg p-4"><label class="block text-xs font-semibold text-gray-600">Date</label><p id="modal-date" class="text-lg font-semibold text-gray-900">—</p></div></div><div class="grid grid-cols-1 md:grid-cols-2 gap-6"><div class="bg-gray-50 rounded-lg p-4"><label class="block text-xs font-semibold text-gray-600">Amount</label><p id="modal-amount" class="text-2xl font-bold text-gray-900">₱0.00</p></div><div class="bg-gray-50 rounded-lg p-4"><label class="block text-xs font-semibold text-gray-600">Type</label><div id="modal-type" class="status-badge inline-block">—</div></div></div><div class="bg-gray-50 rounded-lg p-4"><label class="block text-xs font-semibold text-gray-600">Category</label><div id="modal-category" class="status-badge inline-block">—</div></div><div class="bg-gray-50 rounded-lg p-4"><label class="block text-xs font-semibold text-gray-600">Description</label><p id="modal-description" class="text-gray-700">—</p></div></div><div class="sticky bottom-0 bg-gray-50 px-6 py-4 border-t border-gray-200 flex justify-end"><button onclick="closeModal()" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border rounded-lg hover:bg-gray-50">Close</button></div></div>
+  </div>
+
+  <script>
+    function viewTransaction(id, projectId, title, amount, type, category, barangay, date, description) {
+      document.getElementById('modal-project-id').textContent = projectId || '—';
+      document.getElementById('modal-title').textContent = title || '—';
+      document.getElementById('modal-barangay').textContent = barangay || '—';
+      document.getElementById('modal-amount').textContent = '₱' + parseFloat(amount).toLocaleString('en-PH', {minimumFractionDigits: 2});
+      document.getElementById('modal-date').textContent = date || '—';
+      document.getElementById('modal-description').textContent = description || '—';
+      let typeEl = document.getElementById('modal-type');
+      if (type.toLowerCase() === 'expense') { typeEl.className = 'status-badge bg-red-100 text-red-800'; typeEl.innerHTML = '<i class="fas fa-arrow-down mr-1"></i>Expense'; }
+      else { typeEl.className = 'status-badge bg-green-100 text-green-800'; typeEl.innerHTML = '<i class="fas fa-arrow-up mr-1"></i>Income'; }
+      let catEl = document.getElementById('modal-category');
+      const catColors = {'supplies':'bg-blue-100 text-blue-800','equipment':'bg-purple-100 text-purple-800','events':'bg-pink-100 text-pink-800','training':'bg-indigo-100 text-indigo-800','miscellaneous':'bg-gray-100 text-gray-800'};
+      catEl.className = 'status-badge ' + (catColors[category.toLowerCase()] || 'bg-gray-100 text-gray-800');
+      catEl.textContent = category || 'Other';
+      document.getElementById('transactionModal').classList.remove('hidden');
+    }
+    function closeModal() { document.getElementById('transactionModal').classList.add('hidden'); }
+    document.getElementById('transactionModal')?.addEventListener('click', function(e) { if(e.target===this) closeModal(); });
+    document.addEventListener('keydown', function(e) { if(e.key==='Escape') closeModal(); });
+
+    $(function(){
+      const table = $('#transactionsTable').DataTable({ pageLength: {{ per_page }}, order: [[6,'desc']], dom:'<"flex items-center justify-between mb-4"lf>rtip' });
+      $.fn.dataTable.ext.search.push(function(settings,data,dataIndex){
+        let type = $('#typeFilter').val(), category = $('#categoryFilter').val(), barangay = $('#barangayFilter').val(), dateFrom = $('#dateFrom').val(), dateTo = $('#dateTo').val();
+        let rowType = data[3].trim().toLowerCase(), rowCategory = data[4].trim().toLowerCase(), rowBarangay = data[5].trim().toLowerCase(), rowDate = data[6];
+        let typeMatch = !type || rowType.includes(type), categoryMatch = !category || rowCategory.includes(category), barangayMatch = !barangay || rowBarangay.includes(barangay);
+        let dateMatch = true;
+        if(dateFrom && dateTo) dateMatch = rowDate >= dateFrom && rowDate <= dateTo;
+        return typeMatch && categoryMatch && barangayMatch && dateMatch;
+      });
+      $('#typeFilter, #categoryFilter, #barangayFilter, #dateFrom, #dateTo').on('change',()=>table.draw());
+      $('#applyFilters').click(()=>table.draw());
+      $('#clearFilters').click(()=>{$('#dateFrom, #dateTo, #typeFilter, #categoryFilter, #barangayFilter').val(''); table.draw();});
+
+      // Helper to get current user name (from session or fallback)
+      const preparedByName = "{{ session.get('username', 'System Administrator') }}";
+      const exportDate = new Date().toLocaleString('en-PH', { year:'numeric', month:'long', day:'numeric', hour:'2-digit', minute:'2-digit' });
+
+      // Enhanced CSV with formal header and prepared by
+      $('.csv-export').click(function(e){
+        e.preventDefault();
+        const rows = [];
+        table.rows({ search:'applied' }).every(function(){
+          const row = this.node(), cells = row.querySelectorAll('td');
+          const project = cells[0].textContent.trim();
+          const titleRaw = cells[1].querySelector('.text-sm.text-gray-900')?.textContent.trim() || '';
+          const amountRaw = cells[2].textContent.trim().replace(/₱/g,'').replace(/,/g,'');
+          const typeRaw = cells[3].textContent.trim();
+          const categoryRaw = cells[4].textContent.trim();
+          const barangayRaw = cells[5].textContent.trim();
+          const dateRaw = cells[6].textContent.trim();
+          rows.push([project, titleRaw, amountRaw, typeRaw, categoryRaw, barangayRaw, dateRaw]);
+        });
+        let csvRows = [];
+        csvRows.push('"SK Connect - Official Expense Transactions Report"');
+        csvRows.push(`"Generated on: ${exportDate}"`);
+        csvRows.push(`"Prepared by: ${preparedByName}"`);
+        csvRows.push('');
+        csvRows.push('"Project","Title/Description","Amount (PHP)","Type","Category","Barangay","Transaction Date"');
+        rows.forEach(r => {
+          const escaped = r.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',');
+          csvRows.push(escaped);
+        });
+        csvRows.push('');
+        csvRows.push(`"Prepared by: ${preparedByName}"`);
+        csvRows.push(`"Signature / SK Connect Financial Report"`);
+        const blob = new Blob([csvRows.join('\n')], { type:'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `SK_Transactions_Formal_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.csv`;
+        link.click();
+        URL.revokeObjectURL(link.href);
+      });
+
+      // Enhanced PDF with formal letterhead, signature line and prepared by
+      $('.pdf-export').click(function(e){
+        e.preventDefault();
+        const rows = [];
+        table.rows({ search:'applied' }).every(function(){
+          const row = this.node(), cells = row.querySelectorAll('td');
+          const project = cells[0].textContent.trim();
+          const titleRaw = cells[1].querySelector('.text-sm.text-gray-900')?.textContent.trim() || '';
+          const amountRaw = cells[2].textContent.trim().replace(/₱/g,'').replace(/,/g,'');
+          const typeRaw = cells[3].textContent.trim();
+          const categoryRaw = cells[4].textContent.trim();
+          const barangayRaw = cells[5].textContent.trim();
+          const dateRaw = cells[6].textContent.trim();
+          rows.push([project, titleRaw, `₱ ${parseFloat(amountRaw).toLocaleString('en-PH', {minimumFractionDigits:2})}`, typeRaw, categoryRaw, barangayRaw, dateRaw]);
+        });
+        const docDefinition = {
+          pageOrientation: 'landscape',
+          pageMargins: [40, 60, 40, 60],
+          header: function() {
+            return { text: 'Sangguniang Kabataan ng Los Baños Federation', alignment: 'center', fontSize: 14, bold: true, margin: [0,20,0,5] };
+          },
+          content: [
+            { text: 'OFFICIAL EXPENSE TRANSACTIONS REPORT', alignment: 'center', fontSize: 16, bold: true, margin: [0,0,0,5] },
+            { text: `Date Generated: ${exportDate}`, alignment: 'center', fontSize: 10, margin: [0,0,0,20] },
+            {
+              table: {
+                headerRows: 1,
+                widths: ['12%', '20%', '12%', '10%', '12%', '12%', '15%'],
+                body: [
+                  [{ text: 'Project', bold: true, fillColor: '#0D2A52', color: 'white' },
+                   { text: 'Description', bold: true, fillColor: '#0D2A52', color: 'white' },
+                   { text: 'Amount', bold: true, fillColor: '#0D2A52', color: 'white' },
+                   { text: 'Type', bold: true, fillColor: '#0D2A52', color: 'white' },
+                   { text: 'Category', bold: true, fillColor: '#0D2A52', color: 'white' },
+                   { text: 'Barangay', bold: true, fillColor: '#0D2A52', color: 'white' },
+                   { text: 'Date', bold: true, fillColor: '#0D2A52', color: 'white' }],
+                  ...rows.map(r => r.map(cell => ({ text: cell, fontSize: 9 })))
+                ]
+              },
+              layout: 'lightHorizontalLines'
+            },
+            { text: `\n\nPrepared by: ${preparedByName}`, alignment: 'right', fontSize: 10, margin: [0,20,0,5] },
+            { text: 'Signature: _________________________', alignment: 'right', fontSize: 10, margin: [0,0,0,10] },
+            { text: 'SK Connect Financial Report · Authorized Signatory', alignment: 'right', fontSize: 8, color: 'gray' }
+          ],
+          footer: function(currentPage, pageCount) {
+            return { text: `Page ${currentPage} of ${pageCount}`, alignment: 'center', fontSize: 8, margin: [0,0,0,10] };
+          }
+        };
+        pdfMake.createPdf(docDefinition).download(`SK_Transactions_Formal_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.pdf`);
+      });
+
+      $('#exportDropdown button').click(function(e){ e.stopPropagation(); $('#exportDropdown div').toggleClass('hidden'); });
+      $(document).click(function(){ $('#exportDropdown div').addClass('hidden'); });
+      $('#mobile-menu-button').click(function(){ $('#mobile-menu').toggleClass('hidden'); });
+      $('#userDropdownToggle').click(function(){ $('#userDropdownMenu').toggleClass('hidden'); });
+    });
+  </script>
+</body>
+</html>

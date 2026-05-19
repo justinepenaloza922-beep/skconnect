@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SK Connect - Youth Governance Platform</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="/static/css/sk_connect_homepage.css">
+    <style>
+        /* Custom styles for enhanced UI and animations */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            scroll-behavior: smooth;
+        }
+        
+        /* Fade-in animation */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .animate-fade-in-up {
+            animation: fadeInUp 0.6s ease-out forwards;
+        }
+        
+        /* Staggered animation delays */
+        .delay-100 { animation-delay: 0.1s; }
+        .delay-200 { animation-delay: 0.2s; }
+        .delay-300 { animation-delay: 0.3s; }
+        .delay-400 { animation-delay: 0.4s; }
+        .delay-500 { animation-delay: 0.5s; }
+        
+        /* Hover lift effect */
+        .hover-lift {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .hover-lift:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 25px -12px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+        }
+        
+        /* Card hover effect */
+        .module-card {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .module-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 25px 35px -12px rgba(0, 0, 0, 0.15);
+        }
+        
+        /* Button hover scale */
+        .btn-scale {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .btn-scale:hover {
+            transform: scale(1.02);
+            box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.2);
+        }
+        
+        /* Feature item hover */
+        .feature-item {
+            transition: transform 0.3s ease, background 0.2s ease;
+            padding: 1rem;
+            border-radius: 0.75rem;
+        }
+        
+        .feature-item:hover {
+            transform: translateX(5px);
+            background: rgba(59, 130, 246, 0.05);
+        }
+        
+        /* Smooth scrolling for anchor links */
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        /* Nav link hover animation */
+        .nav-link-underline {
+            position: relative;
+        }
+        
+        .nav-link-underline::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -2px;
+            left: 0;
+            background-color: white;
+            transition: width 0.3s ease;
+        }
+        
+        .nav-link-underline:hover::after {
+            width: 100%;
+        }
+        
+        /* Hero pattern enhancement */
+        .hero-pattern {
+            background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hero-pattern::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><path fill="rgba(59,130,246,0.03)" d="M0 0h200v200H0z"/><path fill="rgba(59,130,246,0.05)" d="M50 50h100v100H50z"/></svg>');
+            background-size: 40px 40px;
+            pointer-events: none;
+        }
+        
+        /* Icon pulse animation */
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        .module-icon:hover i {
+            animation: pulse 0.5s ease;
+        }
+        
+        /* Footer link hover */
+        .footer-link {
+            transition: all 0.2s ease;
+        }
+        
+        .footer-link:hover {
+            transform: translateX(5px);
+            color: white;
+        }
+        
+        /* Smooth card entrance */
+        .card-entrance {
+            opacity: 0;
+            animation: fadeInUp 0.5s ease-out forwards;
+        }
+        
+        /* Mobile menu animation */
+        .mobile-menu-enter {
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+            transition: all 0.3s ease-out;
+        }
+        
+        .mobile-menu-enter-active {
+            max-height: 300px;
+            opacity: 1;
+        }
+        
+        /* Image hover effect */
+        .brand-img {
+            transition: transform 0.3s ease;
+        }
+        
+        .brand-img:hover {
+            transform: scale(1.05);
+        }
+        
+        /* Accessibility focus styles */
+        a:focus, button:focus {
+            outline: 2px solid rgba(59, 130, 246, 0.5);
+            outline-offset: 2px;
+        }
+        
+        /* Loading skeleton animation */
+        @keyframes shimmer {
+            0% { background-position: -1000px 0; }
+            100% { background-position: 1000px 0; }
+        }
+        
+        /* Glass morphism effect for mobile menu */
+        .backdrop-blur {
+            backdrop-filter: blur(10px);
+        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #3b82f6;
+            border-radius: 5px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #2563eb;
+        }
+    </style>
+</head>
+<body class="font-sans bg-gray-50">
+    <!-- Top Navigation Bar -->
+   <!-- NAVBAR START -->
+<nav class="bg-blue-600 text-white shadow-lg sticky top-0 z-50">
+  <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between py-3">
+      <!-- BRAND -->
+      <a href="/" class="flex items-center space-x-3 group">
+        <img
+          src="{{ url_for('static', filename='images/SKLOGO.png') }}"
+          alt="SK Federation Logo"
+          class="brand-img h-10 w-auto transition-transform duration-300 group-hover:scale-105"
+        >
+        <span class="font-bold text-xl tracking-tight bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent">SK Connect</span>
+      </a>
+
+      <!-- DESKTOP LINKS -->
+      <div class="hidden md:flex items-center space-x-2 lg:space-x-4">
+        <a href="#home" class="nav-link-underline px-3 py-2 text-white/90 hover:text-white font-medium transition-colors duration-200">Home</a>
+        <a href="#about" class="nav-link-underline px-3 py-2 text-white/90 hover:text-white font-medium transition-colors duration-200">About</a>
+        <a href="#contact" class="nav-link-underline px-3 py-2 text-white/90 hover:text-white font-medium transition-colors duration-200">Contact</a>
+        <a href="/auth" class="bg-white text-blue-600 px-5 py-2 rounded-lg font-semibold hover:bg-blue-50 transition-all duration-200 btn-scale shadow-md">Login</a>
+      </div>
+
+      <!-- MOBILE TOGGLER -->
+      <button id="navToggle"
+              class="md:hidden inline-flex items-center justify-center w-10 h-10 rounded-lg text-white/90 hover:text-white hover:bg-white/10 focus:outline-none transition-all duration-200"
+              aria-label="Open menu">
+        <i class="fas fa-bars text-xl"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- MOBILE MENU -->
+  <div id="mobileMenu" class="md:hidden hidden bg-blue-600/95 backdrop-blur-sm border-t border-white/10">
+    <div class="px-4 py-3 space-y-2">
+      <a href="#home" class="block py-3 px-4 text-white hover:bg-white/10 rounded-lg transition-all duration-200 font-medium">Home</a>
+      <a href="#about" class="block py-3 px-4 text-white hover:bg-white/10 rounded-lg transition-all duration-200 font-medium">About</a>
+      <a href="#contact" class="block py-3 px-4 text-white hover:bg-white/10 rounded-lg transition-all duration-200 font-medium">Contact</a>
+      <a href="/auth" class="block py-3 px-4 mt-2 bg-white text-blue-600 rounded-lg font-semibold text-center hover:bg-blue-50 transition-all duration-200">Login</a>
+    </div>
+  </div>
+</nav>
+
+    <!-- Hero Section -->
+    <div class="hero-pattern py-16 lg:py-20">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col items-center text-center">
+                <div class="max-w-4xl animate-fade-in-up">
+                    <h1 class="text-4xl md:text-5xl lg:text-6xl font-extrabold text-gray-800 leading-tight tracking-tight">SK Connect</h1>
+                    <p class="text-xl md:text-2xl text-gray-600 mt-4 font-medium">A Digital Management Platform for Youth Governance</p>
+                    <div class="h-1 w-24 bg-blue-600 mx-auto mt-6 rounded-full"></div>
+                    <p class="text-gray-600 mt-6 text-lg max-w-2xl mx-auto">Empowering the youth of Los Baños with data analytics and smart governance tools</p>
+                    <div class="mt-10 flex flex-col sm:flex-row justify-center space-y-3 sm:space-y-0 sm:space-x-4">
+                        <a href="#features" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8 py-3 rounded-lg text-center transition-all duration-200 btn-scale shadow-lg">Explore Features</a>
+                        <a href="#" class="border-2 border-blue-600 text-blue-600 hover:bg-blue-50 font-semibold px-8 py-3 rounded-lg text-center transition-all duration-200 btn-scale">Learn More</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Module Navigation Cards -->
+    <div id="features" class="py-20 bg-white">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16 animate-fade-in-up">
+                <h2 class="text-4xl font-extrabold text-gray-800">Platform Modules</h2>
+                <div class="h-1 w-20 bg-blue-600 mx-auto mt-4 mb-4 rounded-full"></div>
+                <p class="text-gray-600 text-lg max-w-2xl mx-auto">Access all SK Connect features through our intuitive interface</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-10">
+                <!-- Communication & Announcements Module -->
+                <div class="module-card bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 hover:shadow-2xl transition-all duration-300 card-entrance" style="animation-delay: 0.1s">
+                    <div class="p-8">
+                        <div class="module-icon flex items-center justify-center h-14 w-14 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 text-white mb-6 shadow-md">
+                            <i class="fas fa-bullhorn text-xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-800 mb-2">Communication & Announcements</h3>
+                        <p class="text-gray-600 leading-relaxed">Post announcements, news updates, and send notifications to youth members.</p>
+                        <div class="mt-6">
+                            <a href="{{ url_for('auth') }}?next=announcements" class="text-blue-600 hover:text-blue-800 font-semibold inline-flex items-center group transition-all duration-200">
+                                Access Module
+                                <i class="fas fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform duration-200"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Event & Project Management Module -->
+                <div class="module-card bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 hover:shadow-2xl transition-all duration-300 card-entrance" style="animation-delay: 0.2s">
+                    <div class="p-8">
+                        <div class="module-icon flex items-center justify-center h-14 w-14 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 text-white mb-6 shadow-md">
+                            <i class="fas fa-calendar-alt text-xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-800 mb-2">Event & Project Management</h3>
+                        <p class="text-gray-600 leading-relaxed">Create events, manage projects, generate QR codes, and track attendance.</p>
+                        <div class="mt-6">
+                            <a href="{{ url_for('auth') }}?next=events_project" class="text-blue-600 hover:text-blue-800 font-semibold inline-flex items-center group transition-all duration-200">
+                                Access Module
+                                <i class="fas fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform duration-200"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Financial Reporting Module -->
+                <div class="module-card bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 hover:shadow-2xl transition-all duration-300 card-entrance" style="animation-delay: 0.3s">
+                    <div class="p-8">
+                        <div class="module-icon flex items-center justify-center h-14 w-14 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 text-white mb-6 shadow-md">
+                            <i class="fas fa-chart-pie text-xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-800 mb-2">Financial Reporting & Transparency</h3>
+                        <p class="text-gray-600 leading-relaxed">Upload budget reports, visualize spending, and track fund allocations.</p>
+                        <div class="mt-6">
+                            <a href="{{ url_for('auth') }}?next=financial_report" class="text-blue-600 hover:text-blue-800 font-semibold inline-flex items-center group transition-all duration-200">
+                                Access Module
+                                <i class="fas fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform duration-200"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Feedback & Community Engagement Module -->
+                <div class="module-card bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 hover:shadow-2xl transition-all duration-300 card-entrance" style="animation-delay: 0.4s">
+                    <div class="p-8">
+                        <div class="module-icon flex items-center justify-center h-14 w-14 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 text-white mb-6 shadow-md">
+                            <i class="fas fa-comments text-xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-800 mb-2">Feedback & Community Engagement</h3>
+                        <p class="text-gray-600 leading-relaxed">Create polls, conduct surveys, and collect community suggestions.</p>
+                        <div class="mt-6">
+                            <a href="{{ url_for('auth') }}?next=community_board" class="text-blue-600 hover:text-blue-800 font-semibold inline-flex items-center group transition-all duration-200">
+                                Access Module
+                                <i class="fas fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform duration-200"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- User Management Module -->
+                <div class="module-card bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 hover:shadow-2xl transition-all duration-300 card-entrance" style="animation-delay: 0.5s">
+                    <div class="p-8">
+                        <div class="module-icon flex items-center justify-center h-14 w-14 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 text-white mb-6 shadow-md">
+                            <i class="fas fa-user-cog text-xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-800 mb-2">User Management</h3>
+                        <p class="text-gray-600 leading-relaxed">Manage roles, user accounts, approvals, and profile settings.</p>
+                        <div class="mt-6">
+                            <a href="{{ url_for('auth') }}?next=user_approval" class="text-blue-600 hover:text-blue-800 font-semibold inline-flex items-center group transition-all duration-200">
+                                Access Module
+                                <i class="fas fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform duration-200"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Analytics Dashboard Module -->
+                <div class="module-card bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 hover:shadow-2xl transition-all duration-300 card-entrance" style="animation-delay: 0.6s">
+                    <div class="p-8">
+                        <div class="module-icon flex items-center justify-center h-14 w-14 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 text-white mb-6 shadow-md">
+                            <i class="fas fa-chart-line text-xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-800 mb-2">Analytics Dashboard</h3>
+                        <p class="text-gray-600 leading-relaxed">Access data-driven insights on participation rates and engagement metrics.</p>
+                        <div class="mt-6">
+                            <a href="{{ url_for('auth') }}?next=dashboard" class="text-blue-600 hover:text-blue-800 font-semibold inline-flex items-center group transition-all duration-200">
+                                Access Module
+                                <i class="fas fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform duration-200"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Key Features Section -->
+    <div class="bg-gradient-to-b from-gray-50 to-white py-20">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16 animate-fade-in-up">
+                <h2 class="text-4xl font-extrabold text-gray-800">Key Features</h2>
+                <div class="h-1 w-20 bg-blue-600 mx-auto mt-4 mb-4 rounded-full"></div>
+                <p class="text-gray-600 text-lg max-w-2xl mx-auto">Designed to enhance youth governance and community engagement</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+              <!-- Feature 1 -->
+                <div class="feature-item transition-all duration-300">
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0">
+                            <div class="flex items-center justify-center h-12 w-12 rounded-lg bg-blue-100 text-blue-600 shadow-sm">
+                                <i class="fas fa-balance-scale text-lg"></i>
+                            </div>
+                        </div>
+                        <div class="ml-4">
+                            <h4 class="text-lg font-bold text-gray-800">Financial Transparency</h4>
+                            <p class="mt-2 text-gray-600 leading-relaxed">Track and review SK funds with clear and accessible financial records</p>
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- Feature 2 -->
+                <div class="feature-item transition-all duration-300">
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0">
+                            <div class="flex items-center justify-center h-12 w-12 rounded-lg bg-blue-100 text-blue-600 shadow-sm">
+                                <i class="fas fa-users text-lg"></i>
+                            </div>
+                        </div>
+                        <div class="ml-4">
+                            <h4 class="text-lg font-bold text-gray-800">Role-Based Access</h4>
+                            <p class="mt-2 text-gray-600 leading-relaxed">Custom dashboards based on your role in the organization</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Feature 3 -->
+                <div class="feature-item transition-all duration-300">
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0">
+                            <div class="flex items-center justify-center h-12 w-12 rounded-lg bg-blue-100 text-blue-600 shadow-sm">
+                                <i class="fas fa-lock text-lg"></i>
+                            </div>
+                        </div>
+                        <div class="ml-4">
+                            <h4 class="text-lg font-bold text-gray-800">Secure Data</h4>
+                            <p class="mt-2 text-gray-600 leading-relaxed">Built with security in mind for all sensitive information</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Feature 4 -->
+                <div class="feature-item transition-all duration-300">
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0">
+                            <div class="flex items-center justify-center h-12 w-12 rounded-lg bg-blue-100 text-blue-600 shadow-sm">
+                                <i class="fas fa-bell text-lg"></i>
+                            </div>
+                        </div>
+                        <div class="ml-4">
+                            <h4 class="text-lg font-bold text-gray-800">Real-Time Notifications</h4>
+                            <p class="mt-2 text-gray-600 leading-relaxed">Stay updated with push notifications for important events</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Feature 5 -->
+                <div class="feature-item transition-all duration-300">
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0">
+                            <div class="flex items-center justify-center h-12 w-12 rounded-lg bg-blue-100 text-blue-600 shadow-sm">
+                                <i class="fas fa-file-alt text-lg"></i>
+                            </div>
+                        </div>
+                        <div class="ml-4">
+                            <h4 class="text-lg font-bold text-gray-800">Document Management</h4>
+                            <p class="mt-2 text-gray-600 leading-relaxed">Store and share forms, ordinances, and meeting minutes</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Feature 6 -->
+                <div class="feature-item transition-all duration-300">
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0">
+                            <div class="flex items-center justify-center h-12 w-12 rounded-lg bg-blue-100 text-blue-600 shadow-sm">
+                                <i class="fas fa-hand-holding-heart text-lg"></i>
+                            </div>
+                        </div>
+                        <div class="ml-4">
+                            <h4 class="text-lg font-bold text-gray-800">Volunteer Matching</h4>
+                            <p class="mt-2 text-gray-600 leading-relaxed">Sign up as a volunteer and get matched with relevant projects</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Call to Action -->
+    <div class="bg-blue-600 py-20 relative overflow-hidden">
+        <div class="absolute inset-0 opacity-10">
+            <div class="absolute inset-0" style="background: radial-gradient(circle at 20% 50%, rgba(255,255,255,0.3) 0%, transparent 50%)"></div>
+        </div>
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+            <h2 class="text-3xl md:text-4xl font-extrabold text-white animate-fade-in-up">Ready to transform youth governance?</h2>
+            <p class="text-xl text-blue-100 mt-4 max-w-2xl mx-auto animate-fade-in-up delay-100">Join SK Connect today and be part of the digital revolution in community development</p>
+            <div class="mt-10 animate-fade-in-up delay-200">
+                <a href="/auth" class="inline-block bg-white text-blue-700 font-bold px-10 py-4 rounded-xl shadow-xl hover:bg-gray-100 transition-all duration-200 btn-scale">Get Started</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-12">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <div>
+                    <h3 class="text-xl font-bold mb-4 bg-gradient-to-r from-blue-400 to-blue-500 bg-clip-text text-transparent">SK Connect</h3>
+                    <p class="text-gray-400 leading-relaxed">A digital platform for youth governance in Los Baños.</p>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Quick Links</h3>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="footer-link text-gray-400 hover:text-white transition-all duration-200 inline-block">Home</a></li>
+                        <li><a href="#" class="footer-link text-gray-400 hover:text-white transition-all duration-200 inline-block">Features</a></li>
+                        <li><a href="#" class="footer-link text-gray-400 hover:text-white transition-all duration-200 inline-block">About Us</a></li>
+                        <li><a href="#" class="footer-link text-gray-400 hover:text-white transition-all duration-200 inline-block">Contact</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Resources</h3>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="footer-link text-gray-400 hover:text-white transition-all duration-200 inline-block">Documentation</a></li>
+                        <li><a href="#" class="footer-link text-gray-400 hover:text-white transition-all duration-200 inline-block">Support</a></li>
+                        <li><a href="#" class="footer-link text-gray-400 hover:text-white transition-all duration-200 inline-block">FAQs</a></li>
+                        <li><a href="#" class="footer-link text-gray-400 hover:text-white transition-all duration-200 inline-block">Training Materials</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Connect With Us</h3>
+                    <div class="flex space-x-4 mt-4">
+                        <a href="#" class="footer-link text-gray-400 hover:text-white transition-all duration-200 inline-block transform hover:scale-110">
+                            <i class="fab fa-facebook-f text-xl"></i>
+                        </a>
+                        <a href="#" class="footer-link text-gray-400 hover:text-white transition-all duration-200 inline-block transform hover:scale-110">
+                            <i class="fab fa-twitter text-xl"></i>
+                        </a>
+                        <a href="#" class="footer-link text-gray-400 hover:text-white transition-all duration-200 inline-block transform hover:scale-110">
+                            <i class="fab fa-instagram text-xl"></i>
+                        </a>
+                        <a href="#" class="footer-link text-gray-400 hover:text-white transition-all duration-200 inline-block transform hover:scale-110">
+                            <i class="fab fa-youtube text-xl"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-800 mt-12 pt-8 text-center text-gray-400">
+                <p>&copy; 2025 SK Connect - Los Baños. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Simple JavaScript for mobile menu toggle
+        document.addEventListener('DOMContentLoaded', function() {
+            const menuButton = document.querySelector('.md\\:hidden button');
+            const mobileMenu = document.createElement('div');
+            mobileMenu.className = 'fixed inset-0 bg-blue-600 z-50 flex flex-col items-center justify-center space-y-6 transform transition-transform duration-300 ease-in-out translate-x-full';
+            mobileMenu.innerHTML = `
+                <button class="absolute top-4 right-4 text-white text-xl">
+                    <i class="fas fa-times"></i>
+                </button>
+                <a href="#" class="text-white text-xl py-2">Home</a>
+                <a href="#" class="text-white text-xl py-2">About</a>
+                <a href="#" class="text-white text-xl py-2">Contact</a>
+                <a href="#" class="bg-white text-blue-600 px-6 py-3 rounded-lg font-medium mt-4">Login</a>
+            `;
+            
+            document.body.appendChild(mobileMenu);
+            
+            menuButton.addEventListener('click', function() {
+                mobileMenu.classList.toggle('translate-x-full');
+                mobileMenu.classList.toggle('translate-x-0');
+            });
+            
+            mobileMenu.querySelector('button').addEventListener('click', function() {
+                mobileMenu.classList.add('translate-x-full');
+                mobileMenu.classList.remove('translate-x-0');
+            });
+        });
+    </script>
+</body>
+</html>

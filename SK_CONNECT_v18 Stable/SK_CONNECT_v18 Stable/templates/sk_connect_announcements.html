@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>SK Connect — Financial Reports</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+  <!-- Tailwind + Icons + Chart.js -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+
+  <!-- Poppins font -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- (Optional) shared styles if meron ka nito sa project -->
+  <!-- <link rel="stylesheet" href="/static/css/sk_connect_dashboard.css"> -->
+  <!-- <link rel="stylesheet" href="/static/css/sk_brand_theme.css"> -->
+
+  <!-- Minimal overrides to match Dashboard exactly -->
+  <style>
+    :root{ --sk-blue:#0d2a52; --sk-yellow:#FCD116; }
+    html,body{ height:100%; }
+    body{
+      font-family:"Poppins",system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial,"Noto Sans","Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol";
+      background:#fff;
+      color:#111827;
+    }
+    /* Sidebar + nav */
+    .sidebar{ background:var(--sk-blue)!important; color:#fff; }
+    .sidebar .sidebar-item{ color:#e5e7eb; }
+    .sidebar .sidebar-item:hover{ background:rgba(255,255,255,.06); transform:translateX(4px); }
+    .active-nav{
+      background:linear-gradient(90deg, rgba(252,209,22,.22), rgba(252,209,22,0))!important;
+      border-left:4px solid var(--sk-yellow);
+      color:#fff!important;
+    }
+    /* Topbar */
+    .app-topbar{
+      background:#fff!important; color:#111827;
+      border-bottom:1px solid #e5e7eb; position:sticky; top:0; z-index:30;
+    }
+    .brand-img{ width:40px; height:40px; border-radius:10px; object-fit:cover; }
+    /* Cards */
+    .kpi-card{ border:1px solid #eef2f7; border-radius:1rem; }
+    /* Dropdown & misc */
+    .dropdown-item:hover { background:#f3f4f6; }
+    .dropdown-divider { border-top:1px solid #e5e7eb; }
+  </style>
+</head>
+
+<body class="antialiased">
+  <div class="flex h-screen overflow-hidden">
+    <!-- Sidebar (same look as Dashboard) -->
+    <aside class="hidden md:flex md:flex-shrink-0 sidebar">
+      <div class="flex flex-col w-64">
+        <div class="px-4 py-6 flex items-center">
+          <img src="/static/images/SKLOGO.png" alt="SK Logo" class="brand-img mr-3">
+          <div>
+            <div class="text-white text-xl font-extrabold">SK<span class="text-yellow-300">Connect</span></div>
+            <div class="text-blue-200 text-xs">Los Baños Federation</div>
+          </div>
+        </div>
+
+        <div class="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
+          <nav class="flex-1 px-2 space-y-1">
+            <a href="admin_dashboard" data-title="Dashboard" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-home mr-3 text-lg"></i> Dashboard
+            </a>
+            <a href="admin_announcements" data-title="Announcements" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-bullhorn mr-3 text-lg"></i> Announcements
+            </a>
+            <a href="admin_events_projects" data-title="Events & Projects" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-calendar mr-3 text-lg"></i> Events & Projects
+            </a>
+            <a href="admin_financial_report" data-title="Financial Reports" class="sidebar-item active-nav flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-chart-pie mr-3 text-lg"></i> Financial Reports
+            </a>
+            <a href="admin_feedback" data-title="Surveys & Polls" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-poll mr-3 text-lg"></i> Surveys & Polls
+            </a>
+            <a href="admin_documents" data-title="Documents" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-file-alt mr-3 text-lg"></i> Documents
+            </a>
+            <a href="admin_volunteer" data-title="Volunteer" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-hands-helping mr-3 text-lg"></i> Volunteer
+            </a>
+            <a href="admin_training_resources" data-title="Training Resources" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-graduation-cap mr-3 text-lg"></i> Training Resources
+            </a>
+            <a href="admin_community" data-title="Community Board" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-users mr-3 text-lg"></i> Community Board
+            </a>
+            <a href="admin_incidents" data-title="Incident Reports" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-exclamation-triangle mr-3 text-lg"></i> Incident Reports
+            </a>
+            <a href="admin_user_approval" data-title="User Approval" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-user-check mr-3 text-lg"></i> User Approval
+            </a>
+          </nav>
+        </div>
+
+        <!-- user dropdown -->
+        <div class="flex-shrink-0 flex border-t border-white/10 p-4 relative">
+          <div id="userDropdownToggle" class="flex flex-col items-center cursor-pointer w-full">
+            <div class="flex items-center justify-center w-full">
+              <img class="h-9 w-9 rounded-full" src="{{ current_user.profile_pic if current_user and current_user.profile_pic else get_default_profile_image(current_user) }}" alt="Profile">
+              <div class="ml-3 flex-1 min-w-0">
+                <div class="text-base font-medium text-white truncate uppercase">{{ session['username'] if session.get('username') else 'Guest' }}</div>
+                <div class="text-xs text-blue-100 mt-0.5 truncate">{{ session['position']|title if session.get('position') else 'User' }}</div>
+              </div>
+              <i class="fas fa-chevron-down ml-2 text-blue-200 flex-shrink-0"></i>
+            </div>
+          </div>
+          <ul id="userDropdownMenu" class="absolute left-0 right-0 mx-auto bottom-14 z-20 w-60 bg-white rounded shadow-lg py-2 text-gray-700 hidden">
+            <li>
+              <a class="dropdown-item flex items-center px-4 py-2 hover:bg-gray-100" href="{{ url_for('profile') }}">
+                <i class="fas fa-user mr-2"></i>Profile
+              </a>
+            </li>
+            <li><a class="dropdown-item flex items-center px-4 py-2 hover:bg-gray-100" href="#"><i class="fas fa-cog mr-2"></i>Settings</a></li>
+            <li><hr class="dropdown-divider my-1"></li>
+            <li><a class="dropdown-item flex items-center px-4 py-2 hover:bg-gray-100" href="/logout"><i class="fas fa-sign-out-alt mr-2"></i>Logout</a></li>
+          </ul>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Mobile top bar (white like Dashboard) -->
+    <div class="md:hidden app-topbar w-full flex items-center justify-between px-4 py-3">
+      <div class="flex items-center">
+        <img src="/static/images/SKLOGO.png" class="brand-img mr-2" alt="SK"/>
+        <h1 class="text-lg font-extrabold">SK<span class="text-blue-700">Connect</span></h1>
+      </div>
+      <button id="mobile-menu-button" class="text-gray-700 focus:outline-none">
+        <i class="fas fa-bars text-xl"></i>
+      </button>
+    </div>
+
+    <!-- Mobile dropdown (blue like sidebar) -->
+    <div id="mobile-menu" class="md:hidden absolute top-14 left-0 right-0 sidebar z-10 hidden">
+      <nav class="px-2 pt-2 pb-3 space-y-1">
+        <a href="admin_dashboard" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-home mr-2"></i> Dashboard</a>
+        <a href="admin_announcements" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-bullhorn mr-2"></i> Announcements</a>
+        <a href="admin_events_projects" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-calendar mr-2"></i> Events & Projects</a>
+        <a href="admin_financial_report" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium bg-blue-800"><i class="fas fa-chart-pie mr-2"></i> Financial Reports</a>
+        <a href="admin_feedback" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-poll mr-2"></i> Surveys & Polls</a>
+        <a href="admin_documents" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-file-alt mr-2"></i> Documents</a>
+        <a href="admin_volunteer" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-hands-helping mr-2"></i> Volunteer</a>
+        <a href="admin_training_resources" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-graduation-cap mr-2"></i> Training Resources</a>
+        <a href="admin_community" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-users mr-2"></i> Community Board</a>
+        <a href="admin_incidents" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-exclamation-triangle mr-2"></i> Incident Reports</a>
+        <a href="admin_user_approval" class="mobile-nav block px-3 py-2 rounded-md text-base font-medium"><i class="fas fa-user-check mr-2"></i> User Approval</a>
+      </nav>
+    </div>
+
+
+    <!-- ===================== MAIN ===================== -->
+    <div class="flex-1 flex flex-col overflow-hidden">
+      <!-- Top navigation (white) — removed topbar search; kept bell -->
+      <header class="app-topbar">
+        <div class="flex justify-between items-center px-4 py-4 sm:px-6 lg:px-8">
+          <h1 id="page-title" class="text-2xl font-extrabold">Announcements</h1>
+
+          <div class="flex items-center gap-4">
+            <div class="relative">
+              <button id="notifToggle" class="p-1 rounded-full text-gray-500 hover:text-gray-700 focus:outline-none relative" aria-haspopup="true" aria-expanded="false" aria-controls="notifPanel">
+                <i class="fas fa-bell text-xl"></i>
+                <span id="notifDot" class="absolute -top-0.5 -right-0.5 inline-block w-2 h-2 bg-red-600 rounded-full"></span>
+              </button>
+
+              <div id="notifPanel" class="notif-panel hidden absolute right-0 top-10 w-80 bg-white rounded-lg shadow-xl ring-1 ring-black/5 z-30">
+                <div class="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+                  <span class="font-semibold text-gray-800">Notifications</span>
+                  <button id="markAllRead" class="text-xs text-blue-600 hover:underline">Mark all as read</button>
+                </div>
+                <ul id="notifList" class="max-h-60 overflow-hidden divide-y divide-gray-100 transition-all duration-300">
+                  {% for announcement in announcements %}
+                    <li class="p-3 hover:bg-gray-50 flex items-start gap-3 {% if loop.index > 3 %}hidden extra-announcement{% endif %}">
+                      <span class="unread-dot mt-2 bg-red-500"></span>
+                      <div>
+                        <p class="text-sm text-gray-800">{{ announcement.title }}</p>
+                        <p class="text-xs text-gray-500">{{ time_ago(announcement.created_at) }}</p>
+                      </div>
+                    </li>
+                  {% else %}
+                    <li class="p-3 text-gray-500">No recent announcements.</li>
+                  {% endfor %}
+                </ul>
+                <a href="#" id="viewAllNotif" class="block text-center text-sm text-blue-600 hover:bg-gray-50 py-2 rounded-b-lg">View all</a>
+              </div>
+            </div>
+          </div>
+              <!-- Announcement toast -->
+              <div id="announcementToast" class="fixed top-4 right-4 z-50 hidden">
+                <div id="announcementToastInner" class="max-w-sm w-full bg-white shadow-lg rounded-md p-3 border">
+                  <div id="announcementToastMessage" class="text-sm text-gray-800"></div>
+                </div>
+              </div>
+        </div>
+      </header>
+
+      <!-- ===================== CONTENT ===================== -->
+      <main class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-white">
+
+        <!-- KPI CARDS (very top) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+          <div class="bg-white overflow-hidden shadow rounded-lg kpi-card">
+            <div class="p-5">
+              <div class="flex items-center">
+                <div class="flex-shrink-0 bg-green-500 rounded-md p-3"><i class="fas fa-bullhorn text-white text-xl"></i></div>
+                <div class="ml-5">
+                  <h3 class="text-lg font-medium text-gray-900">Total Announcements</h3>
+                  <p class="text-2xl font-extrabold text-gray-800" id="kpiTotal">{{ total_announcements }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white overflow-hidden shadow rounded-lg kpi-card">
+            <div class="p-5">
+              <div class="flex items-center">
+                <div class="flex-shrink-0 bg-red-500 rounded-md p-3"><i class="fas fa-calendar-alt text-white text-xl"></i></div>
+                <div class="ml-5">
+                  <h3 class="text-lg font-medium text-gray-900">Scheduled</h3>
+                  <p class="text-2xl font-extrabold text-gray-800" id="kpiScheduled">{{ scheduled_count }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Filter Bar -->
+        <div class="bg-white shadow rounded-lg mb-6">
+          <div class="px-4 py-4 sm:px-6 flex flex-wrap items-center justify-between">
+            <div class="flex-grow max-w-md mr-4">
+              <div class="relative rounded-md shadow-sm">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <i class="fas fa-search text-gray-400"></i>
+                </div>
+                <input type="text" id="searchAnnouncements" class="focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md" placeholder="Search announcements...">
+              </div>
+            </div>
+            <div class="flex flex-wrap items-center mt-2 sm:mt-0 gap-4">
+           <!-- Filter by type -->
+<select id="filterType" class="..." name="type">
+  <option value="all" {% if filter_type == 'all' %}selected{% endif %}>All Types</option>
+  <option value="general" {% if filter_type == 'general' %}selected{% endif %}>General</option>
+  <option value="event" {% if filter_type == 'event' %}selected{% endif %}>Event</option>
+  <option value="urgent" {% if filter_type == 'urgent' %}selected{% endif %}>Urgent</option>
+  <option value="reminder" {% if filter_type == 'reminder' %}selected{% endif %}>Reminder</option>
+</select>
+
+<!-- Sort by -->
+<select id="sortBy" name="sort">
+  <option value="newest" {% if sort == 'newest' %}selected{% endif %}>Newest First</option>
+  <option value="oldest" {% if sort == 'oldest' %}selected{% endif %}>Oldest First</option>
+  <option value="alphabetical" {% if sort == 'alphabetical' %}selected{% endif %}>A–Z</option>
+</select>
+
+              <!-- View toggle -->
+              <div class="border rounded-md overflow-hidden">
+                <button id="gridViewBtn" class="px-3 py-2 bg-blue-500 text-white focus:outline-none" title="Grid View">
+                  <i class="fas fa-th-large"></i>
+                </button>
+                <button id="listViewBtn" class="px-3 py-2 bg-white text-gray-600 focus:outline-none" title="List View">
+                  <i class="fas fa-list"></i>
+                </button>
+              </div>
+
+              <!-- Quick create -->
+              <button id="createAnnouncementBtn" class="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none">
+                <i class="fas fa-plus mr-2"></i> New
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Admin Controls -->
+        <div class="bg-white shadow rounded-lg mb-8">
+          <div class="px-4 py-5 border-b border-gray-200 sm:px-6 flex items-center justify-between">
+            <h3 class="text-lg font-medium text-gray-900">Admin Controls</h3>
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">SK Official Access</span>
+          </div>
+          <div class="px-4 py-5 sm:p-6">
+            <div class="border rounded-lg overflow-hidden">
+              <div class="bg-gray-50 px-4 py-3 border-b">
+                <h4 class="text-sm font-medium text-gray-700">Notification Settings</h4>
+              </div>
+              <div class="px-4 py-4 space-y-4">
+                <div class="flex items-center justify-between">
+                  <label class="text-sm text-gray-700">Send email notifications</label>
+                  <input type="checkbox" id="emailToggle" class="h-5 w-5 text-blue-600" checked>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        
+        <!-- Announcements Section -->
+<!-- Grid View (dynamic with Jinja loop) -->
+<div id="gridView" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+  {% for announcement in announcements %}
+  <div 
+class="bg-white overflow-hidden shadow rounded-lg border-l-4 
+  {% if announcement.type == 'urgent' %} border-red-500 
+  {% elif announcement.type == 'event' %} border-blue-500 
+  {% elif announcement.type == 'reminder' %} border-yellow-500
+  {% else %} border-orange-500 {% endif %}">
+      
+    <div class="px-4 py-5 sm:p-6">
+      <div class="flex justify-between items-start">
+        <span 
+      class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
+  {% if announcement.type == 'urgent' %} bg-red-100 text-red-800
+  {% elif announcement.type == 'event' %} bg-blue-100 text-blue-800
+  {% elif announcement.type == 'reminder' %} bg-yellow-100 text-yellow-800
+  {% else %} bg-orange-100 text-orange-800 {% endif %}">
+          <i class="fas 
+            {% if announcement.type == 'urgent' %} fa-exclamation-circle
+            {% elif announcement.type == 'event' %} fa-calendar-alt
+            {% else %} fa-info-circle {% endif %} mr-1"></i> 
+          {{ announcement.type }}
+        </span>
+        <div class="text-sm text-gray-500">
+          {{ time_ago(announcement.created_at) }}
+        </div>
+      </div>
+
+      <h3 class="mt-4 text-lg font-medium text-gray-900">{{ announcement.title }}</h3>
+      <p class="mt-2 text-sm text-gray-500 line-clamp-3">{{ announcement.description }}</p>
+
+      <div class="mt-4 flex items-center justify-between">
+        <button class="text-sm font-medium text-blue-600 hover:text-blue-800 read-more" data-id="{{ announcement.id }}" data-title="{{ announcement.title }}" data-description="{{ announcement.description }}" data-type="{{ announcement.type }}" data-created="{{ time_ago(announcement.created_at) }}">
+          Read more
+        </button>
+        <div class="flex space-x-2">
+          <button class="text-gray-400 hover:text-gray-600"><i class="fas fa-share-alt"></i></button>
+          <button class="text-gray-400 hover:text-gray-600"><i class="fas fa-bookmark"></i></button>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+        <!-- List View (hidden initially) -->
+        <div id="listView" class="hidden mt-6">
+          <div class="bg-white shadow overflow-hidden sm:rounded-md">
+            <ul class="divide-y divide-gray-200">
+              {% for announcement in announcements %}
+              <li>
+                <div class="px-4 py-4 sm:px-6">
+                  <div class="flex items-center justify-between">
+                    <div class="min-w-0 flex-1">
+                      <div class="flex items-center">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                          {% if announcement.type == 'urgent' %} bg-red-100 text-red-800
+                          {% elif announcement.type == 'event' %} bg-blue-100 text-blue-800
+                          {% elif announcement.type == 'reminder' %} bg-yellow-100 text-yellow-800
+                          {% else %} bg-orange-100 text-orange-800 {% endif %} mr-2">
+                          <i class="fas
+                            {% if announcement.type == 'urgent' %} fa-exclamation-circle
+                            {% elif announcement.type == 'event' %} fa-calendar-alt
+                            {% else %} fa-info-circle {% endif %} mr-1"></i>
+                          {{ announcement.type }}
+                        </span>
+                        <p class="text-sm font-medium text-gray-900 truncate">{{ announcement.title }}</p>
+                      </div>
+                      <p class="mt-2 text-sm text-gray-500 line-clamp-2">{{ announcement.description }}</p>
+                    </div>
+                    <div class="ml-5 flex flex-col items-end">
+                      <p class="text-sm text-gray-500">{{ time_ago(announcement.created_at) }}</p>
+                      <div class="mt-2 flex space-x-2">
+                        <button class="text-gray-400 hover:text-gray-600"><i class="fas fa-share-alt"></i></button>
+                        <button class="text-gray-400 hover:text-gray-600"><i class="fas fa-bookmark"></i></button>
+                        <button class="text-blue-600 hover:text-blue-800 text-sm read-more" data-id="{{ announcement.id }}">Read</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+
+        <!-- Pagination -->
+        <div class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6 mt-6 rounded-lg shadow">
+          <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+            {% if page > 1 %}
+              <a href="{{ url_for('admin_announcements', page=page-1) }}" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                <span class="sr-only">Previous</span><i class="fas fa-chevron-left text-xs"></i>
+              </a>
+            {% endif %}
+            {% for p in range(1, total_pages + 1) %}
+              <a href="{{ url_for('admin_announcements', page=p) }}"
+                 class="relative inline-flex items-center px-4 py-2 border text-sm font-medium {% if p == page %}z-10 bg-blue-50 border-blue-500 text-blue-600{% else %}bg-white border-gray-300 text-gray-500 hover:bg-gray-50{% endif %}">
+                {{ p }}
+              </a>
+            {% endfor %}
+            {% if page < total_pages %}
+              <a href="{{ url_for('admin_announcements', page=page+1) }}" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                <span class="sr-only">Next</span><i class="fas fa-chevron-right text-xs"></i>
+              </a>
+            {% endif %}
+          </nav>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Create Announcement Modal (kept as-is) -->
+  <div id="createAnnouncementModal" class="fixed inset-0 z-40 overflow-y-auto hidden">
+    <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+      <div class="fixed inset-0 transition-opacity" aria-hidden="true"><div class="absolute inset-0 bg-gray-500 opacity-75"></div></div>
+      <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+        <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+          <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Create New Announcement</h3>
+          <form id="announcementForm" method="POST" action="/create_announcement">
+            <div class="mb-4">
+              <label for="title" class="block text-sm font-medium text-gray-700 mb-1">Title</label>
+              <input type="text" id="title" name="title" class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md">
+            </div>
+            <div class="mb-4">
+              <label for="description" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+              <textarea id="description" name="description" rows="4" class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"></textarea>
+            </div>
+            <div class="mb-4">
+              <label for="type" class="block text-sm font-medium text-gray-700 mb-1">Type</label>
+              <select id="type" name="type" class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                <option value="general">General</option>
+                <option value="event">Event</option>
+                <option value="urgent">Urgent</option>
+                <option value="reminder">Reminder</option>
+              </select>
+            </div>
+            <div class="mb-4">
+              <div class="flex items-start">
+                <div class="flex items-center h-5">
+                  <input id="sendNotification" name="sendNotification" type="checkbox" class="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded">
+                </div>
+                <div class="ml-3 text-sm">
+                  <label for="sendNotification" class="font-medium text-gray-700">Send email notification</label>
+                  <p class="text-gray-500">Send the announcement title and description to all user emails immediately.</p>
+                </div>
+              </div>
+            </div>
+            <div class="mb-4">
+              <div class="flex items-start">
+                <div class="flex items-center h-5">
+                  <input id="schedulePost" name="schedulePost" type="checkbox" class="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded">
+                </div>
+                <div class="ml-3 text-sm">
+                  <label for="schedulePost" class="font-medium text-gray-700">Schedule post</label>
+                </div>
+              </div>
+              <div id="scheduleTimeContainer" class="mt-2 hidden">
+                <label for="scheduleTime" class="block text-sm font-medium text-gray-700 mb-1">Date and Time</label>
+                <input type="datetime-local" id="scheduleTime" name="scheduleTime" class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md">
+              </div>
+            </div>
+            <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+              <button type="submit" id="publishBtn" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm">Publish</button>
+              <button type="button" id="cancelCreateBtn" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:w-auto sm:text-sm">Cancel</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notification Detail Modal -->
+  <div id="notificationDetailModal" class="fixed inset-0 z-50 hidden" role="dialog" aria-modal="true" aria-labelledby="notifModalTitle">
+    <div id="notifBackdrop" class="absolute inset-0 bg-black bg-opacity-50"></div>
+    <div class="relative flex min-h-screen items-center justify-center p-4">
+      <div class="w-full max-w-lg rounded-lg bg-white shadow-xl">
+        <div class="px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+          <div class="sm:flex sm:items-start">
+            <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
+              <i class="fas fa-bullhorn text-red-600"></i>
+            </div>
+            <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+              <h3 class="text-lg leading-6 font-medium text-gray-900" id="notifModalTitle"></h3>
+              <div class="mt-2">
+                <p class="text-sm text-gray-500" id="notifModalDesc"></p>
+                <div class="mt-4">
+                  <div class="flex items-center text-sm text-gray-500"><i class="fas fa-clock mr-1"></i><p id="notifModalCreated"></p></div>
+                  <div class="flex items-center text-sm text-gray-500 mt-1"><i class="fas fa-tag mr-1"></i><p id="notifModalType"></p></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+          <button type="button" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 sm:ml-3 sm:w-auto sm:text-sm">Share</button>
+          <button type="button" id="closeNotificationDetailBtn" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 sm:mt-0 sm:w-auto sm:text-sm">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+ {% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      <div id="loginNotification" class="notification {{ category }}">
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+
+  <!-- ============== SCRIPTS ============== -->
+  <script>
+    // Mobile drawer
+    (document.getElementById('mobile-menu-button')||{}).addEventListener?.('click', () => {
+      document.getElementById('mobile-menu')?.classList.toggle('hidden');
+    });
+
+    // User dropdown
+    (document.getElementById('userDropdownToggle')||{}).addEventListener?.('click', (e) => {
+      e.stopPropagation();
+      document.getElementById('userDropdownMenu')?.classList.toggle('hidden');
+    });
+    document.addEventListener('click', () => document.getElementById('userDropdownMenu')?.classList.add('hidden'));
+
+    // Notifications dropdown (bell)
+    const notifToggle  = document.getElementById('notifToggle');
+    const notifPanel   = document.getElementById('notifPanel');
+    const notifDot     = document.getElementById('notifDot');
+    const markAllRead  = document.getElementById('markAllRead');
+    function openPanel(){ notifPanel?.classList.remove('hidden'); notifToggle?.setAttribute('aria-expanded','true'); notifDot?.classList.add('hidden'); }
+    function closePanel(){ notifPanel?.classList.add('hidden'); notifToggle?.setAttribute('aria-expanded','false'); }
+    notifToggle?.addEventListener('click', (e)=>{ e.stopPropagation(); notifPanel?.classList.contains('hidden') ? openPanel() : closePanel(); });
+    document.addEventListener('click', (e)=>{ if(!notifPanel || notifPanel.classList.contains('hidden')) return; if(!notifPanel.contains(e.target) && !notifToggle.contains(e.target)) closePanel(); });
+    document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closePanel(); });
+    markAllRead?.addEventListener('click', (e)=>{ e.preventDefault(); notifPanel?.querySelectorAll('.unread-dot').forEach(d=>d.classList.add('is-read')); notifDot?.classList.add('hidden'); });
+
+    // Create Announcement modal
+    (document.getElementById('createAnnouncementBtn')||{}).addEventListener?.('click', () => {
+      document.getElementById('createAnnouncementModal')?.classList.remove('hidden');
+    });
+    (document.getElementById('cancelCreateBtn')||{}).addEventListener?.('click', () => {
+      document.getElementById('createAnnouncementModal')?.classList.add('hidden');
+    });
+    // Publish button is a native submit button inside the form now; no JS submit needed.
+    (document.getElementById('schedulePost')||{}).addEventListener?.('change', (e) => {
+      const box = document.getElementById('scheduleTimeContainer');
+      if (e.target.checked) box?.classList.remove('hidden'); else box?.classList.add('hidden');
+    });
+
+    // Grid/List toggle
+    (document.getElementById('gridViewBtn')||{}).addEventListener?.('click', function(){
+      document.getElementById('gridView')?.classList.remove('hidden');
+      document.getElementById('listView')?.classList.add('hidden');
+      this.classList.add('bg-blue-500','text-white');
+      this.classList.remove('bg-white','text-gray-600');
+      document.getElementById('listViewBtn')?.classList.add('bg-white','text-gray-600');
+      document.getElementById('listViewBtn')?.classList.remove('bg-blue-500','text-white');
+    });
+    (document.getElementById('listViewBtn')||{}).addEventListener?.('click', function(){
+      document.getElementById('listView')?.classList.remove('hidden');
+      document.getElementById('gridView')?.classList.add('hidden');
+      this.classList.add('bg-blue-500','text-white');
+      this.classList.remove('bg-white','text-gray-600');
+      document.getElementById('gridViewBtn')?.classList.add('bg-white','text-gray-600');
+      document.getElementById('gridViewBtn')?.classList.remove('bg-blue-500','text-white');
+    });
+
+    // "Read more" -> open centered modal
+    document.querySelectorAll('.read-more').forEach(btn => {
+  btn.addEventListener('click', function(e) {
+    e.preventDefault();
+    document.getElementById('notifModalTitle').textContent = btn.dataset.title;
+    document.getElementById('notifModalDesc').textContent = btn.dataset.description;
+    document.getElementById('notifModalType').textContent = btn.dataset.type;
+    document.getElementById('notifModalCreated').textContent = btn.dataset.created;
+        // POST view increment (fire-and-forget)
+        const annId = btn.dataset.id;
+        if (annId) {
+          fetch(`/announcement/${annId}/view`, { method: 'POST', headers: { 'Content-Type': 'application/json' } })
+            .then(r => r.json())
+            .then(j => {
+              if (j && j.views !== undefined) {
+                const k = document.getElementById('kpiViews');
+                if (k) k.textContent = j.views;
+              }
+            }).catch(()=>{});
+        }
+        openNotifModal();
+  });
+});
+
+    const notifModal   = document.getElementById('notificationDetailModal');
+    const notifBackdrop= document.getElementById('notifBackdrop');
+    const notifClose   = document.getElementById('closeNotificationDetailBtn');
+
+    function openNotifModal(){
+      notifModal.classList.remove('hidden');
+      document.body.classList.add('overflow-hidden'); // lock scroll
+    }
+    function closeNotifModal(){
+      notifModal.classList.add('hidden');
+      document.body.classList.remove('overflow-hidden');
+    }
+    notifClose?.addEventListener('click', closeNotifModal);
+    notifBackdrop?.addEventListener('click', closeNotifModal);
+    document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closeNotifModal(); });
+
+    // Simple search (Filter Bar only)
+    (document.getElementById('searchAnnouncements')||{}).addEventListener?.('input', (e)=>{
+      const term = (e.target.value||'').toLowerCase();
+      document.querySelectorAll('#gridView > div, #listView li').forEach(card=>{
+        const title = (card.querySelector('h3, p.text-sm.font-medium')?.textContent||'').toLowerCase();
+        const desc  = (card.querySelector('p.text-sm.text-gray-500')?.textContent||'').toLowerCase();
+        card.style.display = (title.includes(term) || desc.includes(term)) ? '' : 'none';
+      });
+    });
+
+    // Filter by type
+    (document.getElementById('filterType')||{}).addEventListener?.('change', (e)=>{
+      const val = (e.target.value||'all').toLowerCase();
+      document.querySelectorAll('#gridView > div, #listView li').forEach(card=>{
+        if (val === 'all') { card.style.display=''; return; }
+        const pillText = (card.querySelector('span.inline-flex')?.textContent||'').toLowerCase();
+        card.style.display = pillText.includes(val) ? '' : 'none';
+      });
+    });
+
+    document.getElementById('sortBy')?.addEventListener('change', updateQuery);
+document.getElementById('filterType')?.addEventListener('change', updateQuery);
+
+function updateQuery() {
+  const sort = document.getElementById('sortBy').value;
+  const type = document.getElementById('filterType').value;
+  window.location = `?sort=${sort}&type=${type}`;
+}
+
+    // Route highlighter like dashboard
+    (function(){
+      const links = document.querySelectorAll('.sidebar-item, .mobile-nav');
+      const here = window.location.pathname + window.location.hash;
+      let matched = false;
+      links.forEach(a => {
+        const href = new URL(a.getAttribute('href'), window.location.origin);
+        const key = href.pathname + href.hash;
+        if (here === key || here.endsWith(key)) {
+          a.classList.add('active-nav');
+          matched = true;
+          const t = a.dataset.title || a.textContent.trim();
+          const h = document.getElementById('page-title');
+          if (h) h.textContent = t;
+        } else {
+          a.classList.remove('active-nav');
+        }
+      });
+      if (!matched) document.querySelector('.sidebar-item')?.classList.add('active-nav');
+    })();
+
+     // ========== Show login error notification if any ==========
+  const notif = document.getElementById('loginNotification');
+  if (notif && notif.textContent.trim() !== "") {
+    notif.style.display = "block";
+    setTimeout(() => { notif.style.display = "none"; }, 4000); // hide after 4s
+  }
+
+    // Auto-hide after 1 second (1000ms)
+  setTimeout(() => {
+    const notif = document.getElementById("loginNotification");
+    if (notif) {
+      notif.style.display = "none";
+    }
+  }, 1000);
+
+  // Web push removed — notifications will use email only.
+
+  document.getElementById('viewAllNotif')?.addEventListener('click', function(e) {
+  e.preventDefault();
+  // Show all hidden announcements
+  document.querySelectorAll('.extra-announcement').forEach(el => el.classList.remove('hidden'));
+  // Make the notif list scrollable if needed
+  document.getElementById('notifList').classList.remove('overflow-hidden');
+  document.getElementById('notifList').classList.add('overflow-y-auto', 'max-h-80');
+  // Optionally hide the "View all" link after expanding
+  this.style.display = 'none';
+});
+
+  // --- AJAX submit for Create Announcement with toast notifications ---
+  function showAnnouncementToast(type, text) {
+    const toast = document.getElementById('announcementToast');
+    const inner = document.getElementById('announcementToastInner');
+    const msg = document.getElementById('announcementToastMessage');
+    if (!toast || !inner || !msg) return;
+    msg.textContent = text;
+    if (type === 'success') {
+      inner.classList.remove('border-red-200');
+      inner.classList.add('border-green-200');
+    } else {
+      inner.classList.remove('border-green-200');
+      inner.classList.add('border-red-200');
+    }
+    toast.classList.remove('hidden');
+    setTimeout(() => { toast.classList.add('hidden'); }, 6000);
+  }
+
+  const announcementForm = document.getElementById('announcementForm');
+  if (announcementForm) {
+    announcementForm.addEventListener('submit', async function(e) {
+      // If the form was triggered by the native submit and not by our JS, we intercept and do AJAX
+      e.preventDefault();
+      const publishBtn = document.getElementById('publishBtn');
+      if (publishBtn) { publishBtn.disabled = true; publishBtn.dataset.origText = publishBtn.textContent; publishBtn.textContent = 'Publishing...'; }
+      const formData = new FormData(announcementForm);
+      if (document.getElementById('schedulePost')?.checked) {
+        const localSchedule = formData.get('scheduleTime');
+        if (localSchedule) {
+          // datetime-local gives time in browser's local timezone (no timezone info)
+          // When we create Date from it, browser treats it as UTC
+          // We need to ADD the offset to get the correct UTC equivalent of local time
+          const localDate = new Date(localSchedule);
+          const utcDate = new Date(localDate.getTime() + localDate.getTimezoneOffset() * 60000);
+          if (!Number.isNaN(utcDate.getTime())) {
+            formData.set('scheduleTime', utcDate.toISOString());
+          }
+        }
+      }
+      try {
+        const resp = await fetch(announcementForm.action, { method: 'POST', body: formData, headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+        const json = await resp.json().catch(() => null);
+        if (resp.ok && json && json.success) {
+          showAnnouncementToast('success', json.message || 'Announcement published successfully');
+          // close modal
+          document.getElementById('createAnnouncementModal')?.classList.add('hidden');
+          // refresh to show new announcement (small delay to allow toast show)
+          setTimeout(() => { window.location.reload(); }, 900);
+        } else {
+          const errMsg = (json && (json.error || json.message)) || `Request failed (${resp.status})`;
+          const trace = (json && json.trace) ? ('\n' + (json.trace.split('\n').slice(0,5).join('\n'))) : '';
+          showAnnouncementToast('error', errMsg + (trace ? ' — see console for trace' : ''));
+          if (trace) console.error(json.trace);
+        }
+      } catch (err) {
+        console.error('Publish error', err);
+        showAnnouncementToast('error', String(err));
+      } finally {
+        if (publishBtn) { publishBtn.disabled = false; publishBtn.textContent = publishBtn.dataset.origText || 'Publish'; }
+      }
+    });
+  }
+  </script>
+</body>
+</html>
+
+

@@ -1,0 +1,191 @@
+/* =========================================================
+   SK Connect – Brand / Dashboard Styles
+   Save as: /static/css/sk_brand_theme.css
+   ========================================================= */
+
+/* ---------- Core palette ---------- */
+:root{
+  --sk-blue:   #2147A8;   /* cleaner SK blue */
+  --sk-blue-2: #193a8c;   /* darker shade for hover */
+  --sk-yellow: #FCD116;   /* SK yellow accent */
+  --sk-navy:   #0A1E3A;   /* deep navy for text */
+}
+
+/* Poppins everywhere (make sure <head> loads the font) */
+html, body, .font-sans, .font-sans *{
+  font-family: 'Poppins', system-ui, -apple-system, "Segoe UI", Roboto,
+               "Helvetica Neue", Arial, "Noto Sans", sans-serif !important;
+}
+
+/* ---------- Sidebar background (simple & clean) ---------- */
+.sk-sidebar{
+  background: linear-gradient(180deg, #234cae 0%, #1b3f93 60%, #152f72 100%);
+}
+
+/* =========================================================
+   MOVED FROM INLINE <style>  (kept & refined)
+   ========================================================= */
+
+/* Base nav item */
+.sidebar-item{
+  color: rgba(255,255,255,0.80);
+  border-radius: .9rem;
+  transition: background .18s ease, transform .18s ease, box-shadow .18s ease, color .18s ease;
+}
+.sidebar-item i{ color:#dfe8ff; }
+.sidebar-item:hover{
+  background: rgba(255,255,255,.10);
+  color:#fff;
+  transform: translateX(2px);
+}
+
+/* Active nav – simple, elegant SK-blue + yellow accent bar */
+.active-nav{
+  position: relative;
+  color:#fff !important;
+  background: var(--sk-blue);
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,.14),
+    0 10px 22px rgba(25,58,140,.28);
+  transform: translateX(4px);
+  font-weight: 800;                 /* <-- bold when active */
+}
+.active-nav i{ color:#ffffff !important; }
+
+/* left yellow bar */
+.active-nav::before{
+  content:'';
+  position:absolute; left:6px; top:8px; bottom:8px;
+  width:5px; border-radius:6px;
+  background: var(--sk-yellow);
+  box-shadow: 0 0 0 2px rgba(252,209,22,.25);
+}
+
+/* Make Dashboard link slightly larger by default */
+.dashboard-link{
+  font-size: 1rem;
+  padding-top: .95rem; padding-bottom: .95rem;
+  font-weight: 700;
+}
+@media (min-width:768px){ .dashboard-link{ font-size:1.08rem; } }
+
+/* Mobile nav */
+.mobile-nav{ color: rgba(255,255,255,0.75); }
+.mobile-nav:hover{ background: rgba(255,255,255,.10); color:#fff; }
+/* If you mark active with bg-blue-800 on mobile, make it nicer: */
+.mobile-nav.bg-blue-800{
+  background: linear-gradient(135deg, var(--sk-blue), var(--sk-blue-2));
+  color:#fff;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.12);
+}
+
+/* Show active tab content */
+.tab-content.active{ display:block; }
+
+/* Custom scrollbar (sidebar) */
+::-webkit-scrollbar{ width: 6px; }
+::-webkit-scrollbar-track{ background: #1e3a8a; }
+::-webkit-scrollbar-thumb{ background: rgba(255,255,255,0.2); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover{ background: rgba(255,255,255,0.3); }
+
+/* Responsive tweak */
+@media (max-width: 768px){ .tab-content{ padding: 1rem; } }
+
+/* Notification panel polish */
+.notif-panel{ box-shadow: 0 18px 40px rgba(0,0,0,.12); }
+.notif-panel ul::-webkit-scrollbar{ width: 8px; }
+.notif-panel ul::-webkit-scrollbar-thumb{ background: rgba(25,58,140,.25); border-radius: 9999px; }
+.notif-panel ul::-webkit-scrollbar-track{ background: transparent; }
+
+/* Fade unread dots when marked read */
+.unread-dot.is-read{ opacity: 0; transition: opacity .2s ease; }
+
+/* Top bar accent */
+header.bg-white.shadow{ border-top: 4px solid var(--sk-blue); }
+
+/* Surface-y buttons (utility) */
+.btn-surface{ border:1px solid rgba(0,0,0,.05); background:#fff; }
+.btn-surface:hover{ background:#f9fafb; }
+
+/* =========================================================
+   Brand (simple logo + title)
+   ========================================================= */
+.brand-logo{
+  width: 40px; height: 40px; display:block; object-fit:contain;
+  border-radius: 12px; background:#fff; padding:4px;
+  box-shadow: 0 6px 16px rgba(0,0,0,.15), inset 0 0 0 1px rgba(0,0,0,.06);
+}
+.brand-title{
+  font-size: 1.25rem; /* text-xl */
+  font-weight: 800; letter-spacing:.2px; line-height:1.1; color:#fff;
+}
+.brand-connect{
+  background: linear-gradient(90deg, var(--sk-yellow) 0%, #ffe470 100%);
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+}
+.brand-sub{ font-size:.75rem; color:#cfe1ff; }
+
+/* (Legacy) .brand-tile/.brand-ring if you still use them */
+.brand-tile{ position:relative; overflow:hidden;
+  background: radial-gradient(circle at 30% 30%, var(--sk-blue), var(--sk-blue-2)); }
+.brand-ring{
+  box-shadow: inset 0 0 0 2px rgba(255,255,255,.1), 0 0 0 3px rgba(252,209,22,.35);
+}
+.brand-tile img{
+  position:absolute; inset:3px;
+  width:calc(100% - 6px); height:calc(100% - 6px);
+  object-fit:contain; filter: drop-shadow(0 1px 1px rgba(0,0,0,.25));
+}
+
+/* =========================================================
+   Dashboard visual “pop”
+   ========================================================= */
+.stat-card{
+  border-radius: .9rem;
+  box-shadow: 0 1px 2px rgba(16,24,40,.04), 0 14px 24px -8px rgba(25,58,140,.18);
+  border: 1px solid rgba(2,6,23,.05);
+}
+.stat-number{
+  font-weight:800; line-height:1; letter-spacing:.2px; color:#0A1E3A;
+  font-size: 2rem;
+}
+@media (min-width:1024px){ .stat-number{ font-size: 2.5rem; } }
+
+/* Chart canvas sizing guard (so the chart won’t disappear) */
+.chart-wrap{ height: 16rem; }       /* optional helper class */
+#budgetChart{ width:100% !important; height:100% !important; }
+
+/* Stronger focus rings (accessibility) */
+:focus-visible{
+  outline: 2px solid var(--sk-yellow);
+  outline-offset: 2px;
+}
+
+:root{
+  --sk-yellow:#FCD116; /* SK yellow */
+}
+
+/* kill any old left dots/bars or hover splashes */
+.sidebar-item::after,
+.sidebar-item::before{ content:none !important; }
+
+/* base (idle) item: keep your existing pill look, no special effects */
+
+
+
+.sidebar-item.active-nav::before{
+  content:"";
+  position:absolute; inset:0;
+  pointer-events:none;
+  background: linear-gradient(90deg,
+    color-mix(in oklab, var(--sk-yellow) 80%, transparent) 0%,
+    color-mix(in oklab, var(--sk-yellow) 30%, transparent) 18%,
+    color-mix(in oklab, var(--sk-yellow) 8%,  transparent) 35%,
+    transparent 70%
+  );
+}
+
+/* keep icons/text crisp */
+.sidebar-item i{ opacity:.95; }
+
+

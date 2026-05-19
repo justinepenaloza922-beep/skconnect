@@ -1,0 +1,68 @@
+/* === DASHBOARD GRADIENT THEME (SCOPED) === */
+.dashboard-page :root{
+  --sk-blue:#0d2a52;
+  --sk-yellow:#FCD116;
+}
+
+/* Layout fixes (no double scroll, full height) */
+.dashboard-page .flex.h-screen{height:100vh;overflow:hidden;}
+.dashboard-page .flex-1.flex.flex-col{overflow:hidden;}
+.dashboard-page main.flex-1{overflow-y:auto;-webkit-overflow-scrolling:touch;}
+
+/* Sidebar: deep blue vertical gradient */
+.dashboard-page .sidebar{
+  background:linear-gradient(180deg,#0d2a52 0%,#123a70 55%,#0a2246 100%) !important;
+  color:#fff;
+}
+.dashboard-page .sidebar .sidebar-item{color:#e5e7eb;transition:all .15s ease;}
+.dashboard-page .sidebar .sidebar-item:hover{
+  background:linear-gradient(90deg,rgba(255,255,255,.10),rgba(255,255,255,0));
+  transform:translateX(4px);
+}
+
+/* Active nav: yellow sweep + left bar */
+.dashboard-page .sidebar .active-nav{
+  background:linear-gradient(90deg,rgba(252,209,22,.28),rgba(252,209,22,0)) !important;
+  border-left:4px solid var(--sk-yellow);
+  color:#fff !important;
+}
+
+/* Topbar: subtle light gradient (white -> very light gray) */
+.dashboard-page .app-topbar{
+  background:linear-gradient(90deg,#ffffff 0%,#f8fafc 100%) !important;
+  color:#111827;
+  border-bottom:1px solid #e5e7eb;
+  position:sticky;top:0;z-index:30;
+}
+
+/* KPI Cards: soft gradient border ring */
+.dashboard-page .kpi-card{
+  border:1px solid transparent;
+  border-radius:1rem;
+  background:
+    linear-gradient(#fff,#fff) padding-box,
+    linear-gradient(135deg,#FCD116, #60a5fa 50%, #9333ea) border-box;
+  transition:transform .15s ease, box-shadow .2s ease;
+}
+.dashboard-page .kpi-card:hover{
+  transform:translateY(-2px);
+  box-shadow:0 10px 24px -12px rgba(0,0,0,.18),0 6px 14px -8px rgba(0,0,0,.08);
+}
+
+/* Buttons (optional): blue gradient primary */
+.dashboard-page .btn-primary{
+  background-image:linear-gradient(90deg,#2563eb,#1d4ed8);
+  color:#fff;
+}
+
+/* Tables / chips (optional accents) */
+.dashboard-page .chip{border-radius:.5rem;padding:.15rem .5rem;display:inline-block}
+
+/* Scrollbar (content area only) */
+.dashboard-page main.flex-1::-webkit-scrollbar{width:8px;height:8px;}
+.dashboard-page main.flex-1::-webkit-scrollbar-track{background:#f3f4f6;border-radius:8px;}
+.dashboard-page main.flex-1::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:8px;}
+.dashboard-page main.flex-1::-webkit-scrollbar-thumb:hover{background:#94a3b8;}
+
+/* Keep global for modals if any */
+body.modal-active{overflow:hidden;}

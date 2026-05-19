@@ -1,0 +1,62 @@
+/* ---------- Sidebar hover + active ---------- */
+.sidebar-item{transition:all .18s ease-in-out}
+.sidebar-item:hover{background-color:rgba(255,255,255,.1);transform:translateX(4px)}
+.active-nav{background-color:rgba(255,255,255,.15);border-right:4px solid #a855f7}
+
+/* ---------- Chips / badges ---------- */
+.chip{font-size:.725rem;padding:.15rem .45rem;border-radius:.5rem}
+.sev-low{background:#ecfccb;color:#3f6212}
+.sev-med{background:#dbeafe;color:#1d4ed8}
+.sev-high{background:#fee2e2;color:#991b1b}
+.sev-critical{background:#fecaca;color:#7f1d1d;border:1px solid #ef4444}
+.st-open{background:#fff7ed;color:#c2410c}
+.st-invest{background:#e0e7ff;color:#3730a3}
+.st-closed{background:#dcfce7;color:#166534}
+.muted{color:#6b7280}
+
+/* ---------- Inputs / labels / buttons ---------- */
+.lbl{display:block;font-size:.875rem;color:#374151;margin-bottom:.25rem}
+.inp{width:100%;border:1px solid #d1d5db;border-radius:.5rem;padding:.5rem .75rem}
+.inp:focus{outline:none;border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.15)}
+.chk{display:flex;align-items:center;gap:.5rem;font-size:.875rem;color:#374151}
+
+.btn-gray{background:#f3f4f6;color:#111827;padding:.5rem 1rem;border-radius:.75rem}
+.btn-gray:hover{background:#e5e7eb}
+.btn-danger{background:#dc2626;color:#fff;padding:.5rem 1rem;border-radius:.75rem}
+.btn-danger:hover{background:#b91c1c}
+.btn-success{background:#16a34a;color:#fff;padding:.5rem 1rem;border-radius:.75rem}
+.btn-success:hover{background:#15803d}
+.btn-light{background:#f3f4f6;color:#111827;padding:.45rem .9rem;border-radius:.6rem}
+.btn-light:hover{background:#e5e7eb}
+
+/* ---------- Cards ---------- */
+.card{border:1px solid #e5e7eb;border-radius:.75rem;padding:1rem;background:#fff}
+.card-title{font-weight:600;color:#111827;margin-bottom:.25rem}
+
+/* ---------- Toast ---------- */
+#toast{z-index:60}
+
+/* ---------- Modal blur + animation ---------- */
+.modal-backdrop{
+  background:rgba(17,24,39,.45);
+  backdrop-filter:blur(6px);
+  -webkit-backdrop-filter:blur(6px);
+  display:none;
+}
+.modal-backdrop.flex{display:flex;}
+.modal-panel{
+  transform:translateY(8px) scale(.98);
+  opacity:0;
+  transition:transform .18s ease, opacity .18s ease, box-shadow .18s ease;
+  box-shadow:0 20px 60px rgba(0,0,0,.25);
+}
+.modal-open .modal-panel{
+  transform:translateY(0) scale(1);
+  opacity:1;
+}
+
+/* Blur the entire app while a modal is active */
+body.modal-active #app{ filter: blur(6px); }
+
+/* ---------- Small polish ---------- */
+button, .sidebar-item { cursor: pointer; }

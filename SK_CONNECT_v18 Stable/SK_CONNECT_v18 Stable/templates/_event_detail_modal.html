@@ -1,0 +1,269 @@
+<!-- Shared Event Detail Modal Partial -->
+<div id="eventDetailModal" class="event-modal hidden fixed inset-0 z-50 flex items-center justify-center" role="dialog" aria-modal="true" aria-labelledby="modalEventName" aria-describedby="modalEventDescription">
+  <link rel="stylesheet" href="/static/css/modal-styles.css">
+  <div class="modal-backdrop fixed inset-0"></div>
+  <div class="modal-panel relative bg-white" role="document">
+    <button id="closeDetailModalBtn" class="absolute top-3 right-3 text-gray-700 bg-gray-100 rounded-full p-2" aria-label="Close event details">
+      <i class="fas fa-times"></i>
+    </button>
+
+    <div class="modal-header">
+      <img id="modalEventCoverImage" class="modal-cover" style="display:none">
+      <div class="relative p-6">
+        <h3 class="text-2xl font-extrabold modal-title" id="modalEventName">Event Title</h3>
+        <p class="text-sm modal-sub" id="modalEventType">Event Type</p>
+      </div>
+    </div>
+
+    <div class="p-6 modal-body">
+      <div class="flex flex-wrap -mx-4 mb-6">
+        <div class="w-full md:w-1/2 px-4 mb-4 md:mb-0">
+          <div class="border rounded-lg p-4 h-full">
+            <h4 class="font-medium text-gray-800 mb-3">Event Details</h4>
+            <div class="space-y-3">
+              <div class="flex items-start">
+                <div class="flex-shrink-0 text-gray-500 w-6"><i class="fas fa-calendar"></i></div>
+                <div class="ml-3">
+                  <p class="text-sm font-medium text-gray-900" id="modalEventDate">Date</p>
+                  <p class="text-sm text-gray-500" id="modalEventTime">Time</p>
+                  <p class="text-xs text-red-600 mt-1" id="modalEventDeadline"></p>
+                </div>
+              </div>
+              <div class="flex items-start">
+                <div class="flex-shrink-0 text-gray-500 w-6"><i class="fas fa-map-marker-alt"></i></div>
+                <div class="ml-3">
+                  <p class="text-sm font-medium text-gray-900" id="modalEventLocation">Location</p>
+                </div>
+              </div>
+              <div class="flex items-start">
+                <div class="flex-shrink-0 text-gray-500 w-6"><i class="fas fa-users"></i></div>
+                <div class="ml-3">
+                  <p class="text-sm font-medium text-gray-900">Maximum Participants: <span id="modalEventMaxParticipants">-</span></p>
+                </div>
+              </div>
+              <div class="flex items-start">
+                <div class="flex-shrink-0 text-gray-500 w-6"><i class="fas fa-coins"></i></div>
+                <div class="ml-3">
+                  <p class="text-sm font-medium text-gray-900">Budget: <span id="modalEventBudget">-</span></p>
+                </div>
+              </div>
+              <div class="flex items-start">
+                <div class="flex-shrink-0 text-gray-500 w-6"><i class="fas fa-user-tie"></i></div>
+                <div class="ml-3">
+                  <p class="text-sm font-medium text-gray-900">Organizers:</p>
+                  <div id="modalEventOrganizers" class="text-sm text-gray-600"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="w-full md:w-1/2 px-4">
+          <div class="border rounded-lg p-4 h-full">
+            <h4 class="font-medium text-gray-800 mb-3">Description</h4>
+            <p class="text-sm text-gray-600 mb-4 modal-description" id="modalEventDescription">Event description goes here.</p>
+            
+            <h5 class="font-medium text-gray-800 mb-2">Required Items:</h5>
+            <ul class="list-disc list-inside text-sm text-gray-600 mb-4" id="modalEventRequiredItems"></ul>
+            
+            <div id="modalEventQR" class="text-center p-4 border rounded bg-gray-50 mb-4" style="display:none">
+              <p class="text-sm font-medium text-gray-800 mb-2">QR Code Available</p>
+              <p class="text-xs text-gray-600">Scan for attendance tracking</p>
+            </div>
+
+            <p class="text-sm text-gray-500 italic" id="communityServiceNote" style="display:none">
+              Note: Cleaning tools and garbage bags will be provided.
+            </p>
+
+            <div class="text-xs text-gray-400 mt-4">
+              Created: <span id="modalEventCreatedAt"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mb-4">
+        <img id="modalEventImage" src="" alt="Event Cover" class="w-full max-h-64 object-cover rounded mb-4" style="display:none;">
+      </div>
+
+      <div class="flex justify-end gap-2">
+        <!-- admin view button; visible if window.__isAdmin is true (set by server-side if needed) -->
+        <a id="modalViewAdminBtn" class="hidden inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md text-sm" href="#">View on admin page</a>
+        <button id="modalCloseBtn" class="inline-flex items-center px-4 py-2 bg-gray-200 text-gray-700 rounded-md text-sm">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Shared modal JS: accessibility, focus trap and population helper
+(function(){
+  var modal = document.getElementById('eventDetailModal');
+  var closeBtn = document.getElementById('modalCloseBtn');
+  var closeIconBtn = document.getElementById('closeDetailModalBtn');
+  var viewAdminBtn = document.getElementById('modalViewAdminBtn');
+  var lastFocused = null;
+
+  function showModal() {
+    lastFocused = document.activeElement;
+    modal.classList.remove('hidden');
+    modal.querySelector('.modal-panel, .modal-body')?.focus();
+    trapFocus(modal);
+  }
+
+  function hideModal() {
+    modal.classList.add('hidden');
+    releaseFocusTrap();
+    if (lastFocused) lastFocused.focus();
+  }
+
+  closeBtn?.addEventListener('click', hideModal);
+  closeIconBtn?.addEventListener('click', hideModal);
+  modal?.addEventListener('click', function(e){ if (e.target === modal || e.target.classList.contains('modal-backdrop')) hideModal(); });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') hideModal(); });
+
+  // focus trap implementation (simple)
+  var focusableElements = 'a[href], area[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), iframe, object, embed, [tabindex="0"], [contenteditable]';
+  var firstEl = null, lastEl = null;
+  function trapFocus(container) {
+    var nodes = container.querySelectorAll(focusableElements);
+    if (!nodes.length) return;
+    firstEl = nodes[0]; lastEl = nodes[nodes.length-1];
+    container.addEventListener('keydown', handleTrap);
+    setTimeout(function(){ firstEl.focus(); }, 50);
+  }
+  function releaseFocusTrap() { modal.removeEventListener('keydown', handleTrap); }
+  function handleTrap(e) {
+    if (e.key !== 'Tab') return;
+    if (e.shiftKey) { if (document.activeElement === firstEl) { e.preventDefault(); lastEl.focus(); } }
+    else { if (document.activeElement === lastEl) { e.preventDefault(); firstEl.focus(); } }
+  }
+
+  // expose helper to outer scope
+  window.showEventDetailModal = function(eventObj) {
+    // eventObj may be a FullCalendar Event object or a plain object
+    var ev = eventObj;
+    var props = ev.extendedProps || ev;
+    document.getElementById('modalEventName').textContent = ev.title || props.name || props.title || 'Event';
+    document.getElementById('modalEventType').textContent = props.type || props.event_type || '';
+    var dateText = '';
+    if (ev.start) dateText = ev.start instanceof Date ? ev.start.toLocaleDateString() : ev.start;
+    document.getElementById('modalEventDate').textContent = dateText;
+    var timeText = '';
+    if (props.start_time) timeText = props.start_time + (props.end_time ? ' - ' + props.end_time : '');
+    else if (ev.start && ev.end) {
+      var s = ev.start; var e = ev.end;
+      if (s instanceof Date) timeText = s.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) + ' - ' + (e instanceof Date ? e.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : e);
+    }
+    document.getElementById('modalEventTime').textContent = timeText;
+    document.getElementById('modalEventLocation').textContent = props.location || props.venue || '';
+    document.getElementById('modalEventBudget').textContent = props.budget ? (props.budget + ' PHP') : (props.budget_alloc ? props.budget_alloc : '');
+    document.getElementById('modalEventDescription').textContent = props.description || props.desc || '';
+
+    // required items
+    var reqEl = document.getElementById('modalEventRequiredItems'); reqEl.innerHTML = '';
+    var items = props.required_items || props.required || props.items || '';
+    if (Array.isArray(items)) items.forEach(function(it){ var li=document.createElement('li'); li.textContent=it; reqEl.appendChild(li); });
+    else if (typeof items === 'string' && items.trim()) items.split(',').map(function(x){return x.trim();}).filter(Boolean).forEach(function(it){ var li=document.createElement('li'); li.textContent=it; reqEl.appendChild(li); });
+
+    // organizers
+    var orgEl = document.getElementById('modalEventOrganizers'); orgEl.innerHTML = '';
+    var orgs = props.organizers || props.organizer || props.organizers_list || [];
+    if (Array.isArray(orgs)) orgs.forEach(function(o){ var d=document.createElement('div'); d.textContent = o; orgEl.appendChild(d); });
+    else if (orgs) { var d=document.createElement('div'); d.textContent = orgs; orgEl.appendChild(d); }
+
+    // Event Schedule: display only the main start - end time for clarity
+    var schedEl = document.getElementById('modalEventSchedule'); schedEl.innerHTML = '';
+    var scheduleText = '';
+    if (props.start_time) {
+      scheduleText = props.start_time + (props.end_time ? ' - ' + props.end_time : '');
+    } else if (ev && ev.start && ev.end) {
+      try {
+        var sT = (ev.start instanceof Date) ? ev.start.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : new Date(ev.start).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+        var eT = (ev.end instanceof Date) ? ev.end.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : new Date(ev.end).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+        scheduleText = sT + ' - ' + eT;
+      } catch (ex) { /* ignore formatting errors */ }
+    }
+    schedEl.textContent = scheduleText;
+
+    // image: populate both header cover and optional main image
+    var coverImg = document.getElementById('modalEventCoverImage');
+    var mainImg = document.getElementById('modalEventImage');
+    if (props.cover_image || props.image) {
+      var src = props.cover_image || props.image;
+      if (coverImg) { coverImg.src = src; coverImg.style.display = 'block'; }
+      if (mainImg) { mainImg.src = src; mainImg.style.display = 'block'; }
+    } else {
+      if (coverImg) coverImg.style.display = 'none';
+      if (mainImg) mainImg.style.display = 'none';
+    }
+
+    // admin button
+    if (window.__isAdmin) {
+      viewAdminBtn.classList.remove('hidden');
+      viewAdminBtn.href = '/admin_events_projects#event-' + (ev.id || props.id || '');
+    } else {
+      viewAdminBtn.classList.add('hidden');
+    }
+
+    if ((props.type || '').toLowerCase().indexOf('clean') !== -1 || (props.event_type || '').toLowerCase().indexOf('clean') !== -1) document.getElementById('communityServiceNote').style.display = 'block';
+    else document.getElementById('communityServiceNote').style.display = 'none';
+
+    showModal();
+  };
+})();
+</script>
+
+<!-- Date list modal to show all events on a clicked date -->
+<div id="dateEventsModal" class="hidden fixed inset-0 z-40 flex items-center justify-center" role="dialog" aria-modal="true" aria-labelledby="dateEventsTitle">
+  <div class="fixed inset-0 bg-black bg-opacity-40" id="dateEventsBackdrop"></div>
+  <div class="relative bg-white rounded-lg max-w-2xl w-full p-4 shadow-lg">
+    <div class="flex items-center justify-between mb-3">
+      <h3 id="dateEventsTitle" class="text-lg font-semibold">Events on <span id="dateEventsDate"></span></h3>
+      <button id="closeDateEvents" class="text-gray-600 hover:text-gray-800 px-2 py-1 rounded hover:bg-gray-100">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div id="dateEventsList" class="space-y-2 max-h-64 overflow-y-auto"></div>
+  </div>
+</div>
+
+<script>
+  (function(){
+    var modal = document.getElementById('dateEventsModal');
+    var close = document.getElementById('closeDateEvents');
+    close?.addEventListener('click', function(){ modal.classList.add('hidden'); });
+    modal?.addEventListener('click', function(e){ if (e.target === modal) modal.classList.add('hidden'); });
+
+    window.showDateEvents = function(dateStr, events) {
+      const modal = document.getElementById('dateEventsModal');
+      if (!modal) return;
+      
+      document.getElementById('dateEventsDate').textContent = dateStr;
+      var list = document.getElementById('dateEventsList');
+      list.innerHTML = '';
+      
+      if (!events || events.length === 0) {
+        list.innerHTML = '<div class="text-sm text-gray-600">No events scheduled for this date</div>';
+        modal.classList.remove('hidden');
+        return;
+      }
+      
+      events.forEach(function(ev){
+        var props = ev.extendedProps || ev;
+        var btn = document.createElement('button');
+        btn.className = 'w-full text-left px-3 py-2 border rounded hover:bg-gray-50';
+        btn.textContent = ev.title || props.name || 'Event';
+        btn.addEventListener('click', function(){
+          // hide list modal then show detail
+          modal.classList.add('hidden');
+          // some event objects may be plain; if so, create a small wrapper
+          var fullEv = ev;
+          if (!fullEv.start && ev.startStr) fullEv.start = new Date(ev.startStr);
+          window.showEventDetailModal(fullEv);
+        });
+        list.appendChild(btn);
+      });
+      modal.classList.remove('hidden');
+    };
+  })();
+</script>

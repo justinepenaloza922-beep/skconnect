@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>SK Connect — Documents (User)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Tailwind + Icons -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+
+  <!-- Poppins -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --sk-blue: #0d2a52;
+      --sk-yellow: #FCD116;
+    }
+
+    html,
+    body {
+      height: 100%;
+    }
+
+    body {
+      font-family: "Poppins", system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans";
+      background: #fff;
+      color: #111827;
+    }
+
+    .sidebar {
+      background: var(--sk-blue) !important;
+      color: #fff;
+    }
+
+    .sidebar .sidebar-item {
+      color: #e5e7eb;
+    }
+
+    .sidebar .sidebar-item:hover {
+      background: rgba(255, 255, 255, .06);
+      transform: translateX(4px);
+    }
+
+    .active-nav {
+      background: linear-gradient(90deg, rgba(252, 209, 22, .22), rgba(252, 209, 22, 0)) !important;
+      border-left: 4px solid var(--sk-yellow);
+      color: #fff !important;
+    }
+
+    .brand-img {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      object-fit: cover;
+    }
+
+    .app-topbar {
+      background: #fff !important;
+      color: #111827;
+      border-bottom: 1px solid #e5e7eb;
+      position: sticky;
+      top: 0;
+      z-index: 30;
+    }
+
+    .soft-card {
+      border: 1px solid #eef2f7;
+      border-radius: 1rem;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      padding: .125rem .5rem;
+      border-radius: .5rem;
+      font-size: .75rem;
+      font-weight: 600;
+    }
+
+    .dot {
+      width: .5rem;
+      height: .5rem;
+      border-radius: 9999px;
+      display: inline-block;
+    }
+  </style>
+</head>
+
+<body class="antialiased">
+  <div class="flex h-screen overflow-hidden">
+    <!-- Sidebar -->
+    <aside class="hidden md:flex md:flex-shrink-0 sidebar">
+      <div class="flex flex-col w-64">
+        <div class="px-4 py-6 flex items-center">
+          <img src="/static/images/SKLOGO.png" alt="SK Logo" class="brand-img mr-3">
+          <div>
+            <div class="text-white text-xl font-extrabold">SK<span class="text-yellow-300">Connect</span></div>
+            <div class="text-blue-200 text-xs">Los Baños Federation</div>
+          </div>
+        </div>
+
+        <div class="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
+          <nav class="flex-1 px-2 space-y-1">
+            <a href="{{ url_for('user_dashboard') }}" data-title="Dashboard"
+              class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-home mr-3 text-lg"></i> Dashboard
+            </a>
+            <a href="{{ url_for('user_announcements') }}" data-title="Announcements"
+              class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-bullhorn mr-3 text-lg"></i> Announcements
+            </a>
+            <a href="{{ url_for('user_events_projects') }}" data-title="Events & Projects"
+              class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-calendar mr-3 text-lg"></i> Events & Projects
+            </a>
+            <div class="relative" id="finDropdownWrap">
+              <button id="finDropdownBtn" data-title="Financial Reports" class="sidebar-item flex items-center justify-between w-full px-4 py-3 text-sm font-medium rounded-md">
+                <span class="flex items-center">
+                  <i class="fas fa-chart-pie mr-3 text-lg"></i> Financial Reports
+                </span>
+                <i class="fas fa-chevron-down text-sm transition-transform" id="finChevron"></i>
+              </button>
+              <div id="finSubMenu" class="hidden pl-11 pr-2 py-1 space-y-1">
+                <a href="{{ url_for('user_financial_report') }}" class="block px-3 py-2 text-sm text-blue-100 hover:text-white rounded-md">
+                  <i class="fas fa-chart-bar mr-2"></i>Financial Dashboard
+                </a>
+                <a href="{{ url_for('user_all_transactions') }}" class="block px-3 py-2 text-sm text-blue-100 hover:text-white rounded-md">
+                  <i class="fas fa-receipt mr-2"></i>View Transactions
+                </a>
+                <a href="{{ url_for('user_all_projects') }}" class="block px-3 py-2 text-sm text-blue-100 hover:text-white rounded-md">
+                  <i class="fas fa-project-diagram mr-2"></i>View Projects
+                </a>
+              </div>
+            </div>
+            <a href="{{ url_for('user_feedback') }}" data-title="Surveys & Polls"
+              class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-poll mr-3 text-lg"></i> Survey & Polls
+            </a>
+            <a href="{{ url_for('user_documents') }}" data-title="Documents"
+              class="sidebar-item active-nav flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-file-alt mr-3 text-lg"></i> Documents
+            </a>
+            <a href="{{ url_for('user_volunteer') }}" data-title="Volunteer"
+              class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-hands-helping mr-3 text-lg"></i> Volunteer
+            </a>
+            <a href="{{ url_for('user_training_resources') }}" data-title="Training Resources"
+              class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-graduation-cap mr-3 text-lg"></i> Training Resources
+            </a>
+            <a href="{{ url_for('user_community') }}" data-title="Community Board"
+              class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-users mr-3 text-lg"></i> Community Board
+            </a>
+            <a href="{{ url_for('user_incidents') }}" data-title="Incident Reports"
+              class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+              <i class="fas fa-exclamation-triangle mr-3 text-lg"></i> Incident Reports
+            </a>
+          </nav>
+        </div>
+
+        <!-- user dropdown -->
+        <div class="flex-shrink-0 flex border-t border-white/10 p-4 relative">
+          <div id="userDropdownToggle" class="flex flex-col items-center cursor-pointer w-full">
+            <div class="flex items-center justify-center w-full">
+              <img class="h-9 w-9 rounded-full"
+                src="{{ current_user.profile_pic if current_user and current_user.profile_pic else get_default_profile_image(current_user) }}"
+                alt="Profile">
+              <div class="ml-3 flex-1 min-w-0">
+                <div class="text-base font-medium text-white truncate uppercase">{{ session['username'] }}</div>
+                <div class="text-xs text-blue-100 mt-0.5 truncate">{{ session['position']|title }}</div>
+              </div>
+              <i class="fas fa-chevron-down ml-2 text-blue-200 flex-shrink-0"></i>
+            </div>
+          </div>
+          <ul id="userDropdownMenu"
+            class="absolute left-0 right-0 mx-auto bottom-14 z-20 w-60 bg-white rounded shadow-lg py-2 text-gray-700 hidden">
+            <li>
+              <a class="dropdown-item flex items-center px-4 py-2 hover:bg-gray-100" href="{{ url_for('profile') }}">
+                <i class="fas fa-user mr-2"></i>Profile
+              </a>
+            </li>
+            <li><a class="dropdown-item flex items-center px-4 py-2 hover:bg-gray-100" href="#"><i
+                  class="fas fa-cog mr-2"></i>Settings</a></li>
+            <li>
+              <hr class="dropdown-divider my-1">
+            </li>
+            <li><a class="dropdown-item flex items-center px-4 py-2 hover:bg-gray-100" href="/logout"><i
+                  class="fas fa-sign-out-alt mr-2"></i>Logout</a></li>
+          </ul>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Mobile top bar -->
+    <div class="md:hidden app-topbar w-full flex items-center justify-between px-4 py-3">
+      <div class="flex items-center">
+        <img src="/static/images/SKLOGO.png" class="brand-img mr-2" alt="SK" />
+        <h1 class="text-lg font-extrabold">SK<span class="text-blue-700">Connect</span></h1>
+      </div>
+      <button id="mobile-menu-button" class="text-gray-700 focus:outline-none">
+        <i class="fas fa-bars text-xl"></i>
+      </button>
+    </div>
+
+
+    <!-- MAIN -->
+    <div class="flex-1 flex flex-col overflow-hidden">
+      <!-- HEADER -->
+      <header class="bg-white shadow">
+        <div class="flex justify-between items-center px-4 py-4 sm:px-6 lg:px-8 relative">
+          <h1 class="text-2xl font-bold text-gray-900">Documents</h1>
+          <div class="flex items-center space-x-3">
+            <!-- <button id="citizenTplBtn"
+              class="border border-blue-600 text-blue-700 px-4 py-2 rounded-lg hover:bg-blue-50">
+              <i class="fa-solid fa-id-card-clip mr-2"></i>Citizen Templates
+            </button> -->
+            <!-- Notifications -->
+            <button id="notifBtn" class="relative p-2 rounded-full text-gray-500 hover:text-gray-700">
+              <i class="fa-regular fa-bell text-xl"></i>
+              <span id="notifDot" class="absolute -top-0.5 -right-0.5 dot bg-red-600"></span>
+            </button>
+            <div id="notifPanel"
+              class="hidden absolute right-6 top-16 w-80 bg-white rounded-lg soft-card border border-gray-100">
+              <div class="px-4 py-3 border-b flex items-center justify-between">
+                <span class="font-semibold text-gray-800">Notifications</span>
+                <button id="markAllRead" class="text-xs text-blue-600 hover:underline">Mark all as read</button>
+              </div>
+              <div id="notifList" class="max-h-80 overflow-auto divide-y"></div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- CONTENT -->
+      <main class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+        <!-- QUICK FILTERS -->
+        <div class="bg-white soft-card rounded-lg p-4 mb-4">
+          <div class="grid grid-cols-1 md:grid-cols-6 gap-3">
+            <input id="q" class="md:col-span-2 border rounded-md px-3 py-2" placeholder="Search title, code, tags...">
+            <select id="fCategory" class="border rounded-md px-3 py-2">
+              <option value="">All Categories</option>
+              <option>Governance</option>
+              <option>Planning & Budget</option>
+              <option>Projects & Activities</option>
+              <option>Finance</option>
+              <option>Compliance/Audit</option>
+              <option>Volunteers/HR</option>
+              <option>Citizen Papers</option>
+            </select>
+            <select id="fStatus" class="border rounded-md px-3 py-2">
+              <option value="">All Status</option>
+              <option>Draft</option>
+              <option>For Review</option>
+              <option>For Approval</option>
+              <option>Approved</option>
+              <option>Published</option>
+              <option>Rejected</option>
+              <option>Archived</option>
+            </select>
+            <input id="fFrom" type="date" class="border rounded-md px-3 py-2" />
+            <input id="fTo" type="date" class="border rounded-md px-3 py-2" />
+            <button id="exportCSV" class="border px-3 py-2 rounded-md hover:bg-gray-50"><i
+                class="fa-solid fa-file-csv mr-2"></i>CSV</button>
+          </div>
+        </div>
+
+        <!-- PINNED -->
+        <!-- <div class="mb-4">
+          <h3 class="text-sm font-semibold text-gray-600 mb-2">Pinned folders</h3>
+          <div class="grid grid-cols-2 md:grid-cols-6 gap-3">
+            <div class="bg-white p-3 rounded-lg border flex items-center"><i class="fa-solid fa-folder text-blue-600 mr-2"></i> Resolutions</div>
+            <div class="bg-white p-3 rounded-lg border flex items-center"><i class="fa-solid fa-folder text-yellow-600 mr-2"></i> ABYIP</div>
+            <div class="bg-white p-3 rounded-lg border flex items-center"><i class="fa-solid fa-folder text-green-600 mr-2"></i> Liquidations</div>
+            <div class="bg-white p-3 rounded-lg border flex items-center"><i class="fa-solid fa-folder text-purple-600 mr-2"></i> MOA/MOU</div>
+            <div class="bg-white p-3 rounded-lg border flex items-center"><i class="fa-solid fa-folder text-red-600 mr-2"></i> Audit</div>
+            <div class="bg-white p-3 rounded-lg border flex items-center"><i class="fa-solid fa-folder text-indigo-600 mr-2"></i> Citizen Papers</div>
+          </div>
+        </div> -->
+
+        <!-- DOCUMENTS LIST -->
+        <div class="bg-white soft-card rounded-lg p-0">
+          <div class="px-4 py-3 border-b flex items-center justify-between">
+            <h3 class="text-lg font-semibold text-gray-900">All Documents</h3>
+            <div id="docCount" class="text-sm text-gray-500"></div>
+          </div>
+          <div id="docsList" class="divide-y"></div>
+        </div>
+
+        <!-- MY REQUESTS (Citizen Templates) -->
+        <!-- <div class="bg-white soft-card rounded-lg p-0 mt-6" id="reqBox">
+          <div class="px-4 py-3 border-b flex items-center justify-between">
+            <h3 class="text-lg font-semibold text-gray-900">My Requests</h3>
+            <div class="text-sm text-gray-500" id="reqCount"></div>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200 text-sm">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th class="px-4 py-2 text-left text-xs font-semibold text-gray-500 uppercase">Req ID</th>
+                  <th class="px-4 py-2 text-left text-xs font-semibold text-gray-500 uppercase">Type</th>
+                  <th class="px-4 py-2 text-left text-xs font-semibold text-gray-500 uppercase">Name</th>
+                  <th class="px-4 py-2 text-left text-xs font-semibold text-gray-500 uppercase">Date</th>
+                  <th class="px-4 py-2 text-left text-xs font-semibold text-gray-500 uppercase">Status</th>
+                  <th class="px-4 py-2 text-left text-xs font-semibold text-gray-500 uppercase">Action</th>
+                </tr>
+              </thead>
+              <tbody id="reqList" class="divide-y divide-gray-100"></tbody>
+            </table>
+          </div>
+        </div> -->
+      </main>
+    </div>
+  </div>
+
+  <!-- DOCUMENT PREVIEW MODAL -->
+  <div id="docPreviewModal" class="fixed inset-0 bg-black bg-opacity-60 hidden z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+      <div class="flex justify-between items-center px-5 py-3 border-b bg-gray-50">
+        <h3 class="font-semibold text-lg text-gray-900 truncate" id="previewDocTitle">Document Preview</h3>
+        <div class="flex items-center gap-3">
+          <a id="previewDownloadBtn" href="#" class="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1">
+            <i class="fa-solid fa-download"></i> Download
+          </a>
+          <button id="closeDocPreview" class="text-gray-400 hover:text-gray-700 text-xl">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+      </div>
+      <div id="previewDocContent" class="flex-1 overflow-auto bg-gray-100 flex items-center justify-center" style="min-height:500px;">
+        <p class="text-gray-400">Loading preview...</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- CITIZEN TEMPLATES MODAL -->
+  <div id="citizenTplModal" class="fixed inset-0 bg-black bg-opacity-30 hidden z-50">
+    <div class="relative top-16 mx-auto w-full max-w-2xl bg-white rounded-lg soft-card p-6">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-semibold">Citizen Templates</h3>
+        <button data-close-ctpl class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div class="border rounded-lg p-3 hover:bg-gray-50 flex justify-between items-center">
+          <div>
+            <p class="font-medium">Barangay Indigency (Youth)</p>
+            <p class="text-xs text-gray-500">For financial aid / scholarship</p>
+          </div>
+          <button class="text-blue-600 hover:underline" data-open-issue="indigency">Request</button>
+        </div>
+        <div class="border rounded-lg p-3 hover:bg-gray-50 flex justify-between items-center">
+          <div>
+            <p class="font-medium">Certificate of Residency</p>
+            <p class="text-xs text-gray-500">Proof of residence</p>
+          </div>
+          <button class="text-blue-600 hover:underline" data-open-issue="residency">Request</button>
+        </div>
+        <div class="border rounded-lg p-3 hover:bg-gray-50 flex justify-between items-center">
+          <div>
+            <p class="font-medium">Good Moral Character</p>
+            <p class="text-xs text-gray-500">For school/agency</p>
+          </div>
+          <button class="text-blue-600 hover:underline" data-open-issue="goodmoral">Request</button>
+        </div>
+        <div class="border rounded-lg p-3 hover:bg-gray-50 flex justify-between items-center">
+          <div>
+            <p class="font-medium">Certificate of Participation</p>
+            <p class="text-xs text-gray-500">Events/Programs</p>
+          </div>
+          <button class="text-blue-600 hover:underline" data-open-issue="participation">Request</button>
+        </div>
+        <div class="border rounded-lg p-3 hover:bg-gray-50 flex justify-between items-center">
+          <div>
+            <p class="font-medium">Scholarship Endorsement</p>
+            <p class="text-xs text-gray-500">SK endorsement</p>
+          </div>
+          <button class="text-blue-600 hover:underline" data-open-issue="endorsement">Request</button>
+        </div>
+        <div class="border rounded-lg p-3 hover:bg-gray-50 flex justify-between items-center">
+          <div>
+            <p class="font-medium">Parental Consent (Minor)</p>
+            <p class="text-xs text-gray-500">For activities</p>
+          </div>
+          <button class="text-blue-600 hover:underline" data-open-issue="consent">Request</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ISSUE FORM MODAL (REQUEST FLOW) -->
+  <div id="issueModal" class="fixed inset-0 bg-black bg-opacity-30 hidden z-50">
+    <div class="relative top-10 mx-auto w-full max-w-2xl bg-white rounded-lg soft-card p-6">
+      <div class="flex items-center justify-between mb-4">
+        <h3 id="issueTitle" class="text-lg font-semibold">Request Document</h3>
+        <button data-close-issue class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form id="issueForm" class="space-y-4">
+        <div id="issueFields" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label class="text-sm text-gray-600">Barangay</label>
+            <input name="barangay" class="w-full border rounded-md px-3 py-2" placeholder="e.g. Batong Malake" required>
+          </div>
+          <div>
+            <label class="text-sm text-gray-600">Municipality/City</label>
+            <input name="municipality" class="w-full border rounded-md px-3 py-2" placeholder="Los Baños" required>
+          </div>
+          <div>
+            <label class="text-sm text-gray-600">Province</label>
+            <input name="province" class="w-full border rounded-md px-3 py-2" placeholder="Laguna" required>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="text-sm text-gray-600">SK Chairperson</label>
+            <input name="sk_chair" class="w-full border rounded-md px-3 py-2" placeholder="Full name" required>
+          </div>
+          <div>
+            <label class="text-sm text-gray-600">SK Secretary</label>
+            <input name="sk_sec" class="w-full border rounded-md px-3 py-2" placeholder="Full name" required>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="text-sm text-gray-600">Preferred Pickup/Release Date</label>
+            <input name="preferred_date" type="date" class="w-full border rounded-md px-3 py-2">
+          </div>
+          <div>
+            <label class="text-sm text-gray-600">Notes to Admin (optional)</label>
+            <input name="notes" class="w-full border rounded-md px-3 py-2"
+              placeholder="Additional info / reference no.">
+          </div>
+        </div>
+        <div class="flex justify-between items-center text-xs text-gray-500">
+          <div>After submit, admin will review & approve your request.</div>
+          <div>Tip: Approved requests can be printed/downloaded.</div>
+        </div>
+        <div class="flex justify-end space-x-3 pt-2">
+          <button type="button" data-close-issue class="px-4 py-2 text-sm bg-gray-100 rounded-md">Cancel</button>
+          <button class="px-4 py-2 text-sm text-white bg-blue-600 rounded-md">Submit Request</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- VERSION DRAWER -->
+  <div id="versionDrawer"
+    class="fixed right-0 top-0 h-full w-full max-w-md bg-white shadow-2xl transform translate-x-full transition-transform z-50">
+    <div class="p-4 border-b flex items-center justify-between">
+      <h3 class="text-lg font-semibold">Version History</h3>
+      <button id="closeDrawer" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div id="versionList" class="p-4 space-y-3 overflow-y-auto h-[calc(100%-64px)]"></div>
+  </div>
+
+  <script>
+    /* ===== Documents from Admin (Supabase 'documents' table) ===== */
+    const docs = {{ (shared_documents | default ([])) | tojson | safe }} || [];
+
+    const notifications = [
+      { id: 1, text: 'Your residency request is now Under Review.', time: '15m ago', unread: true },
+      { id: 2, text: 'Two new documents were published.', time: '1h ago', unread: true },
+      { id: 3, text: 'Reminder: Bring valid ID when claiming certificates.', time: 'Yesterday', unread: false },
+    ];
+
+    /* ===== Citizen Templates Spec ===== */
+    const citizenTemplates = {
+      indigency: {
+        title: 'Barangay Certificate of Indigency (Youth)',
+        fields: [
+          { name: 'name', label: 'Full Name', req: true },
+          { name: 'age', label: 'Age', req: true },
+          { name: 'address', label: 'Address', req: true },
+          { name: 'purpose', label: 'Purpose (e.g. Scholarship)', req: true },
+          { name: 'guardian', label: 'Parent/Guardian (optional)' },
+          { name: 'date', label: 'Date (issue date)', type: 'date', req: true }
+        ]
+      },
+      residency: {
+        title: 'Certificate of Residency',
+        fields: [
+          { name: 'name', label: 'Full Name', req: true },
+          { name: 'address', label: 'Address', req: true },
+          { name: 'years', label: 'Years of Residency', req: true },
+          { name: 'purpose', label: 'Purpose', req: true },
+          { name: 'date', label: 'Date', type: 'date', req: true }
+        ]
+      },
+      goodmoral: {
+        title: 'Certificate of Good Moral Character',
+        fields: [
+          { name: 'name', label: 'Full Name', req: true },
+          { name: 'address', label: 'Address', req: true },
+          { name: 'recipient', label: 'Recipient (School/Agency)', req: true },
+          { name: 'purpose', label: 'Purpose', req: true },
+          { name: 'date', label: 'Date', type: 'date', req: true }
+        ]
+      },
+      participation: {
+        title: 'Certificate of Participation',
+        fields: [
+          { name: 'name', label: 'Participant Name', req: true },
+          { name: 'event', label: 'Event/Program', req: true },
+          { name: 'role', label: 'Role (e.g. Volunteer/Player)', req: true },
+          { name: 'event_date', label: 'Event Date', type: 'date', req: true },
+          { name: 'date', label: 'Date Issued', type: 'date', req: true }
+        ]
+      },
+      endorsement: {
+        title: 'Scholarship Endorsement',
+        fields: [
+          { name: 'name', label: 'Student Name', req: true },
+          { name: 'scholar', label: 'Scholarship/Institution', req: true },
+          { name: 'address', label: 'Address', req: true },
+          { name: 'date', label: 'Date', type: 'date', req: true }
+        ]
+      },
+      consent: {
+        title: 'Parental Consent (Minor)',
+        fields: [
+          { name: 'minor', label: 'Minor\'s Name', req: true },
+          { name: 'age', label: 'Age', req: true },
+          { name: 'activity', label: 'Activity/Event', req: true },
+          { name: 'event_date', label: 'Event Date', type: 'date', req: true },
+          { name: 'guardian', label: 'Parent/Guardian Name', req: true },
+          { name: 'relation', label: 'Relationship', req: true },
+          { name: 'date', label: 'Date Signed', type: 'date', req: true }
+        ]
+      }
+    };
+
+    /* ===== Helpers ===== */
+    const $ = s => document.querySelector(s);
+    function iconFor(fileType) {
+      if (!fileType) return 'fa-file-alt text-gray-500';
+      if (fileType.includes('pdf')) return 'fa-file-pdf text-red-600';
+      if (fileType.includes('word') || fileType.includes('doc')) return 'fa-file-word text-blue-600';
+      if (fileType.includes('excel') || fileType.includes('sheet')) return 'fa-file-excel text-green-600';
+      if (fileType.includes('image')) return 'fa-file-image text-purple-500';
+      if (fileType.includes('powerpoint') || fileType.includes('presentation')) return 'fa-file-powerpoint text-orange-500';
+      return 'fa-file-alt text-gray-500';
+    }
+    function chipFor(status) {
+      const map = {
+        'Draft': 'bg-gray-100 text-gray-700', 'For Review': 'bg-yellow-100 text-yellow-800',
+        'For Approval': 'bg-orange-100 text-orange-800', 'Approved': 'bg-green-100 text-green-700',
+        'Published': 'bg-blue-100 text-blue-800', 'Rejected': 'bg-red-100 text-red-700', 'Archived': 'bg-gray-100 text-gray-600'
+      };
+      return `<span class="pill ${map[status] || 'bg-green-100 text-green-700'}">${status || 'Published'}</span>`;
+    }
+    function formatDate(iso) {
+      if (!iso) return 'Unknown';
+      const d = new Date(iso);
+      return d.toLocaleDateString('en-PH', { year: 'numeric', month: 'short', day: 'numeric' });
+    }
+    function formatBytes(bytes) {
+      if (!bytes) return '';
+      if (bytes < 1024) return bytes + ' B';
+      if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+      return (bytes / 1048576).toFixed(1) + ' MB';
+    }
+    function today() { return new Date().toISOString().slice(0, 10); }
+
+    /* ===== Render Docs ===== */
+    function renderDocs() {
+      const q = ($('#q').value || '').trim().toLowerCase();
+      const cat = $('#fCategory').value;
+      const st = $('#fStatus').value;
+      const from = $('#fFrom').value ? new Date($('#fFrom').value) : null;
+      const to = $('#fTo').value ? new Date($('#fTo').value) : null;
+
+      const list = $('#docsList'); list.innerHTML = '';
+      let count = 0;
+
+      const filtered = docs.filter(d => {
+        const title = (d.title || '').toLowerCase();
+        const desc = (d.description || '').toLowerCase();
+        const fname = (d.file_name || '').toLowerCase();
+        const okQ = !q || title.includes(q) || desc.includes(q) || fname.includes(q);
+        const okC = !cat; // admin docs don't have category, show all
+        const okS = !st || st === 'Published'; // admin docs are always published
+        const dte = new Date(d.created_at || '');
+        const okF = !from || dte >= from;
+        const okT = !to || dte <= to;
+        return okQ && okC && okS && okF && okT;
+      });
+
+      if (filtered.length === 0) {
+        list.innerHTML = '<div class="px-4 py-8 text-center text-gray-400">No documents found.</div>';
+        $('#docCount').textContent = '0 document(s)';
+        return;
+      }
+
+      filtered.forEach(d => {
+        count++;
+        const row = document.createElement('div');
+        row.className = 'px-4 py-3 flex items-center justify-between hover:bg-gray-50 transition';
+        const sizeStr = d.file_size ? ` • ${formatBytes(d.file_size)}` : '';
+        row.innerHTML = `
+      <div class="flex items-center">
+        <i class="fa-solid ${iconFor(d.file_type)} mr-3 text-xl"></i>
+        <div>
+          <div class="flex items-center space-x-2">
+            <p class="font-medium text-gray-900">${d.title || d.file_name || 'Untitled'}</p>
+            ${chipFor('Published')}
+          </div>
+          <p class="text-xs text-gray-500">${formatDate(d.created_at)}${sizeStr}${d.description ? ' • ' + d.description : ''}</p>
+        </div>
+      </div>
+      <div class="flex items-center space-x-3 text-gray-600">
+        <button onclick="openDocPreview('${d.id}', '${(d.title || d.file_name || 'Document').replace(/'/g, "\\'")  }', '${d.file_type || ''}')" class="hover:text-blue-700" title="Preview"><i class="fa-solid fa-eye"></i></button>
+        <a href="/download_document/${d.id}" class="hover:text-blue-700" title="Download"><i class="fa-solid fa-download"></i></a>
+      </div>`;
+        list.appendChild(row);
+      });
+
+      $('#docCount').textContent = `${count} document(s)`;
+    }
+
+    /* ===== CSV Export (filtered) ===== */
+    function exportCSV() {
+      const rows = [['Title', 'Type', 'Date', 'Size', 'Description']];
+      docs.forEach(d => {
+        rows.push([
+          d.title || d.file_name || '',
+          d.file_type || '',
+          d.created_at || '',
+          d.file_size || '',
+          d.description || ''
+        ]);
+      });
+      const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' }); const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = 'documents.csv'; a.click(); URL.revokeObjectURL(url);
+    }
+
+    /* ===== Notifications ===== */
+    function renderNotifs() {
+      const list = $('#notifList'); list.innerHTML = '';
+      let unread = false;
+      notifications.forEach(n => {
+        if (n.unread) unread = true;
+        const row = document.createElement('div');
+        row.className = 'px-4 py-3 flex';
+        row.innerHTML = `<div class="flex-1">
+      <p class="text-sm ${n.unread ? 'font-semibold text-gray-800' : 'text-gray-700'}">${n.text}</p>
+      <p class="text-xs text-gray-400">${n.time}</p></div>
+      ${n.unread ? '<span class="dot bg-red-500 self-center"></span>' : ''}`;
+        list.appendChild(row);
+      });
+      $('#notifDot').classList.toggle('hidden', !unread);
+    }
+
+    /* ===== Citizen Requests (Local store) ===== */
+    const REQ_STORE = 'sk_citizen_requests_v1';
+    function loadReqs() { try { return JSON.parse(localStorage.getItem(REQ_STORE) || '[]'); } catch { return []; } }
+    function saveReqs(list) { localStorage.setItem(REQ_STORE, JSON.stringify(list)); }
+    let citizenReqs = loadReqs();
+
+    function statusPill(s) {
+      const map = {
+        'Pending': 'bg-yellow-100 text-yellow-800',
+        'Under Review': 'bg-blue-100 text-blue-800',
+        'Approved': 'bg-green-100 text-green-700',
+        'Rejected': 'bg-red-100 text-red-700',
+        'Ready for Pickup': 'bg-purple-100 text-purple-800'
+      };
+      return `<span class="pill ${map[s] || 'bg-gray-100 text-gray-700'}">${s}</span>`;
+    }
+    function prettyType(key) {
+      return ({
+        indigency: 'Indigency (Youth)',
+        residency: 'Residency',
+        goodmoral: 'Good Moral',
+        participation: 'Participation',
+        endorsement: 'Scholarship Endorsement',
+        consent: 'Parental Consent'
+      })[key] || key;
+    }
+    function reqId() { const d = new Date(); return `REQ-${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}-${Math.floor(Math.random() * 900 + 100)}`; }
+
+    function renderReqs() {
+      const tbody = document.getElementById('reqList');
+      const cnt = document.getElementById('reqCount');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+      const data = (citizenReqs || []).sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt));
+      data.forEach(r => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+      <td class="px-4 py-2 font-medium">${r.id}</td>
+      <td class="px-4 py-2">${prettyType(r.type)}</td>
+      <td class="px-4 py-2">${r.data?.name || r.data?.minor || '—'}</td>
+      <td class="px-4 py-2 text-gray-600">${new Date(r.submittedAt).toLocaleString()}</td>
+      <td class="px-4 py-2">${statusPill(r.status)}</td>
+      <td class="px-4 py-2 space-x-2">
+        <button class="text-gray-700 hover:text-gray-900" data-view="${r.id}"><i class="fa-solid fa-eye mr-1"></i>View</button>
+        ${r.status === 'Approved'
+            ? `<button class="text-blue-700 hover:text-blue-900" data-print="${r.id}"><i class="fa-solid fa-print mr-1"></i>Print</button>`
+            : `<button class="text-gray-400 cursor-not-allowed" title="Awaiting approval"><i class="fa-solid fa-print mr-1"></i>Print</button>`}
+      </td>`;
+        tbody.appendChild(tr);
+      });
+      cnt.textContent = `${data.length} request(s)`;
+    }
+
+    /* ===== Render Certificate (for printing when Approved) ===== */
+    function openPrintWindow(html) {
+      const w = window.open('', '_blank');
+      w.document.write(`<!doctype html><html><head>
+    <meta charset="utf-8"><title>Document</title>
+    <style>
+      body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;color:#111827}
+      .a4{width:210mm;min-height:297mm;margin:0 auto;padding:18mm;background:#fff}
+      .hdr{border-bottom:2px solid #1d4ed8;padding-bottom:8px;margin-bottom:16px}
+      .title{font-size:20px;font-weight:800;letter-spacing:.5px;color:#1d4ed8}
+      .meta{font-size:12px;color:#6b7280}
+      .sig{margin-top:36px;display:flex;gap:24px}
+      .sig .line{border-top:1px solid #111827;padding-top:4px;text-align:center;font-size:12px}
+    </style></head><body class="a4">
+    ${html}
+    <script>window.print();<\/script>
+  </body></html>`);
+      w.document.close();
+    }
+    function generateControlNo(prefix = 'SKLB') {
+      const d = new Date();
+      const seq = Math.floor(Math.random() * 900 + 100);
+      return `${prefix}-${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}-${seq}`;
+    }
+    function renderCertificate(key, data) {
+      const hdr = `
+    <div class="hdr">
+      <div class="meta">Republic of the Philippines • Province of ${data.province} • ${data.municipality}</div>
+      <div class="title">Barangay ${data.barangay} — Sangguniang Kabataan</div>
+    </div>`;
+      const ctrl = generateControlNo('SKLB');
+      const footer = `
+    <div class="meta">Control No.: ${ctrl} • Date Issued: ${data.date || today()}</div>
+    <div class="sig">
+      <div class="line" style="flex:1">${data.sk_chair}<br>SK Chairperson</div>
+      <div class="line" style="flex:1">${data.sk_sec}<br>SK Secretary</div>
+    </div>`;
+      let body = '';
+      if (key === 'indigency') {
+        body = `
+      <h2 style="font-size:18px;font-weight:700;margin:8px 0 12px">CERTIFICATION OF INDIGENCY (YOUTH)</h2>
+      <p style="text-align:justify;margin-bottom:12px">
+        This is to certify that <b>${data.name}</b>, age <b>${data.age}</b>, a resident of <b>${data.address}</b>, Barangay ${data.barangay}, 
+        ${data.municipality}, ${data.province}, is a <b>person of indigent status</b> based on community social assessment and information 
+        known to the Sangguniang Kabataan of this barangay.
+      </p>
+      <p style="text-align:justify;margin-bottom:12px">
+        This certification is being issued upon the request of the interested party for <b>${data.purpose}</b>.
+        ${data.guardian ? ` Parent/Guardian: <b>${data.guardian}</b>.` : ''}
+      </p>`;
+      } else if (key === 'residency') {
+        body = `
+      <h2 style="font-size:18px;font-weight:700;margin:8px 0 12px">CERTIFICATION OF RESIDENCY</h2>
+      <p style="text-align:justify;margin-bottom:12px">
+        This is to certify that <b>${data.name}</b>, of legal age and residing at <b>${data.address}</b>, 
+        is a bona fide resident of Barangay ${data.barangay}, ${data.municipality}, ${data.province} for approximately 
+        <b>${data.years}</b> year(s).
+      </p>
+      <p style="text-align:justify;margin-bottom:12px">Issued upon request of the interested party for <b>${data.purpose}</b>.</p>`;
+      } else if (key === 'goodmoral') {
+        body = `
+      <h2 style="font-size:18px;font-weight:700;margin:8px 0 12px">CERTIFICATE OF GOOD MORAL CHARACTER</h2>
+      <p style="text-align:justify;margin-bottom:12px">
+        This is to certify that <b>${data.name}</b>, residing at <b>${data.address}</b>, is known to the Sangguniang Kabataan of 
+        Barangay ${data.barangay} as a youth with <b>good moral character</b> and has not been involved in any records of misconduct 
+        within the community.
+      </p>
+      <p style="text-align:justify;margin-bottom:12px">This certification is issued for submission to <b>${data.recipient}</b> for <b>${data.purpose}</b>.</p>`;
+      } else if (key === 'participation') {
+        body = `
+      <h2 style="font-size:18px;font-weight:700;margin:8px 0 12px">CERTIFICATE OF PARTICIPATION</h2>
+      <p style="text-align:justify;margin-bottom:12px">
+        This certifies that <b>${data.name}</b> has actively participated as <b>${data.role}</b> in the activity 
+        <b>${data.event}</b> held on <b>${data.event_date}</b> organized by the Sangguniang Kabataan of Barangay ${data.barangay}.
+      </p>`;
+      } else if (key === 'endorsement') {
+        body = `
+      <h2 style="font-size:18px;font-weight:700;margin:8px 0 12px">SCHOLARSHIP ENDORSEMENT</h2>
+      <p style="text-align:justify;margin-bottom:12px">
+        The Sangguniang Kabataan of Barangay ${data.barangay} hereby endorses <b>${data.name}</b>, of <b>${data.address}</b>, 
+        as an applicant to <b>${data.scholar}</b>. The SK attests to the applicant's active community involvement and 
+        supports this application.
+      </p>`;
+      } else if (key === 'consent') {
+        body = `
+      <h2 style="font-size:18px;font-weight:700;margin:8px 0 12px">PARENTAL CONSENT</h2>
+      <p style="text-align:justify;margin-bottom:12px">
+        I, <b>${data.guardian}</b>, the <b>${data.relation}</b> of <b>${data.minor}</b>, age <b>${data.age}</b>, hereby give my consent for
+        his/her participation in <b>${data.activity}</b> on <b>${data.event_date}</b> organized by the Sangguniang Kabataan of Barangay ${data.barangay}.
+      </p>
+      <p style="text-align:justify;margin-bottom:12px">Signed on <b>${data.date}</b>.</p>`;
+      }
+      return hdr + body + footer;
+    }
+
+    /* ===== Citizen Template UI ===== */
+    let currentTplKey = null;
+
+    function openCitizenForm(key) {
+      currentTplKey = key;
+      const tpl = citizenTemplates[key];
+      $('#issueTitle').textContent = tpl.title;
+      const box = $('#issueFields'); box.innerHTML = '';
+      tpl.fields.forEach(f => {
+        const wrap = document.createElement('div');
+        wrap.innerHTML = `
+      <label class="text-sm text-gray-600">${f.label}${f.req ? ' *' : ''}</label>
+      <input name="${f.name}" ${f.req ? 'required' : ''} ${f.type === 'date' ? 'type="date"' : ''}
+             class="w-full border rounded-md px-3 py-2" placeholder="${f.placeholder || ''}">
+    `;
+        box.appendChild(wrap);
+      });
+      $('#citizenTplModal').classList.add('hidden');
+      $('#issueModal').classList.remove('hidden');
+    }
+
+    /* ===== Events ===== */
+    document.addEventListener('DOMContentLoaded', () => {
+      renderDocs(); renderNotifs(); renderReqs();
+
+      // Filters
+      ['q', 'fCategory', 'fStatus', 'fFrom', 'fTo'].forEach(id => {
+        document.getElementById(id).addEventListener('input', renderDocs);
+        document.getElementById(id).addEventListener('change', renderDocs);
+      });
+      $('#exportCSV').addEventListener('click', exportCSV);
+
+
+      $('#closeDrawer').addEventListener('click', () => $('#versionDrawer').classList.add('translate-x-full'));
+
+      // Citizen templates
+      const showCTpl = () => $('#citizenTplModal').classList.remove('hidden');
+      const hideCTpl = () => $('#citizenTplModal').classList.add('hidden');
+      $('#citizenTplBtn').addEventListener('click', showCTpl);
+      document.querySelectorAll('[data-close-ctpl]').forEach(b => b.addEventListener('click', hideCTpl));
+      document.querySelectorAll('[data-open-issue]').forEach(b => {
+        b.addEventListener('click', () => openCitizenForm(b.getAttribute('data-open-issue')));
+      });
+
+      // Issue form submit -> create request (Pending)
+      const hideIssue = () => $('#issueModal').classList.add('hidden');
+      document.querySelectorAll('[data-close-issue]').forEach(b => b.addEventListener('click', hideIssue));
+      $('#issueForm').addEventListener('submit', async e => {
+        e.preventDefault();
+        const form = new FormData(e.target);
+        const data = Object.fromEntries(form.entries());
+        const payload = {
+          id: reqId(),
+          type: currentTplKey,
+          title: citizenTemplates[currentTplKey]?.title || 'Citizen Document',
+          data,
+          status: 'Pending',
+          submittedAt: new Date().toISOString()
+        };
+
+        // If you have a backend, POST here (example):
+        // try {
+        //   const res = await fetch('/request_citizen_doc', { method:'POST', body: JSON.stringify(payload), headers:{'Content-Type':'application/json'} });
+        //   if (res.ok) { payload.status='Under Review'; }
+        // } catch(e){ /* fallback to local */ }
+
+        citizenReqs.unshift(payload);
+        saveReqs(citizenReqs);
+        hideIssue(); renderReqs();
+
+        // Notify
+        notifications.unshift({ id: Date.now(), text: `Request submitted: ${payload.title} (${payload.id})`, time: 'just now', unread: true });
+        renderNotifs();
+      });
+
+      // My Requests table actions
+      $('#reqList').addEventListener('click', (e) => {
+        const viewBtn = e.target.closest('[data-view]');
+        const printBtn = e.target.closest('[data-print]');
+        if (viewBtn) {
+          const r = citizenReqs.find(x => x.id === viewBtn.getAttribute('data-view')); if (!r) return;
+          alert(`${r.title}\n\nReq ID: ${r.id}\nStatus: ${r.status}\nSubmitted: ${new Date(r.submittedAt).toLocaleString()}\n\nName: ${r.data?.name || r.data?.minor || '—'}\nNotes: ${r.data?.notes || '—'}`);
+        }
+        if (printBtn) {
+          const r = citizenReqs.find(x => x.id === printBtn.getAttribute('data-print')); if (!r) return;
+          if (r.status !== 'Approved') return;
+          const html = renderCertificate(r.type, r.data);
+          openPrintWindow(html);
+        }
+      });
+
+      // Notifications toggle
+      const notifBtn = $('#notifBtn'); const panel = $('#notifPanel');
+      notifBtn.addEventListener('click', e => { e.stopPropagation(); panel.classList.toggle('hidden'); });
+      document.addEventListener('click', () => panel.classList.add('hidden'));
+      $('#markAllRead').addEventListener('click', () => { notifications.forEach(n => n.unread = false); renderNotifs(); });
+    });
+
+    // User dropdown (bottom of sidebar)
+    (function () {
+      const t = document.getElementById('userDropdownToggle');
+      const m = document.getElementById('userDropdownMenu');
+      t?.addEventListener('click', (e) => { e.stopPropagation(); m?.classList.toggle('hidden'); });
+      document.addEventListener('click', () => m?.classList.add('hidden'));
+    })();
+
+    /* ===== Document Preview ===== */
+    function openDocPreview(docId, title, fileType) {
+      const modal = document.getElementById('docPreviewModal');
+      const content = document.getElementById('previewDocContent');
+      const titleEl = document.getElementById('previewDocTitle');
+      const downloadBtn = document.getElementById('previewDownloadBtn');
+
+      titleEl.textContent = title || 'Document Preview';
+      downloadBtn.href = `/download_document/${docId}`;
+      content.innerHTML = '<p class="text-gray-400"><i class="fas fa-spinner fa-spin mr-2"></i>Loading preview...</p>';
+
+      modal.classList.remove('hidden');
+      modal.style.display = 'flex';
+
+      const previewUrl = `/preview_document/${docId}`;
+
+      if (fileType && fileType.includes('pdf')) {
+        content.innerHTML = `<iframe src="${previewUrl}" class="w-full h-full" style="min-height:500px; border:none;"></iframe>`;
+      } else if (fileType && fileType.startsWith('image/')) {
+        content.innerHTML = `<img src="${previewUrl}" alt="${title}" class="max-w-full max-h-full object-contain" style="max-height:75vh;">`;
+      } else if (fileType && (fileType.includes('text') || fileType.includes('csv'))) {
+        fetch(previewUrl)
+          .then(r => r.text())
+          .then(text => {
+            content.innerHTML = `<pre class="p-6 text-sm text-gray-800 whitespace-pre-wrap w-full overflow-auto bg-white" style="max-height:75vh;">${text.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</pre>`;
+          })
+          .catch(() => {
+            content.innerHTML = `<div class="text-center p-8"><i class="fas fa-file-alt text-4xl text-gray-300 mb-3"></i><p class="text-gray-500">Unable to load preview.</p><a href="/download_document/${docId}" class="mt-3 inline-block text-blue-600 hover:underline">Download instead</a></div>`;
+          });
+      } else {
+        content.innerHTML = `<div class="text-center p-8"><i class="fas fa-file text-5xl text-gray-300 mb-4"></i><p class="text-gray-500 mb-1">Preview is not available for this file type.</p><p class="text-xs text-gray-400 mb-4">${fileType || 'Unknown type'}</p><a href="/download_document/${docId}" class="inline-block bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700"><i class="fas fa-download mr-2"></i>Download File</a></div>`;
+      }
+    }
+
+    document.getElementById('closeDocPreview')?.addEventListener('click', () => {
+      const modal = document.getElementById('docPreviewModal');
+      modal.classList.add('hidden');
+      modal.style.display = 'none';
+      document.getElementById('previewDocContent').innerHTML = '';
+    });
+
+    // Close on backdrop click
+    document.getElementById('docPreviewModal')?.addEventListener('click', (e) => {
+      if (e.target === e.currentTarget) {
+        e.target.classList.add('hidden');
+        e.target.style.display = 'none';
+        document.getElementById('previewDocContent').innerHTML = '';
+      }
+    });
+
+  
+    /* Financial Reports dropdown toggle */
+    (function(){
+      const btn = document.getElementById('finDropdownBtn');
+      const menu = document.getElementById('finSubMenu');
+      const chevron = document.getElementById('finChevron');
+      if(btn && menu){
+        btn.addEventListener('click', function(e){
+          e.preventDefault();
+          e.stopPropagation();
+          const isHidden = menu.classList.toggle('hidden');
+          if(chevron) chevron.style.transform = isHidden ? '' : 'rotate(180deg)';
+        });
+      }
+    })();</script>
+</body>
+
+</html>

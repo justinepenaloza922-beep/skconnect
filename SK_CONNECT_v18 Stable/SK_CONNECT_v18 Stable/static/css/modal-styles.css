@@ -1,0 +1,84 @@
+/* Modal Styles: colorful header, responsive body, and description fitting */
+:root{
+  --modal-accent-1: #0ea5e9; /* sky-500 */
+  --modal-accent-2: #7c3aed; /* purple-600 */
+  --modal-accent-3: #06b6d4; /* teal */
+  --modal-surface: #ffffff;
+  --modal-backdrop: rgba(0,0,0,0.45);
+}
+
+.event-modal .modal-backdrop{background:var(--modal-backdrop);} 
+
+.event-modal .modal-panel{
+  max-width:56rem; /* 5xl-ish */
+  width:95%;
+  border-radius:0.75rem;
+  box-shadow:0 20px 40px rgba(2,6,23,0.35);
+  overflow:hidden;
+  border: 1px solid rgba(0,0,0,0.06);
+}
+
+/* Colorful header with subtle cover image overlay */
+.event-modal .modal-header{
+  height:12rem;
+  background: linear-gradient(135deg,var(--modal-accent-1), var(--modal-accent-2));
+  color: white;
+  display:flex;
+  align-items:flex-end;
+  position:relative;
+  padding:1.5rem;
+}
+
+.event-modal .modal-cover{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  opacity:0.18;
+}
+
+.event-modal .modal-header .modal-title{z-index:2}
+.event-modal .modal-header .modal-sub{z-index:2; opacity:0.95}
+
+/* Body: ensure content fits and scrolls inside modal when needed */
+.event-modal .modal-body{
+  padding:1.25rem;
+  max-height: calc(80vh - 12rem);
+  overflow-y:auto;
+}
+
+/* Make nested panels borderless so color shows through */
+.event-modal .modal-body .border{background:transparent}
+
+/* Description container: wrap, break long words, and allow inner scrolling */
+.modal-description{
+  white-space:pre-wrap;
+  word-break:break-word;
+  max-height:18rem;
+  overflow:auto;
+}
+
+/* Smaller elements and QR area */
+#modalEventQR{background:linear-gradient(180deg, rgba(255,255,255,0.6), rgba(255,255,255,0.45));}
+
+/* Make buttons use accent color */
+.event-modal .modal-actions .btn-primary, .event-modal a.btn-primary{
+  background: linear-gradient(90deg,var(--modal-accent-2),var(--modal-accent-1));
+  color:white;
+  border:none;
+}
+
+.event-modal .modal-close{
+  background: rgba(255,255,255,0.9);
+  color:#1f2937;
+  border-radius:9999px;
+  padding:0.5rem;
+  z-index:3;
+}
+
+/* Responsive tweaks */
+@media (max-width:768px){
+  .event-modal .modal-header{height:9rem;padding:1rem}
+  .modal-description{max-height:12rem}
+}

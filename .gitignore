@@ -1,0 +1,44 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.sqlite3
+instance/
+.env
+.env.*
+.venv/
+venv/
+env/
+.Python
+
+# macOS
+.DS_Store
+
+# Editor
+.vscode/
+.idea/
+
+# Uploads / generated / secrets
+static/generated_pdfs/
+static/uploads/
+celerybeat-schedule
+*.pem
+*.key
+
+# Python packaging
+build/
+dist/
+*.egg-info/
+
+# Logs
+*.log
+
+# JetBrains
+.idea/
+
+# Node
+node_modules/
+
+# dotenv
+.env

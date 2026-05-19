@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>SK Connect — Youth Warning Wall</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+  <!-- Tailwind + Icons -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root{ --sk-blue:#0d2a52; --sk-yellow:#FCD116; }
+    html,body{ height:100%; }
+    body{
+      margin:0;
+      overflow:hidden;
+      font-family:"Poppins",system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial,"Noto Sans";
+      background:#f9fafb;
+      color:#111827;
+    }
+
+    /* Sidebar (user) */
+    .sidebar{ background:var(--sk-blue)!important; color:#fff; }
+    .sidebar .sidebar-item{ color:#e5e7eb; transition:all .15s ease; }
+    .sidebar .sidebar-item:hover{ background:rgba(255,255,255,.06); transform:translateX(4px); }
+    .active-nav{
+      background:linear-gradient(90deg, rgba(252,209,22,.22), rgba(252,209,22,0))!important;
+      border-left:4px solid var(--sk-yellow);
+      color:#fff!important;
+    }
+    .brand-img{ width:40px; height:40px; border-radius:10px; object-fit:cover; }
+
+    /* Inputs & buttons */
+    .inp{
+      width:100%;
+      border:1px solid #d1d5db;
+      border-radius:.5rem;
+      padding:.45rem .7rem;
+      font-size:.875rem;
+    }
+    .inp:focus{
+      outline:none;
+      border-color:#3b82f6;
+      box-shadow:0 0 0 3px rgba(59,130,246,.25);
+    }
+    .lbl{
+      font-size:.75rem;
+      font-weight:600;
+      color:#374151;
+      margin-bottom:.15rem;
+    }
+
+    .btn-soft{
+      background:#f3f4f6;
+      color:#374151;
+      padding:.5rem .9rem;
+      border-radius:.9rem;
+      font-size:.825rem;
+      font-weight:500;
+      display:inline-flex;
+      align-items:center;
+      gap:.4rem;
+    }
+    .btn-soft:hover{ background:#e5e7eb; }
+
+    .btn-light{
+      background:#eef2ff;
+      color:#1e3a8a;
+      padding:.45rem .85rem;
+      border-radius:.9rem;
+      font-size:.75rem;
+      font-weight:500;
+    }
+    .btn-light:hover{ background:#e0e7ff; }
+
+    .card{
+      border:1px solid #e5e7eb;
+      border-radius:1rem;
+      padding:1rem;
+      background:#fff;
+    }
+    .card-title{
+      font-weight:700;
+      color:#111827;
+      margin-bottom:.35rem;
+      font-size:.9rem;
+    }
+    .muted{ color:#6b7280; font-size:.8rem; }
+
+    .chip{
+      display:inline-flex;
+      align-items:center;
+      padding:.1rem .55rem;
+      border-radius:999px;
+      font-size:.7rem;
+      font-weight:600;
+      white-space:nowrap;
+    }
+    .chip-level{ background:#eff6ff; color:#1d4ed8; }
+    .status-active{ background:#dbeafe; color:#1d4ed8; }
+    .status-completed{ background:#dcfce7; color:#166534; }
+
+    .badge-pill{
+      border-radius:999px;
+      padding:.15rem .55rem;
+      font-size:.7rem;
+      font-weight:600;
+    }
+
+    .text-2xs{ font-size:0.7rem; }
+    .text-3xs{ font-size:0.6rem; }
+
+    .line-clamp-2{
+      display:-webkit-box;
+      -webkit-box-orient:vertical;
+      overflow:hidden;
+    }
+
+    /* Progress bar in penalty box */
+    .progress-outer{
+      width:100%;
+      border-radius:999px;
+      background:#e5e7eb;
+      height:3px;
+      overflow:hidden;
+    }
+    .progress-inner{
+      height:100%;
+      border-radius:999px;
+      background:#22c55e;
+    }
+
+    /* Orange info banner */
+    .info-banner{
+      border-radius:1rem;
+      padding:1rem 1.25rem;
+      background:linear-gradient(90deg,#fff7ed,#ffedd5);
+      border:1px solid #fed7aa;
+    }
+
+    /* Modal (read-only details) */
+    .modal-backdrop{
+      position:fixed;
+      inset:0;
+      z-index:50;
+      background:rgba(0,0,0,.45);
+      backdrop-filter:blur(2px);
+      display:none;
+      overflow-y:auto;
+    }
+    .modal-backdrop.show{ display:block; }
+    .modal-shell{
+      min-height:100%;
+      display:flex;
+      align-items:flex-start;
+      justify-content:center;
+      padding:1.5rem;
+    }
+    .modal-panel{
+      width:100%;
+      max-width:48rem;
+      background:#fff;
+      border-radius:1rem;
+      overflow:hidden;
+      box-shadow:0 15px 40px rgba(0,0,0,.25);
+      transform-origin:center;
+      animation:modal-in .18s ease-out both;
+    }
+    @keyframes modal-in{
+      from{transform:scale(.97); opacity:0;}
+      to{transform:scale(1); opacity:1;}
+    }
+    .modal-header-soft{
+      background:linear-gradient(90deg,#fee2e2,#fecaca);
+      color:#7f1d1d;
+      border-bottom:1px solid rgba(248,113,113,.4);
+    }
+
+    #toast{ pointer-events:none; }
+  </style>
+</head>
+
+<body class="antialiased">
+<div class="flex h-screen overflow-hidden">
+  <!-- SIDEBAR (user) -->
+  <aside class="hidden md:flex md:flex-shrink-0 sidebar">
+    <div class="flex flex-col w-64">
+      <div class="px-4 py-6 flex items-center">
+        <img src="/static/images/SKLOGO.png" alt="SK Logo" class="brand-img mr-3">
+        <div>
+          <div class="text-white text-xl font-extrabold">SK<span class="text-yellow-300">Connect</span></div>
+          <div class="text-blue-200 text-xs">Los Baños Federation</div>
+        </div>
+      </div>
+
+      <div class="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
+        <nav class="flex-1 px-2 space-y-1">
+          <a href="{{ url_for('user_dashboard') }}" data-title="Dashboard" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+            <i class="fas fa-home mr-3 text-lg"></i> Dashboard
+          </a>
+          <a href="{{ url_for('user_announcements') }}" data-title="Announcements" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+            <i class="fas fa-bullhorn mr-3 text-lg"></i> Announcements
+          </a>
+          <a href="{{ url_for('user_events_projects') }}" data-title="Events & Projects" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+            <i class="fas fa-calendar mr-3 text-lg"></i> Events & Projects
+          </a>
+          <div class="relative" id="finDropdownWrap">
+              <button id="finDropdownBtn" data-title="Financial Reports" class="sidebar-item flex items-center justify-between w-full px-4 py-3 text-sm font-medium rounded-md">
+                <span class="flex items-center">
+                  <i class="fas fa-chart-pie mr-3 text-lg"></i> Financial Reports
+                </span>
+                <i class="fas fa-chevron-down text-sm transition-transform" id="finChevron"></i>
+              </button>
+              <div id="finSubMenu" class="hidden pl-11 pr-2 py-1 space-y-1">
+                <a href="{{ url_for('user_financial_report') }}" class="block px-3 py-2 text-sm text-blue-100 hover:text-white rounded-md">
+                  <i class="fas fa-chart-bar mr-2"></i>Financial Dashboard
+                </a>
+                <a href="{{ url_for('user_all_transactions') }}" class="block px-3 py-2 text-sm text-blue-100 hover:text-white rounded-md">
+                  <i class="fas fa-receipt mr-2"></i>View Transactions
+                </a>
+                <a href="{{ url_for('user_all_projects') }}" class="block px-3 py-2 text-sm text-blue-100 hover:text-white rounded-md">
+                  <i class="fas fa-project-diagram mr-2"></i>View Projects
+                </a>
+              </div>
+            </div>
+          <a href="{{ url_for('user_feedback') }}" data-title="Surveys & Polls" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+            <i class="fas fa-poll mr-3 text-lg"></i> Survey & Polls
+          </a>
+          <a href="{{ url_for('user_documents') }}" data-title="Documents" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+            <i class="fas fa-file-alt mr-3 text-lg"></i> Documents
+          </a>
+          <a href="{{ url_for('user_volunteer') }}" data-title="Volunteer" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+            <i class="fas fa-hands-helping mr-3 text-lg"></i> Volunteer
+          </a>
+          <a href="{{ url_for('user_training_resources') }}" data-title="Training Resources" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+            <i class="fas fa-graduation-cap mr-3 text-lg"></i> Training Resources
+          </a>
+          <a href="{{ url_for('user_community') }}" data-title="Community Board" class="sidebar-item flex items-center px-4 py-3 text-sm font-medium rounded-md">
+            <i class="fas fa-users mr-3 text-lg"></i> Community Board
+          </a>
+          <a href="{{ url_for('user_incidents') }}" data-title="Incident Reports" class="sidebar-item active-nav flex items-center px-4 py-3 text-sm font-medium rounded-md">
+            <i class="fas fa-exclamation-triangle mr-3 text-lg"></i> Youth Warning Wall
+          </a>
+        </nav>
+      </div>
+
+      <!-- user dropdown -->
+      <div class="flex-shrink-0 flex border-t border-white/10 p-4 relative">
+        <div id="userDropdownToggle" class="flex flex-col items-center cursor-pointer w-full">
+          <div class="flex items-center justify-center w-full">
+            <img class="h-9 w-9 rounded-full"
+                 src="{{ current_user.profile_pic if current_user and current_user.profile_pic else get_default_profile_image(current_user) }}"
+                 alt="Profile">
+            <div class="ml-3 flex-1 min-w-0">
+              <div class="text-base font-medium text-white truncate uppercase">
+                {{ session['username'] if session.get('username') else 'Guest' }}
+              </div>
+              <div class="text-xs text-blue-100 mt-0.5 truncate">
+                {{ session['position']|title if session.get('position') else 'User' }}
+              </div>
+            </div>
+            <i class="fas fa-chevron-down ml-2 text-blue-200 flex-shrink-0"></i>
+          </div>
+        </div>
+        <ul id="userDropdownMenu" class="absolute left-0 right-0 mx-auto bottom-14 z-20 w-60 bg-white rounded shadow-lg py-2 text-gray-700 hidden">
+          <li>
+            <a class="dropdown-item flex items-center px-4 py-2 hover:bg-gray-100" href="{{ url_for('profile') }}">
+              <i class="fas fa-user mr-2"></i>Profile
+            </a>
+          </li>
+          <li><a class="dropdown-item flex items-center px-4 py-2 hover:bg-gray-100" href="#"><i class="fas fa-cog mr-2"></i>Settings</a></li>
+          <li><hr class="dropdown-divider my-1"></li>
+          <li><a class="dropdown-item flex items-center px-4 py-2 hover:bg-gray-100" href="/logout"><i class="fas fa-sign-out-alt mr-2"></i>Logout</a></li>
+        </ul>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="flex-1 flex flex-col overflow-hidden min-h-0">
+    <header class="bg-white shadow-sm">
+      <div class="flex justify-between items-center px-4 py-4 sm:px-6 lg:px-8">
+        <div>
+          <h1 class="text-2xl font-extrabold text-gray-900 flex items-center gap-2">
+            <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-red-100 text-red-600 text-sm">
+              <i class="fa-solid fa-exclamation"></i>
+            </span>
+            Youth Warning Wall
+          </h1>
+          <p class="text-xs text-gray-500 mt-1">
+            A reminder board for youth behavior — to guide, not shame. Warnings are posted so everyone can
+            learn, reflect, and help each other do better in the community.
+          </p>
+        </div>
+      </div>
+    </header>
+
+    <!-- CONTENT -->
+    <main class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-6">
+      <!-- INFO BANNER -->
+      <section class="info-banner flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div class="flex items-start gap-3">
+          <div class="mt-1">
+            <span class="inline-flex items-center justify-center w-9 h-9 rounded-full bg-red-100 text-red-600">
+              <i class="fa-solid fa-triangle-exclamation"></i>
+            </span>
+          </div>
+          <div>
+            <div class="font-semibold text-gray-900 text-sm mb-1">
+              What is the Youth Warning Wall?
+            </div>
+            <p class="text-xs text-gray-700 leading-relaxed">
+              This wall shows recorded youth violations per barangay. It is not meant to embarrass anyone,
+              but to track incidents, follow up, and remind everyone about proper behavior in the community.
+            </p>
+          </div>
+        </div>
+        <div class="flex gap-3 text-xs">
+          <div class="bg-blue-50 border border-blue-100 rounded-xl px-3 py-2 text-center">
+            <div class="font-bold text-gray-800 text-xs mb-0.5">Level 1</div>
+            <div class="text-blue-600 text-2xs font-semibold">First reminder</div>
+          </div>
+          <div class="bg-yellow-50 border border-yellow-100 rounded-xl px-3 py-2 text-center">
+            <div class="font-bold text-gray-800 text-xs mb-0.5">Level 2</div>
+            <div class="text-yellow-700 text-2xs font-semibold">Repeat offense</div>
+          </div>
+          <div class="bg-red-50 border border-red-100 rounded-xl px-3 py-2 text-center">
+            <div class="font-bold text-gray-800 text-xs mb-0.5">Level 3</div>
+            <div class="text-red-600 text-2xs font-semibold">Final warning</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- FILTERS -->
+      <section class="bg-white shadow rounded-xl p-4">
+        <div class="grid grid-cols-1 md:grid-cols-7 gap-3 items-end">
+          <div class="md:col-span-3">
+            <label class="lbl">Search</label>
+            <div class="relative">
+              <input id="q" type="text"
+                     placeholder="Search name, violation, barangay…"
+                     class="w-full border rounded-md px-3 py-2 pr-10 focus:ring-blue-500 focus:border-blue-500 text-sm">
+              <button id="btnSearch" type="button"
+                      class="absolute right-1.5 top-1.5 w-7 h-7 rounded-full flex items-center justify-center bg-blue-500 text-white text-xs hover:bg-blue-600">
+                <i class="fa-solid fa-magnifying-glass"></i>
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <label class="lbl">Barangay</label>
+            <select id="fBarangay" class="inp text-sm">
+              <option value="">All barangays</option>
+              <option value="Anos">Anos</option>
+              <option value="Bagong Silang">Bagong Silang</option>
+              <option value="Bambang">Bambang</option>
+              <option value="Batong Malake">Batong Malake</option>
+              <option value="Baybayin">Baybayin</option>
+              <option value="Bayog">Bayog</option>
+              <option value="Lalakay">Lalakay</option>
+              <option value="Maahas">Maahas</option>
+              <option value="Malinta">Malinta</option>
+              <option value="Mayondon">Mayondon</option>
+              <option value="Putho-Tuntungin">Putho-Tuntungin</option>
+              <option value="San Antonio">San Antonio</option>
+              <option value="Tadlac">Tadlac</option>
+              <option value="Timugan">Timugan</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="lbl">Violation type</label>
+            <input id="fType" type="text" class="inp text-sm" placeholder="e.g. Vandalism">
+          </div>
+
+          <div>
+            <label class="lbl">Warning level</label>
+            <select id="fLevel" class="inp text-sm">
+              <option value="">All levels</option>
+              <option value="Level 1">Level 1</option>
+              <option value="Level 2">Level 2</option>
+              <option value="Level 3">Level 3</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="lbl">Status</label>
+            <select id="fStatus" class="inp text-sm">
+              <option value="">All</option>
+              <option value="active">Active community service</option>
+              <option value="completed">Completed / Resolved</option>
+            </select>
+          </div>
+
+          <div class="md:col-span-1 flex gap-2 justify-end md:justify-center">
+            <button id="viewGrid" class="btn-soft text-xs px-3 py-2">
+              <i class="fa-solid fa-border-all"></i><span class="hidden sm:inline">Grid</span>
+            </button>
+            <button id="viewList" class="btn-soft text-xs px-3 py-2">
+              <i class="fa-solid fa-list"></i><span class="hidden sm:inline">List</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- LIST / GRID SECTION -->
+      <section class="bg-white shadow rounded-xl p-4">
+        <div id="gridContainer" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4"></div>
+
+        <div id="listContainer" class="hidden overflow-x-auto mt-1">
+          <table class="min-w-full divide-y divide-gray-200 whitespace-nowrap text-sm">
+            <thead class="bg-gray-50">
+            <tr>
+              <th class="px-4 py-2 text-left text-xs font-semibold text-gray-500 uppercase">Name</th>
+              <th class="px-4 py-2 text-left text-xs font-semibold text-gray-500 uppercase">Violation</th>
+              <th class="px-4 py-2 text-left text-xs font-semibold text-gray-500 uppercase">Barangay</th>
+              <th class="px-4 py-2 text-left text-xs font-semibold text-gray-500 uppercase">Level</th>
+              <th class="px-4 py-2 text-left text-xs font-semibold text-gray-500 uppercase">Penalty</th>
+              <th class="px-4 py-2 text-left text-xs font-semibold text-gray-500 uppercase">Status</th>
+            </tr>
+            </thead>
+            <tbody id="tbodyList" class="divide-y divide-gray-200 text-sm"></tbody>
+          </table>
+        </div>
+
+        <div id="emptyState" class="hidden py-10 text-center text-sm text-gray-500">
+          No warnings found for your current filters.
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<!-- VIEW MODAL (read-only) -->
+<div id="viewModal" class="modal-backdrop">
+  <div class="modal-shell">
+    <div class="modal-panel">
+      <div class="modal-header-soft px-6 py-4 flex items-start justify-between">
+        <div>
+          <h3 id="vTitle" class="text-lg font-extrabold">Warning details</h3>
+          <p id="vMeta" class="text-sm text-red-900/80 mt-0.5">—</p>
+        </div>
+        <button id="viewClose" class="text-red-900/80 hover:text-red-900">
+          <i class="fa-solid fa-xmark text-xl"></i>
+        </button>
+      </div>
+      <div class="p-6 grid grid-cols-12 gap-4 text-sm">
+        <div class="col-span-12 space-y-4">
+          <div class="flex flex-wrap items-center gap-2">
+            <span id="vStatus" class="badge-pill status-active">Active community service</span>
+            <span id="vLevel" class="badge-pill bg-slate-100 text-slate-700">Level 1</span>
+          </div>
+
+          <div class="card">
+            <h4 class="card-title">Youth &amp; violation</h4>
+            <div id="vSummary" class="space-y-1 text-sm"></div>
+          </div>
+
+          <div class="card">
+            <h4 class="card-title">Details</h4>
+            <p id="vDetails" class="text-sm text-gray-800 whitespace-pre-line"></p>
+          </div>
+
+          <div class="card">
+            <h4 class="card-title">What was done</h4>
+            <p id="vAction" class="text-sm text-gray-800 whitespace-pre-line"></p>
+            <div class="mt-3">
+              <div class="text-3xs text-gray-500 mb-1">Penalty &amp; progress</div>
+              <div id="vPenalty" class="text-xs font-semibold text-gray-800"></div>
+              <div id="vProgressWrap" class="mt-1">
+                <div class="flex items-center justify-between text-3xs text-gray-500 mb-1">
+                  <span>Progress</span>
+                  <span id="vProgressLabel">0%</span>
+                </div>
+                <div class="progress-outer">
+                  <div id="vProgressBar" class="progress-inner" style="width:0%;"></div>
+                </div>
+              </div>
+              <p class="text-3xs text-gray-500 mt-3">
+                Records are kept for history even after the case is completed, so the community can learn from past incidents.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div> <!-- /content -->
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast" class="hidden fixed top-5 right-5 bg-gray-900 text-white text-sm px-4 py-2 rounded-lg shadow-lg z-50"></div>
+
+<script>
+  const $  = sel => document.querySelector(sel);
+  const $$ = sel => Array.from(document.querySelectorAll(sel));
+
+  let WARNINGS = [];
+  let CURRENT  = null;
+  let VIEW_MODE = 'grid';
+
+  const showToast = msg => {
+    const t = $('#toast');
+    t.textContent = msg;
+    t.classList.remove('hidden');
+    setTimeout(() => t.classList.add('hidden'), 1800);
+  };
+
+  const fmtDT = v => {
+    if (!v) return '—';
+    const d = new Date(v);
+    if (isNaN(d.getTime())) return v;
+    return d.toLocaleString();
+  };
+
+  const computeStatus = w => {
+    const cons = (w.consequence_type || '').toLowerCase();
+    const req  = Number(w.service_days_required || 0);
+    const done = Number(w.service_days_completed || 0);
+    if (cons === 'community service' && req > 0) {
+      return done >= req ? 'completed' : 'active';
+    }
+    return 'completed';
+  };
+
+  const computeProgress = w => {
+    const req = Number(w.service_days_required || 0);
+    const done = Number(w.service_days_completed || 0);
+    if (!req || req <= 0) return 0;
+    return Math.min(100, Math.round((done / req) * 100));
+  };
+
+  function matchFilters(w) {
+    const q        = ($('#q').value || '').toLowerCase().trim();
+    const barangay = $('#fBarangay').value || '';
+    const vtype    = ($('#fType').value || '').toLowerCase().trim();
+    const level    = $('#fLevel').value || '';
+    const fStatus  = $('#fStatus').value || '';
+
+    if (barangay && w.barangay !== barangay) return false;
+    if (level && (w.warning_level || '') !== level) return false;
+
+    if (vtype) {
+      const t = (w.violation_type || '').toLowerCase();
+      if (!t.includes(vtype)) return false;
+    }
+
+    if (q) {
+      const hay = [
+        w.youth_name, w.violation_type, w.barangay,
+        w.details, w.logged_by
+      ].join(' ').toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+
+    if (fStatus) {
+      const s = computeStatus(w);
+      if (s !== fStatus) return false;
+    }
+    return true;
+  }
+
+  function render() {
+    const filtered = WARNINGS.filter(matchFilters);
+    const grid  = $('#gridContainer');
+    const tbody = $('#tbodyList');
+    const empty = $('#emptyState');
+
+    grid.innerHTML = '';
+    tbody.innerHTML = '';
+
+    if (!filtered.length) empty.classList.remove('hidden');
+    else empty.classList.add('hidden');
+
+    filtered.forEach(w => {
+      const status   = computeStatus(w);
+      const progress = computeProgress(w);
+      const cons     = w.consequence_type || 'Community Service';
+      const done     = Number(w.service_days_completed || 0);
+      const req      = Number(w.service_days_required || 0);
+      const level    = w.warning_level || '—';
+
+      const card = document.createElement('div');
+      card.className = 'bg-white border rounded-2xl p-4 shadow-sm flex flex-col gap-3 hover:shadow-md transition';
+
+      card.innerHTML = `
+        <div class="flex items-start justify-between">
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2">
+              <h3 class="font-bold text-gray-900 text-sm truncate">${w.youth_name || '—'}</h3>
+              <span class="chip chip-level">${level}</span>
+            </div>
+            <div class="mt-0.5 text-2xs text-gray-500">
+              <span class="font-semibold">${w.violation_type || '—'}</span>
+              &nbsp;•&nbsp;
+              ${(w.barangay || '—')}
+              &nbsp;•&nbsp;
+              ${fmtDT(w.occurred_at)}
+            </div>
+          </div>
+          <span class="badge-pill ${status === 'active' ? 'status-active' : 'status-completed'}">
+            ${status === 'active' ? 'Active' : 'Completed'}
+          </span>
+        </div>
+
+        <div class="flex gap-3 items-stretch">
+          <div class="flex-1 min-w-0">
+            <div class="text-3xs font-semibold text-gray-500 uppercase mb-1 tracking-wide">
+              Violation
+            </div>
+            <div class="text-xs text-gray-800 line-clamp-2">
+              ${(w.details && w.details.trim()) || w.violation_type || '—'}
+            </div>
+            <div class="mt-1 text-3xs text-gray-500">
+              Logged by: <span class="font-semibold">${w.logged_by || '—'}</span>
+            </div>
+          </div>
+
+          <!-- Penalty box (small & neat) -->
+          <div class="w-24 sm:w-28 bg-slate-50 border border-slate-200 rounded-2xl px-2.5 py-2 flex flex-col justify-between">
+            <div>
+              <div class="text-3xs font-semibold text-slate-500 uppercase tracking-wide mb-0.5">
+                Penalty
+              </div>
+              <div class="text-2xs font-extrabold text-slate-900 leading-snug">
+                ${cons}
+              </div>
+              ${
+                cons === 'Community Service'
+                  ? `
+                    <div class="mt-1 text-3xs text-slate-700 font-medium">
+                      ${done}/${req || 0} day(s)
+                    </div>
+                    <div class="mt-1 progress-outer">
+                      <div class="progress-inner" style="width:${progress}%;"></div>
+                    </div>
+                  `
+                  : ''
+              }
+            </div>
+            <button data-view="${w.id}"
+                    class="mt-1 text-3xs font-semibold text-blue-600 hover:text-blue-800 text-center">
+              View
+            </button>
+          </div>
+        </div>
+      `;
+
+      card.querySelectorAll('[data-view]').forEach(btn => {
+        btn.addEventListener('click', () => openView(w.id));
+      });
+
+      grid.appendChild(card);
+    });
+
+    // list view
+    filtered.forEach(w => {
+      const status   = computeStatus(w);
+      const progress = computeProgress(w);
+      const cons     = w.consequence_type || 'Community Service';
+      const done     = Number(w.service_days_completed || 0);
+      const req      = Number(w.service_days_required || 0);
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="px-4 py-3 text-gray-900 text-sm font-medium">
+          ${w.youth_name || '—'}
+          <div class="text-3xs text-gray-500">
+            ${fmtDT(w.occurred_at)}
+          </div>
+        </td>
+        <td class="px-4 py-3 text-gray-700 text-sm">
+          <span class="font-semibold">${w.violation_type || '—'}</span>
+        </td>
+        <td class="px-4 py-3 text-gray-700 text-sm">
+          ${w.barangay || '—'}
+        </td>
+        <td class="px-4 py-3 text-gray-700 text-sm">
+          <span class="chip chip-level">${w.warning_level || '—'}</span>
+        </td>
+        <td class="px-4 py-3 text-gray-700 text-sm">
+          <div class="text-2xs font-semibold text-gray-700">${cons}</div>
+          ${
+            cons === 'Community Service'
+              ? `<div class="text-3xs text-gray-500">${done}/${req || 0} day(s) • ${progress}%</div>`
+              : ''
+          }
+        </td>
+        <td class="px-4 py-3">
+          <span class="chip ${status === 'active' ? 'status-active' : 'status-completed'}">
+            ${status === 'active' ? 'Active' : 'Completed'}
+          </span>
+        </td>
+      `;
+      tr.addEventListener('click', () => openView(w.id));
+      tbody.appendChild(tr);
+    });
+
+    applyViewMode();
+  }
+
+  function applyViewMode() {
+    if (VIEW_MODE === 'grid') {
+      $('#gridContainer').classList.remove('hidden');
+      $('#listContainer').classList.add('hidden');
+    } else {
+      $('#gridContainer').classList.add('hidden');
+      $('#listContainer').classList.remove('hidden');
+    }
+  }
+
+  /* ---------- API: public warnings (view only) ---------- */
+  async function loadWarnings() {
+    try {
+      const res = await fetch('/api/youth-warnings-public'); // PUBLIC endpoint (no admin)
+      if (!res.ok) {
+        showToast('Failed to load warnings');
+        return;
+      }
+      WARNINGS = await res.json();
+      render();
+    } catch (e) {
+      console.error(e);
+      showToast('Error loading warnings');
+    }
+  }
+
+  /* ---------- View modal ---------- */
+  const viewModal = $('#viewModal');
+  const openViewModal  = () => { viewModal.classList.add('show'); document.body.style.overflow='hidden'; };
+  const closeViewModal = () => { viewModal.classList.remove('show'); document.body.style.overflow=''; CURRENT=null; };
+
+  $('#viewClose')?.addEventListener('click', closeViewModal);
+  viewModal?.addEventListener('click', e => { if (e.target === viewModal) closeViewModal(); });
+
+  function fillViewModal(w) {
+    $('#vTitle').textContent = w.youth_name || 'Warning details';
+    $('#vMeta').textContent  = `${w.violation_type || '—'} • ${w.barangay || '—'} • ${fmtDT(w.occurred_at)}`;
+
+    const status = computeStatus(w);
+    const statusChip = $('#vStatus');
+    statusChip.textContent = status === 'active' ? 'Active community service' : 'Completed / Resolved';
+    statusChip.className = 'badge-pill ' + (status === 'active' ? 'status-active' : 'status-completed');
+
+    $('#vLevel').textContent = w.warning_level || '—';
+
+    $('#vSummary').innerHTML = `
+      <div><span class="muted">Name:</span> <span class="font-semibold">${w.youth_name || '—'}</span></div>
+      <div><span class="muted">Barangay:</span> <span class="font-semibold">${w.barangay || '—'}</span></div>
+      <div><span class="muted">Violation:</span> <span class="font-semibold">${w.violation_type || '—'}</span></div>
+      <div><span class="muted">Logged by:</span> <span class="font-semibold">${w.logged_by || '—'}</span></div>
+      <div><span class="muted">Date &amp; time:</span> <span class="font-semibold">${fmtDT(w.occurred_at)}</span></div>
+    `;
+
+    $('#vDetails').textContent = (w.details || '').trim() || 'No additional details.';
+    $('#vAction').textContent  = (w.action_taken || '').trim() || 'No action notes recorded.';
+
+    const cons = w.consequence_type || 'Community Service';
+    const req  = Number(w.service_days_required || 0);
+    const done = Number(w.service_days_completed || 0);
+    $('#vPenalty').textContent =
+      cons === 'Community Service'
+        ? `${cons}: ${done}/${req || 0} day(s) completed`
+        : cons;
+
+    const progress = computeProgress(w);
+    $('#vProgressBar').style.width   = progress + '%';
+    $('#vProgressLabel').textContent = progress + '%';
+  }
+
+  function openView(id) {
+    const w = WARNINGS.find(x => x.id === id);
+    if (!w) return;
+    CURRENT = w;
+    fillViewModal(w);
+    openViewModal();
+  }
+
+  /* ---------- Filters, search, view toggle ---------- */
+  $$('#fBarangay,#fType,#fLevel,#fStatus').forEach(el => el.addEventListener('input', render));
+  $('#q')?.addEventListener('input', render);
+  $('#q')?.addEventListener('keyup', e => { if (e.key === 'Enter') render(); });
+  $('#btnSearch')?.addEventListener('click', render);
+
+  $('#viewGrid')?.addEventListener('click', () => { VIEW_MODE='grid'; applyViewMode(); });
+  $('#viewList')?.addEventListener('click', () => { VIEW_MODE='list'; applyViewMode(); });
+
+  /* ---------- User dropdown ---------- */
+  const userDropdownToggle = document.getElementById('userDropdownToggle');
+  const userDropdownMenu   = document.getElementById('userDropdownMenu');
+  userDropdownToggle?.addEventListener('click', function (e) {
+    e.stopPropagation();
+    userDropdownMenu?.classList.toggle('hidden');
+  });
+  document.addEventListener('click', function () {
+    userDropdownMenu?.classList.add('hidden');
+  });
+
+  /* ---------- INIT ---------- */
+  document.addEventListener('DOMContentLoaded', () => {
+    loadWarnings();
+  });
+
+    /* Financial Reports dropdown toggle */
+    (function(){
+      const btn = document.getElementById('finDropdownBtn');
+      const menu = document.getElementById('finSubMenu');
+      const chevron = document.getElementById('finChevron');
+      if(btn && menu){
+        btn.addEventListener('click', function(e){
+          e.preventDefault();
+          e.stopPropagation();
+          const isHidden = menu.classList.toggle('hidden');
+          if(chevron) chevron.style.transform = isHidden ? '' : 'rotate(180deg)';
+        });
+      }
+    })();</script>
+</body>
+</html>
