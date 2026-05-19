@@ -1,67 +1,72 @@
 # SK Connect
 
-A Flask-based community management app (SK Connect).
+Flask-based community management application used for announcements, events, documents, polls, surveys, and financial/project tracking.
 
-## Summary
-This repository contains the SK Connect web application — a Flask app that uses Supabase for backend data storage and provides features for announcements, events, documents, polls, surveys, and project/financial management.
+## Repository layout
+- `app.py` — main Flask application (routes and logic).
+- `templates/` — Jinja2 HTML templates used by the app.
+- `static/` — static assets (CSS, JS, images, uploads, generated PDFs).
+- `sql/` — SQL migration / schema and helper scripts.
+- `scripts/` — utility scripts (data import, maintenance).
+- `requirements-celery.txt` — dependencies used by the project (worker/production).
 
-## Prerequisites
-- Python 3.10+
-- pip
-- (Optional) Virtualenv or conda
-- Supabase project and API keys
-
-## Quick setup
-1. Clone the repo (already done):
+## Quick start (development)
+1. Clone the repo:
 
 ```bash
 git clone https://github.com/justinepenaloza922-beep/skconnect.git
 cd "SK_CONNECT_v18 Stable"
 ```
 
-2. Create virtual environment and install dependencies:
+2. Create and activate a virtual environment:
 
 ```bash
 python -m venv .venv
 source .venv/bin/activate
-pip install -r requirements-celery.txt || true
-# If you have a requirements.txt, also run:
+```
+
+3. Install dependencies:
+
+```bash
+pip install --upgrade pip
+pip install -r requirements-celery.txt
+# If you have an additional requirements.txt, run:
 # pip install -r requirements.txt
 ```
 
-3. Create environment variables (example):
+4. Set required environment variables (example):
 
 ```bash
 export SUPABASE_URL="https://your-project.supabase.co"
-export SUPABASE_KEY="your-anon-or-service-key"
+export SUPABASE_KEY="your-service-or-anon-key"
 export SECRET_KEY="a-secure-flask-secret"
 export FLASK_ENV=development
 ```
 
-4. Ensure upload folders exist:
+5. Ensure upload directories exist:
 
 ```bash
 mkdir -p static/generated_pdfs static/uploads static/uploads/documents
 ```
 
-5. Run locally:
+6. Run the app locally:
 
 ```bash
 python run_local.py
 # or
-python app.py
-# or
 flask run
 ```
 
-## Notes
-- Do NOT commit secrets: `.env` is included in `.gitignore`.
-- Uploaded/generated files in `static/generated_pdfs` and `static/uploads` are ignored by git.
-- The app references Supabase tables; ensure your Supabase schema matches the SQL files in `sql/`.
+## Testing & CI
+- A GitHub Actions workflow is included at `.github/workflows/python-ci.yml` to run linting (flake8) and tests (pytest).
 
-## Next steps I can do for you
-- Add a more detailed `requirements.txt` and `setup` script
-- Add GitHub Actions CI for linting/tests
-- Remove large binary files from Git history or use `git-lfs`
+## Configuration & secrets
+- Do not commit secrets. Use environment variables or a `.env` file that is included in `.gitignore`.
+- Verify Supabase credentials and DB schema before running the app; SQL schema files are under `sql/`.
 
-If you want one of the above, tell me which and I'll implement it.
+## Common tasks I can help with
+- Generate a `requirements.txt` from your environment.
+- Remove large generated files from the repo history or configure `git-lfs`.
+- Add more detailed setup scripts, Dockerfile, or GitHub Pages/Heroku deployment steps.
+
+If you want me to commit and push any of the above changes, tell me which and I'll implement them.
